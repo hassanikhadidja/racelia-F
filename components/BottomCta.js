@@ -1,0 +1,13 @@
+export function createBottomCta() {
+  const button = document.createElement("button");
+  button.className = "bottom-cta";
+  button.id = "ctaBtn";
+  button.innerHTML = `
+    <span class="bottom-cta__content">
+      <span class="bottom-cta__eyebrow">HANDBAGS</span>
+      <span class="bottom-cta__label">ALL SELECTION</span>
+    </span>
+    <span class="chev"></span>
+  `;
+  return button;
+}

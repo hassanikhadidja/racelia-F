@@ -1,0 +1,263 @@
+.menu-panel--style {
+  background: #000;
+  color: #fff;
+}
+
+.menu-panel--style .menu-tab {
+  color: #fff;
+  opacity: 0.45;
+}
+
+.menu-panel--style .menu-tab.active {
+  opacity: 1;
+  border-bottom-color: #fff;
+}
+
+.menu-panel--style .menu-tab.muted {
+  color: #fff;
+  opacity: 0.45;
+}
+
+.menu-panel--style .menu-head .icon-btn svg,
+.menu-panel--style .menu-head .icon-btn svg path,
+.menu-panel--style .menu-head .icon-btn svg line,
+.menu-panel--style .menu-head .icon-btn svg circle {
+  stroke: #fff;
+}
+
+.style-view {
+  padding-bottom: 24px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.style-search {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #fff;
+  padding: 14px 0;
+  margin-top: 18px;
+  margin-bottom: 28px;
+}
+
+.style-search input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.style-search input::placeholder {
+  color: #bdbdbd;
+}
+
+.style-search__btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+}
+
+.style-search svg {
+  width: 20px;
+  height: 20px;
+  stroke: #fff;
+  fill: none;
+  stroke-width: 1.8;
+}
+
+.style-title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+  color: #fff;
+}
+
+.style-lede {
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 24px;
+  color: #fff;
+}
+
+.style-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+}
+
+.style-cell {
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transition: opacity 0.2s;
+}
+
+.style-cell:hover {
+  opacity: 0.85;
+}
+
+.style-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  aspect-ratio: 1 / 1;
+}
+
+.style-cell--span-2 {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.style-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 1300;
+}
+
+.style-sheet-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.style-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #fff;
+  color: #000;
+  border-radius: 14px 14px 0 0;
+  max-height: 92vh;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 1310;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.style-sheet.open {
+  transform: translateY(0);
+}
+
+.style-sheet-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.style-sheet-handle {
+  width: 44px;
+  height: 4px;
+  background: #c9c9c9;
+  border-radius: 2px;
+  margin: 8px auto 4px;
+}
+
+.style-sheet-hero-wrap {
+  position: relative;
+}
+
+.style-sheet-hero {
+  width: 100%;
+  background: #000;
+}
+
+.style-sheet-hero img {
+  width: 100%;
+  display: block;
+  max-height: 70vh;
+  object-fit: cover;
+}
+
+.style-sheet-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.style-sheet-close svg {
+  width: 18px;
+  height: 18px;
+}
+
+.style-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 20px 14px;
+}
+
+.style-sheet-head h2 {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.style-sheet-count {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.style-sheet-products {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 20px 28px;
+}
+
+.style-product {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: #f3f3f3;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.style-product img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+body.style-sheet-locked {
+  overflow: hidden;
+}
+
+body.style-sheet-locked .menu-panel,
+body.style-sheet-locked .menu-backdrop {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .style-title {
+    font-size: 18px;
+  }
+}

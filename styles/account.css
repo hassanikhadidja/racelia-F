@@ -1,0 +1,321 @@
+.account-page {
+  background: #fff;
+  color: #000;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.account-page__inner {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.account-main {
+  padding: 80px 24px 80px;
+}
+
+.account-title {
+  text-align: center;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  font-size: 28px;
+  margin: 0 0 50px;
+}
+
+.account-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 40px;
+}
+
+.account-tab {
+  background: none;
+  border: 0;
+  padding: 16px 0;
+  cursor: pointer;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: 14px;
+  color: #000;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  font-family: inherit;
+}
+
+.account-tab.active {
+  border-bottom-color: #000;
+}
+
+.account-panel-section {
+  display: none;
+}
+
+.account-panel-section.active {
+  display: block;
+}
+
+.account-welcome {
+  text-align: center;
+  margin: 30px 0 40px;
+}
+
+.account-welcome h2 {
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  font-size: 18px;
+  margin-bottom: 14px;
+}
+
+.account-welcome p {
+  color: #444;
+  font-size: 15px;
+}
+
+.account-field {
+  margin-bottom: 28px;
+  position: relative;
+}
+
+.account-field input,
+.account-field select {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #bbb;
+  background: transparent;
+  padding: 22px 0 8px;
+  font-size: 16px;
+  outline: none;
+  color: #000;
+  border-radius: 0;
+  appearance: none;
+  font-family: inherit;
+}
+
+.account-field select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right center;
+  padding-right: 24px;
+}
+
+.account-field label {
+  position: absolute;
+  left: 0;
+  top: 22px;
+  color: #888;
+  font-size: 16px;
+  pointer-events: none;
+  transition: all 0.15s ease;
+}
+
+.account-field input:focus + label,
+.account-field input:not(:placeholder-shown) + label,
+.account-field--has-value label {
+  top: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.account-field--select label {
+  top: 4px;
+  font-size: 12px;
+  color: #666;
+}
+
+.account-field input:focus,
+.account-field select:focus {
+  border-bottom-color: #000;
+}
+
+.account-field--password input {
+  padding-right: 36px;
+}
+
+.account-password-toggle {
+  position: absolute;
+  right: 0;
+  bottom: 10px;
+  background: none;
+  border: 0;
+  padding: 4px;
+  cursor: pointer;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-password-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+.account-password-toggle__icon--hide {
+  display: none;
+}
+
+.account-password-toggle.is-visible .account-password-toggle__icon--show {
+  display: none;
+}
+
+.account-password-toggle.is-visible .account-password-toggle__icon--hide {
+  display: block;
+}
+
+.account-forgot {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: -12px;
+  font-size: 14px;
+  color: #000;
+  text-decoration: none;
+}
+
+.account-forgot::after {
+  content: "›";
+  font-size: 18px;
+}
+
+.account-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 28px 0 14px;
+  font-size: 14px;
+}
+
+.account-checkbox-row input[type="checkbox"],
+.account-chanel-check {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #000;
+  border-radius: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-content: center;
+  background: #fff;
+}
+
+.account-checkbox-row input[type="checkbox"] {
+  margin-top: 1px;
+}
+
+.account-chanel-check:checked::after {
+  content: "✓";
+  color: #000;
+  font-size: 14px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.account-legal {
+  font-size: 13px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.account-legal a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.account-btn {
+  width: 100%;
+  background: #000;
+  color: #fff;
+  border: 0;
+  padding: 22px;
+  letter-spacing: 0.15em;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 24px;
+  font-family: inherit;
+}
+
+.account-btn:hover {
+  background: #222;
+}
+
+.account-intro {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #222;
+  margin-bottom: 14px;
+}
+
+.account-mandatory {
+  font-size: 14px;
+  color: #222;
+  margin: 18px 0 28px;
+}
+
+.account-section-title {
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: 13px;
+  margin: 40px 0 20px;
+}
+
+.account-consent-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #222;
+}
+
+.account-consent-row a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.account-channels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px 16px;
+  margin: 24px 0 24px 30px;
+}
+
+.account-channels label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.account-fine {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #444;
+  margin-left: 30px;
+}
+
+.account-ack {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #222;
+  margin-top: 28px;
+}
+
+.account-ack + .account-ack {
+  margin-top: 16px;
+}
+
+.account-ack a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+@media (min-width: 768px) {
+  .account-main {
+    padding-top: 100px;
+  }
+}

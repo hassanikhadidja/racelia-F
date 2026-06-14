@@ -1,0 +1,434 @@
+/**
+ * RACÈLIA storefront alignment for shopping bag.
+ * Loaded after shoppingBag.css
+ */
+
+#shoppingBagPage {
+  background: #fff;
+  color: #000;
+  font-family: var(--font-inter), "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#shoppingBagPage .shopping-bag-shell {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+/* Top bar — matches client profile */
+#shoppingBagPage .shopping-bag-topbar {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  padding: 16px 12px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+#shoppingBagPage .shopping-bag-topbar h1 {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #000;
+  margin: 0;
+}
+
+#shoppingBagPage .shopping-bag-topbar__spacer {
+  width: 44px;
+  height: 44px;
+}
+
+#shoppingBagPage .shopping-bag-topbar .btn-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 2px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #000;
+}
+
+#shoppingBagPage .shopping-bag-topbar .btn-icon svg {
+  stroke: #000;
+}
+
+#shoppingBagPage .shopping-bag-topbar .btn-icon:hover {
+  background: #f5f5f5;
+  border-color: #000;
+}
+
+#shoppingBagPage .shopping-bag-inner {
+  padding: 0 0 48px;
+}
+
+#shoppingBagPage .bag-header-summary {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: #666;
+  padding: 20px 20px 8px;
+  margin: 0;
+}
+
+#shoppingBagPage .bag-header-total {
+  color: #000;
+  font-weight: 600;
+}
+
+/* Bag items */
+#shoppingBagPage .bag-items {
+  padding: 8px 16px 0;
+}
+
+#shoppingBagPage .bag-item {
+  padding: 20px 0;
+  gap: 14px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+#shoppingBagPage .item-image,
+#shoppingBagPage .wishlist-image {
+  width: 120px;
+  min-width: 120px;
+  height: 140px;
+  background: #f3f3f3;
+  border-radius: 0;
+}
+
+#shoppingBagPage .item-name,
+#shoppingBagPage .wishlist-name {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  line-height: 1.45;
+  color: #000;
+  margin-bottom: 4px;
+}
+
+#shoppingBagPage .item-color,
+#shoppingBagPage .wishlist-color {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+
+#shoppingBagPage .item-price,
+#shoppingBagPage .wishlist-price {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: #111;
+}
+
+#shoppingBagPage .qty-select {
+  border: 1px solid #111;
+  border-radius: 0;
+  padding: 8px 28px 8px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-width: 72px;
+  color: #000;
+  background-color: #fff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+}
+
+#shoppingBagPage .remove-btn {
+  top: 16px;
+  right: 0;
+  font-size: 18px;
+  font-weight: 400;
+  color: #000;
+  opacity: 0.45;
+  line-height: 1;
+}
+
+#shoppingBagPage .remove-btn:hover {
+  opacity: 1;
+  color: #000;
+}
+
+#shoppingBagPage .save-btn {
+  margin-top: 14px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #000;
+  gap: 6px;
+}
+
+#shoppingBagPage .save-btn svg {
+  width: 14px;
+  height: 14px;
+  stroke-width: 1.6;
+}
+
+/* Promo block */
+#shoppingBagPage .promo-section {
+  margin: 8px 16px 0;
+  border: 1px solid #f0f0f0;
+  border-radius: 0;
+  background: #fff;
+}
+
+#shoppingBagPage .promo-row {
+  padding: 16px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #000;
+}
+
+#shoppingBagPage .promo-row:hover {
+  background: #fafafa;
+}
+
+#shoppingBagPage .promo-chevron {
+  display: flex;
+  align-items: center;
+  color: #000;
+  opacity: 0.4;
+}
+
+#shoppingBagPage .signin-row {
+  padding: 0 16px 16px;
+  font-size: 13px;
+  color: #666;
+}
+
+#shoppingBagPage .signin-row a,
+#shoppingBagPage .wishlist-actions a,
+#shoppingBagPage .modal-signin {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #000;
+  border-bottom: 1px solid #000;
+  text-underline-offset: 0;
+}
+
+#shoppingBagPage .signin-row a:hover,
+#shoppingBagPage .wishlist-actions a:hover,
+#shoppingBagPage .modal-signin:hover {
+  opacity: 0.65;
+}
+
+/* Order summary */
+#shoppingBagPage .order-summary,
+#shoppingBagPage .wishlist-section {
+  padding: 28px 16px 24px;
+  border-bottom: none;
+  border-top: 1px solid #f0f0f0;
+}
+
+#shoppingBagPage .wishlist-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+#shoppingBagPage .order-summary h2,
+#shoppingBagPage .wishlist-section h2 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 0;
+  color: #000;
+}
+
+#shoppingBagPage .wishlist-section-link {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #000;
+  border-bottom: 1px solid #000;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+#shoppingBagPage .wishlist-section-link:hover {
+  opacity: 0.65;
+}
+
+#shoppingBagPage .summary-row {
+  font-size: 14px;
+  color: #444;
+  margin-bottom: 10px;
+}
+
+#shoppingBagPage .summary-row span:last-child {
+  color: #000;
+  font-weight: 500;
+}
+
+#shoppingBagPage .summary-divider {
+  border-top: 1px solid #eee;
+  margin: 16px 0;
+}
+
+#shoppingBagPage .summary-total {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+#shoppingBagPage .checkout-btn,
+#shoppingBagPage .apply-btn {
+  margin-top: 24px;
+  padding: 16px;
+  background: #000;
+  color: #fff;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border: none;
+  transition: opacity 0.2s ease;
+}
+
+#shoppingBagPage .checkout-btn:hover,
+#shoppingBagPage .apply-btn:hover {
+  background: #000;
+  opacity: 0.85;
+}
+
+/* Wishlist */
+#shoppingBagPage .wishlist-item {
+  gap: 14px;
+}
+
+#shoppingBagPage .wishlist-actions {
+  gap: 16px;
+}
+
+/* Promo modal — panel must sit above backdrop with solid white (no opacity fade) */
+#shoppingBagPage .modal-overlay {
+  z-index: 20;
+  position: fixed;
+  inset: 0;
+  isolation: isolate;
+}
+
+#shoppingBagPage .modal-overlay.active {
+  display: block;
+}
+
+#shoppingBagPage .modal-backdrop {
+  z-index: 1;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+#shoppingBagPage .modal-panel {
+  z-index: 2;
+  width: min(400px, 92vw);
+  max-width: 400px;
+  height: 100%;
+  background: #fff;
+  padding: 28px 24px 32px;
+  border-left: 1px solid #f0f0f0;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, 0.08);
+  animation: shoppingBagPromoSlide 0.25s ease;
+}
+
+@keyframes shoppingBagPromoSlide {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+#shoppingBagPage .modal-close {
+  top: 14px;
+  right: 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #000;
+  width: auto;
+  height: auto;
+  padding: 8px;
+}
+
+#shoppingBagPage .modal-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 12px;
+}
+
+#shoppingBagPage .promo-input {
+  border: none;
+  border-bottom: 1px solid #bbb;
+  border-radius: 0;
+  padding: 20px 0 8px;
+  font-size: 16px;
+  color: #000;
+  background: #fff;
+}
+
+#shoppingBagPage .promo-input::placeholder {
+  color: #888;
+}
+
+#shoppingBagPage .promo-input:focus {
+  border-bottom-color: #000;
+  box-shadow: none;
+  color: #000;
+}
+
+/* Avoid storefront menu modal styles bleeding in */
+#shoppingBagPage > .modal-overlay .modal-backdrop {
+  position: absolute;
+  pointer-events: auto;
+}
+
+@media (max-width: 420px) {
+  #shoppingBagPage .item-image,
+  #shoppingBagPage .wishlist-image {
+    width: 100px;
+    min-width: 100px;
+    height: 118px;
+  }
+
+  #shoppingBagPage .modal-panel {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (min-width: 721px) {
+  #shoppingBagPage .shopping-bag-shell {
+    border-left: 1px solid #f0f0f0;
+    border-right: 1px solid #f0f0f0;
+  }
+}
