@@ -5,8 +5,13 @@ import { getPdpImages, getCloserLookForColor } from "../js/productImages.js";
 import { createCategoryProduct } from "../components/CategoryProduct.js";
 import { initProductSliders } from "./productSliders.js";
 import { initPdpActionBar, updatePdpActionBar } from "./pdpActionBar.js";
-import { addToBag } from "./cart.js";
-import { upsertBagLineItem } from "./bagHelpers.js";
+import { syncBagCountFromDom } from "./cart.js";
+import {
+  addCategoryCardToBag,
+  refreshShoppingBagTotals,
+  upsertBagLineItem,
+} from "./bagHelpers.js";
+import { syncWishlistHeartStates } from "./clientCartWishlist.js";
 import { queueClientReviewForModeration } from "./dashboardReviewsData.js";
 
 function starsHtml(count) {
@@ -503,13 +508,6 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
       return;
     }
 
-    const wishlist = event.target.closest(".wishlist-btn");
-    if (wishlist && page.contains(wishlist)) {
-      event.stopPropagation();
-      wishlist.classList.toggle("active");
-      return;
-    }
-
     const accHeader = event.target.closest(".pdp-acc-header");
     if (accHeader) {
       accHeader.closest(".pdp-acc-item")?.classList.toggle("open");
@@ -528,9 +526,10 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
     }
 
     if (event.target.closest("#pdpAddBtn")) {
-      const qty = page.querySelector("#pdpQtyNum");
-      const quantity = Number(qty?.textContent || 1);
-      addToBag(root, quantity);
+      const quantity = getPdpQuantity(root);
+      syncPdpToBag(root, quantity, "add");
+      syncBagCountFromDom(root);
+      refreshShoppingBagTotals(root);
       openPdpAddedOverlay(root, quantity);
       return;
     }
@@ -548,15 +547,15 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
 
     if (event.target.closest(".pdp-added-checkout")) {
       event.preventDefault();
-      const addedQty = Number(root.querySelector("#pdpAddedCount")?.textContent || 1);
-      proceedToCheckoutFromPdp(root, { quantity: addedQty, mode: "add" });
+      closePdpAddedOverlay(root);
+      root.dispatchEvent(new CustomEvent("racelia:open-checkout"));
       return;
     }
 
     if (event.target.closest(".pdp-added-view")) {
       event.preventDefault();
-      const addedQty = Number(root.querySelector("#pdpAddedCount")?.textContent || 1);
-      proceedToShoppingBagFromPdp(root, { quantity: addedQty, mode: "add" });
+      closePdpAddedOverlay(root);
+      root.dispatchEvent(new CustomEvent("racelia:open-shopping-bag"));
       return;
     }
 
@@ -664,17 +663,14 @@ function initPdpRelatedProductCards(root, scope) {
     });
   });
 
-  scope.querySelectorAll(".wishlist-btn").forEach((btn) => {
-    btn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      btn.classList.toggle("active");
-    });
-  });
-
   scope.querySelectorAll(".category-product__add").forEach((btn) => {
     btn.addEventListener("click", (event) => {
       event.stopPropagation();
-      addToBag(root, 1);
+      const card = btn.closest(".category-product");
+      if (addCategoryCardToBag(root, card, { qty: 1, mode: "add" })) {
+        syncBagCountFromDom(root);
+        refreshShoppingBagTotals(root);
+      }
     });
   });
 }
@@ -736,17 +732,10 @@ function syncPdpToBag(root, quantity, mode = "set") {
 function proceedToCheckoutFromPdp(root, { quantity, mode = "set" }) {
   const qty = Math.max(1, Number(quantity) || 1);
   syncPdpToBag(root, qty, mode);
-  addToBag(root, qty);
+  syncBagCountFromDom(root);
+  refreshShoppingBagTotals(root);
   closePdpAddedOverlay(root);
   root.dispatchEvent(new CustomEvent("racelia:open-checkout"));
-}
-
-function proceedToShoppingBagFromPdp(root, { quantity, mode = "add" }) {
-  const qty = Math.max(1, Number(quantity) || 1);
-  syncPdpToBag(root, qty, mode);
-  addToBag(root, qty);
-  closePdpAddedOverlay(root);
-  root.dispatchEvent(new CustomEvent("racelia:open-shopping-bag"));
 }
 
 export function mountProductDetail(root, productId) {
@@ -762,5 +751,6 @@ export function mountProductDetail(root, productId) {
   bindPdpReviewOverlay(root);
   mountRelatedProducts(root, product);
   updatePdpActionBar(root);
+  syncWishlistHeartStates(root);
   return true;
 }

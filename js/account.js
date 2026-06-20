@@ -1,10 +1,4 @@
-import {
-  closeAccount,
-  showAccount,
-  showClientProfile,
-  leaveClientProfile,
-  getCurrentPage,
-} from "./pages.js";
+import { closeAccount, showAccount } from "./pages.js";
 import { getAuthToken } from "./api.js";
 import { loginUser, registerUser } from "./syncBackend.js";
 import { updateAccountButtons } from "./accountUi.js";
@@ -19,10 +13,7 @@ export function initAccount(root) {
 
   const isLoggedIn = () => Boolean(getAuthToken());
 
-  const isOpen = () => {
-    if (isLoggedIn()) return getCurrentPage() === "client-profile";
-    return !accountPage.hidden;
-  };
+  const isOpen = () => !accountPage.hidden;
 
   const closeMenu = () => {
     root.querySelector("#menuPanel")?.classList.remove("open");
@@ -33,17 +24,11 @@ export function initAccount(root) {
 
   const openAccount = () => {
     closeMenu();
-    if (isLoggedIn()) showClientProfile(root);
-    else showAccount(root);
-  };
-
-  const closeAccountOrProfile = () => {
-    if (isLoggedIn()) leaveClientProfile(root);
-    else closeAccount(root);
+    if (!isLoggedIn()) showAccount(root);
   };
 
   const toggleAccount = () => {
-    if (isOpen()) closeAccountOrProfile();
+    if (isOpen()) closeAccount(root);
     else openAccount();
   };
 
@@ -56,7 +41,7 @@ export function initAccount(root) {
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && isOpen()) {
-      closeAccountOrProfile();
+      closeAccount(root);
     }
   });
 
@@ -111,7 +96,7 @@ export function initAccount(root) {
     try {
       await loginUser(email, password, root);
       updateAccountButtons(root);
-      showClientProfile(root);
+      closeAccount(root);
     } catch (error) {
       window.alert(error.message || "Sign in failed.");
     } finally {

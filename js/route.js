@@ -46,10 +46,6 @@ export function parseRoute(hash = window.location.hash) {
     return { view: "account" };
   }
 
-  if (parts[0] === "client-profile") {
-    return { view: "client-profile" };
-  }
-
   if (parts[0] === "shopping-bag" || parts[0] === "bag") {
     return { view: "shopping-bag" };
   }
@@ -92,8 +88,6 @@ export function buildHash(route) {
       return `#dashboard/${route.dashboardTab || "overview"}`;
     case "account":
       return "#account";
-    case "client-profile":
-      return "#client-profile";
     case "shopping-bag":
       return "#shopping-bag";
     case "wishlist":

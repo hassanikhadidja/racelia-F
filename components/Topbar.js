@@ -72,13 +72,7 @@ export function createTopbar() {
   accountBtn.id = "topbarAccountBtn";
   accountBtn.type = "button";
   accountBtn.setAttribute("aria-label", "Account");
-  accountBtn.innerHTML = `
-    <span class="account-btn-icon">${accountIcon}</span>
-    <span class="topbar-account-avatar avatar-wrap" hidden>
-      <span class="avatar-placeholder"></span>
-      <img class="avatar-image" alt="" />
-    </span>
-  `;
+  accountBtn.innerHTML = `<span class="account-btn-icon">${accountIcon}</span>`;
 
   actions.append(cartBtn, accountBtn);
   header.append(menuBtn, searchBtn, brand, actions, searchPanel);

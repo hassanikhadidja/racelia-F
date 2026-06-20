@@ -12,7 +12,6 @@ import {
 import { syncOrderStatus } from "./syncBackend.js";
 
 const PROFILE_STORAGE_KEY = "raceliaDashboardProfile";
-const AVATAR_STORAGE_KEY = "raceliaDashboardAvatar";
 
 function escapeHtml(text) {
   return String(text)
@@ -22,11 +21,10 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
-function getInitials(name) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return "A";
+function getAvatarLetter(name) {
+  const trimmed = String(name || "").trim();
+  if (!trimmed) return "A";
+  return trimmed[0].toUpperCase();
 }
 
 function loadProfile() {
@@ -66,53 +64,25 @@ function getOrdersNeedingSituation() {
   return loadDashboardOrders().filter((order) => !situations[order.id]);
 }
 
-function applyAvatarToElements(page, profile, dataUrl) {
-  const initials = getInitials(profile.name);
-  const targets = [
+function applyAvatarToElements(page, profile) {
+  const letter = getAvatarLetter(profile.name);
+  [
     page.querySelector("#dashboard-profile-avatar"),
     page.querySelector(".js-dashboard-avatar-lg"),
     page.querySelector(".js-dashboard-avatar-sm"),
-  ].filter(Boolean);
-
-  targets.forEach((el) => {
-    if (dataUrl) {
-      el.style.backgroundImage = `url(${dataUrl})`;
-      el.style.backgroundSize = "cover";
-      el.style.backgroundPosition = "center";
-      el.textContent = "";
-      el.classList.add("has-photo");
-    } else {
+  ]
+    .filter(Boolean)
+    .forEach((el) => {
       el.style.backgroundImage = "";
-      el.textContent = initials;
+      el.textContent = letter;
       el.classList.remove("has-photo");
-    }
-  });
-
-  const sheetImg = page.querySelector("#dashboard-profile-avatar-img");
-  const sheetLetter = page.querySelector("#dashboard-profile-avatar");
-  if (dataUrl && sheetImg && sheetLetter) {
-    sheetImg.src = dataUrl;
-    sheetImg.hidden = false;
-    sheetLetter.hidden = true;
-  } else if (sheetImg && sheetLetter) {
-    sheetImg.hidden = true;
-    sheetImg.removeAttribute("src");
-    sheetLetter.hidden = false;
-    sheetLetter.textContent = initials;
-  }
+    });
 }
 
 function syncAccountHeader(page, profile) {
   const nameEl = page.querySelector(".js-dashboard-account-name");
   if (nameEl) nameEl.textContent = profile.name;
-
-  let dataUrl = null;
-  try {
-    dataUrl = localStorage.getItem(AVATAR_STORAGE_KEY);
-  } catch {
-    /* ignore */
-  }
-  applyAvatarToElements(page, profile, dataUrl);
+  applyAvatarToElements(page, profile);
 }
 
 function updateNotificationsBadge(page) {
@@ -256,7 +226,6 @@ function initDashboardProfile(page) {
   const nameInput = page.querySelector("#dashboard-profile-name");
   const emailInput = page.querySelector("#dashboard-profile-email");
   const emailDisplay = page.querySelector("#dashboard-profile-email-display");
-  const fileInput = page.querySelector("#dashboard-profile-avatar-input");
 
   function fillForm() {
     const profile = loadProfile();
@@ -278,20 +247,6 @@ function initDashboardProfile(page) {
     saveProfile(profile);
     syncAccountHeader(page, profile);
     profileSheet?.close();
-  });
-
-  fileInput?.addEventListener("change", () => {
-    const file = fileInput.files?.[0];
-    if (!file || !file.type.startsWith("image/")) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result;
-      if (typeof dataUrl !== "string") return;
-      localStorage.setItem(AVATAR_STORAGE_KEY, dataUrl);
-      applyAvatarToElements(page, loadProfile(), dataUrl);
-    };
-    reader.readAsDataURL(file);
-    fileInput.value = "";
   });
 }
 
@@ -318,6 +273,10 @@ export function closeDashboardAccountOverlay(page) {
 }
 
 export function initDashboardAccount(page) {
+  page.querySelector(".js-dashboard-avatar-sm")?.addEventListener("click", () => {
+    page.querySelector("#tab-account")?.click();
+  });
+
   initDashboardProfile(page);
   initDashboardNotifications(page);
   updateNotificationsBadge(page);

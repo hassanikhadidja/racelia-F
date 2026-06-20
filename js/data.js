@@ -64,7 +64,6 @@ export const menuItems = [
   { label: "HANDBAGS", chevron: true, gap: true, submenu: menuHandbagItems },
   { label: "BOUTIQUES", sale: true },
   { label: "DASHBOARD", muted: true, action: "dashboard" },
-  { label: "CLIENT PROFILE", muted: true, action: "client-profile" },
 ];
 
 export const defaultSelection = "NEW ARRIVALS";

@@ -50,18 +50,18 @@ export function getDashboardAddReviewOverlayMarkup() {
       </div>
       <form class="dashboard-review-form" id="dashboard-add-review-form">
         <div class="dashboard-review-field">
-          <label for="dash-review-author">Client name</label>
+          <label class="dashboard-review-field-label" for="dash-review-author">Client name</label>
           <input type="text" id="dash-review-author" name="author" required autocomplete="name" />
         </div>
         <div class="dashboard-review-field">
-          <label for="dash-review-product">Product</label>
+          <label class="dashboard-review-field-label" for="dash-review-product">Product</label>
           <select id="dash-review-product" name="product" required>
             <option value="" disabled selected>Select product</option>
             ${products}
           </select>
         </div>
         <div class="dashboard-review-field">
-          <label>Rating</label>
+          <span class="dashboard-review-field-label">Rating</span>
           <div class="dashboard-review-stars" id="dash-review-stars" role="radiogroup" aria-label="Star rating">
             ${[1, 2, 3, 4, 5]
               .map(
@@ -73,12 +73,15 @@ export function getDashboardAddReviewOverlayMarkup() {
           <input type="hidden" id="dash-review-stars-value" name="stars" value="5" />
         </div>
         <div class="dashboard-review-field">
-          <label for="dash-review-comment">Comment</label>
+          <label class="dashboard-review-field-label" for="dash-review-comment">Comment</label>
           <textarea id="dash-review-comment" name="comment" rows="4" required></textarea>
         </div>
         <div class="dashboard-review-field">
-          <label for="dash-review-photo">Picture (optional)</label>
-          <input type="file" id="dash-review-photo" name="photo" accept="image/*" />
+          <span class="dashboard-review-field-label" id="dash-review-photo-label">Picture (optional)</span>
+          <label class="edit-btn dashboard-review-photo-upload">
+            Choose photo
+            <input type="file" id="dash-review-photo" name="photo" accept="image/*" hidden aria-labelledby="dash-review-photo-label" />
+          </label>
           <div class="dashboard-review-photo-preview" id="dash-review-photo-preview" hidden>
             <img id="dash-review-photo-img" alt="Review photo preview" />
             <button type="button" class="dashboard-review-photo-remove" id="dash-review-photo-remove">Remove photo</button>

@@ -1,6 +1,7 @@
 import { createProduct } from "../components/Product.js";
 import { getNewArrivalProducts } from "./productCatalog.js";
 import { initProductSliders } from "./productSliders.js";
+import { syncWishlistHeartStates } from "./clientCartWishlist.js";
 
 function revealProductCards(cards) {
   cards.forEach((card) => card.classList.add("in"));
@@ -31,4 +32,5 @@ export function renderHomeNewArrivals(root) {
   revealProductCards(cards);
 
   initProductSliders(root, grid);
+  syncWishlistHeartStates(root);
 }

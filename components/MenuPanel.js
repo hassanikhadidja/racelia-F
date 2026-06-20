@@ -42,13 +42,7 @@ export function createMenuPanel() {
   accountBtn.id = "menuAccountBtn";
   accountBtn.type = "button";
   accountBtn.setAttribute("aria-label", "Account");
-  accountBtn.innerHTML = `
-    <span class="account-btn-icon">${accountIcon}</span>
-    <span class="menu-account-avatar avatar-wrap" hidden>
-      <span class="avatar-placeholder"></span>
-      <img class="avatar-image" alt="" />
-    </span>
-  `;
+  accountBtn.innerHTML = `<span class="account-btn-icon">${accountIcon}</span>`;
 
   const closeBtn = document.createElement("button");
   closeBtn.className = "icon-btn";
@@ -78,10 +72,6 @@ export function createMenuPanel() {
     if (item.action === "new-arrivals") li.classList.add("js-menu-new-arrivals");
     if (item.action === "dashboard") {
       li.classList.add("js-dashboard-open", "js-dashboard-menu-item");
-      li.hidden = true;
-    }
-    if (item.action === "client-profile") {
-      li.classList.add("js-client-profile-open", "js-client-profile-menu-item");
       li.hidden = true;
     }
     if (item.action === "blogs") li.classList.add("js-menu-blogs-open");

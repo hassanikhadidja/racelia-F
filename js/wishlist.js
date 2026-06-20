@@ -1,3 +1,11 @@
+import {
+  moveWishlistItemToBag,
+  persistClientWishlist,
+  removeWishlistItem,
+  renderWishlistPage,
+  syncWishlistHeartStates,
+} from "./clientCartWishlist.js";
+
 export function initWishlist(root, { onMoveToBag, onOpenBag } = {}) {
   const page = root.querySelector("#wishlistPage");
   if (!page || page.dataset.bound === "true") return;
@@ -13,8 +21,8 @@ export function initWishlist(root, { onMoveToBag, onOpenBag } = {}) {
   const labelEl = page.querySelector(".wishlist-count-label");
 
   const updateSummary = () => {
-    const items = list?.querySelectorAll(".wishlist-item") ?? [];
-    const count = items.length;
+    renderWishlistPage(root);
+    const count = list?.querySelectorAll(".wishlist-item").length ?? 0;
     if (countEl) countEl.textContent = String(count);
     if (labelEl) labelEl.textContent = count === 1 ? "item" : "items";
     if (list) list.hidden = count === 0;
@@ -24,11 +32,15 @@ export function initWishlist(root, { onMoveToBag, onOpenBag } = {}) {
 
   const removeItem = (item) => {
     if (!item) return;
+    const productId = item.dataset.productId;
     item.style.transition = "opacity 0.3s ease";
     item.style.opacity = "0";
     setTimeout(() => {
+      if (productId) removeWishlistItem(productId);
       item.remove();
+      syncWishlistHeartStates(root);
       updateSummary();
+      persistClientWishlist();
     }, 300);
   };
 
@@ -47,6 +59,8 @@ export function initWishlist(root, { onMoveToBag, onOpenBag } = {}) {
     if (target.closest(".js-wishlist-move-to-bag")) {
       event.preventDefault();
       const item = target.closest(".wishlist-item");
+      const productId = item?.dataset.productId;
+      if (productId) moveWishlistItemToBag(root, productId);
       removeItem(item);
       onMoveToBag?.();
       return;

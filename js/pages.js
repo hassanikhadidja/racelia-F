@@ -11,11 +11,11 @@ import { getAuthToken, isAdminUser } from "./api.js";
 import { updateAccountButtons } from "./accountUi.js";
 import { initProductDetailPage, mountProductDetail, closePdpAddedOverlay, closePdpVirtualTryOn } from "./productDetail.js";
 import { initDashboard } from "./dashboard.js";
-import { initClientProfile } from "./clientProfile.js";
 import { initShoppingBag } from "./shoppingBag.js";
 import { initWishlist } from "./wishlist.js";
 import { initCheckout } from "./checkout.js";
 import { collectBagItems } from "./bagHelpers.js";
+import { syncWishlistHeartStates } from "./clientCartWishlist.js";
 import { parseRoute, writeRoute, isValidProductRoute, shouldIgnoreHashChange } from "./route.js";
 import { applyHomeWebPics } from "./homeWebPics.js";
 import { renderHomeNewArrivals } from "./homeNewArrivals.js";
@@ -36,9 +36,8 @@ let pageBeforeShoppingBag = "home";
 let pageBeforeAccount = "home";
 let activeCategoryFilters = [];
 
-function resolveProfileReturnPage(fromPage = currentPage) {
+function resolveAccountReturnPage(fromPage = currentPage) {
   if (fromPage === "account") return pageBeforeAccount || "home";
-  if (fromPage === "client-profile") return lastStorePage || "home";
   return fromPage || "home";
 }
 
@@ -50,11 +49,6 @@ function syncRoute() {
   if (currentPage === "dashboard") {
     const tab = sessionStorage.getItem("racelia-dashboard-tab") || "overview";
     writeRoute({ view: "dashboard", dashboardTab: tab });
-    return;
-  }
-
-  if (currentPage === "client-profile") {
-    writeRoute({ view: "client-profile" });
     return;
   }
 
@@ -114,11 +108,6 @@ export function restoreRouteFromUrl(root) {
     return;
   }
 
-  if (route.view === "client-profile") {
-    showClientProfile(root);
-    return;
-  }
-
   if (route.view === "shopping-bag") {
     showShoppingBag(root);
     return;
@@ -139,7 +128,7 @@ export function restoreRouteFromUrl(root) {
   }
 
   if (route.view === "account") {
-    if (getAuthToken()) showClientProfile(root);
+    if (getAuthToken()) showHome(root);
     else showAccount(root);
     return;
   }
@@ -168,10 +157,7 @@ export function restoreRouteFromUrl(root) {
 }
 
 export function showAccount(root) {
-  if (getAuthToken()) {
-    showClientProfile(root);
-    return;
-  }
+  if (getAuthToken()) return;
 
   const accountPage = root.querySelector("#accountPage");
   if (!accountPage || !accountPage.hidden) return;
@@ -189,7 +175,6 @@ export function showAccount(root) {
   root.querySelector("#categoryPage").hidden = true;
   root.querySelector("#productDetailPage").hidden = true;
   root.querySelector("#dashboardPage").hidden = true;
-  root.querySelector("#clientProfilePage").hidden = true;
   const shoppingBagPage = root.querySelector("#shoppingBagPage");
   if (shoppingBagPage) shoppingBagPage.hidden = true;
   const wishlistPage = root.querySelector("#wishlistPage");
@@ -284,6 +269,7 @@ function renderCategoryProducts(root, pageKey, selectedFilters = activeCategoryF
   initCategoryInteractions(root);
   initProductSliders(root, productsRoot);
   updateCtaDock(root);
+  syncWishlistHeartStates(root);
 }
 
 function renderCategory(root, pageKey) {
@@ -305,8 +291,6 @@ function hideAllPages(root) {
   root.querySelector("#accountPage").hidden = true;
   const dashboard = root.querySelector("#dashboardPage");
   if (dashboard) dashboard.hidden = true;
-  const clientProfile = root.querySelector("#clientProfilePage");
-  if (clientProfile) clientProfile.hidden = true;
   const shoppingBag = root.querySelector("#shoppingBagPage");
   if (shoppingBag) shoppingBag.hidden = true;
   const wishlist = root.querySelector("#wishlistPage");
@@ -319,7 +303,6 @@ function hideAllPages(root) {
 
 function setOverlayShellActive(active) {
   document.body.classList.toggle("dashboard-active", active);
-  document.body.classList.toggle("client-profile-active", active);
   document.body.classList.toggle("shopping-bag-active", active);
   document.body.classList.toggle("wishlist-active", active);
   document.body.classList.toggle("checkout-active", active);
@@ -328,17 +311,6 @@ function setOverlayShellActive(active) {
 function setDashboardShellActive(active) {
   document.body.classList.toggle("dashboard-active", active);
   if (active) {
-    document.body.classList.remove("client-profile-active");
-    document.body.classList.remove("shopping-bag-active");
-    document.body.classList.remove("wishlist-active");
-    document.body.classList.remove("checkout-active");
-  }
-}
-
-function setClientProfileShellActive(active) {
-  document.body.classList.toggle("client-profile-active", active);
-  if (active) {
-    document.body.classList.remove("dashboard-active");
     document.body.classList.remove("shopping-bag-active");
     document.body.classList.remove("wishlist-active");
     document.body.classList.remove("checkout-active");
@@ -349,7 +321,6 @@ function setShoppingBagShellActive(active) {
   document.body.classList.toggle("shopping-bag-active", active);
   if (active) {
     document.body.classList.remove("dashboard-active");
-    document.body.classList.remove("client-profile-active");
     document.body.classList.remove("wishlist-active");
     document.body.classList.remove("checkout-active");
   }
@@ -359,7 +330,6 @@ function setWishlistShellActive(active) {
   document.body.classList.toggle("wishlist-active", active);
   if (active) {
     document.body.classList.remove("dashboard-active");
-    document.body.classList.remove("client-profile-active");
     document.body.classList.remove("shopping-bag-active");
     document.body.classList.remove("checkout-active");
   }
@@ -369,7 +339,6 @@ function setCheckoutShellActive(active) {
   document.body.classList.toggle("checkout-active", active);
   if (active) {
     document.body.classList.remove("dashboard-active");
-    document.body.classList.remove("client-profile-active");
     document.body.classList.remove("shopping-bag-active");
     document.body.classList.remove("wishlist-active");
   }
@@ -407,14 +376,6 @@ function initCategoryInteractions(root) {
       initProductSliders(root, card);
     });
   });
-
-  root.querySelectorAll(".category-product__wishlist, .category-product .wishlist-btn").forEach((btn) => {
-    btn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      btn.classList.toggle("active");
-    });
-  });
-
 }
 
 function initProductCardNavigation(root) {
@@ -544,42 +505,6 @@ export function leaveDashboard(root) {
 
   const dashboard = root.querySelector("#dashboardPage");
   if (dashboard) dashboard.hidden = true;
-
-  restoreView(root);
-  syncRoute();
-  updateTopbar(root);
-  updateCtaDock(root);
-}
-
-export function showClientProfile(root) {
-  if (currentPage !== "client-profile") {
-    lastStorePage = resolveProfileReturnPage(currentPage);
-  }
-
-  currentPage = "client-profile";
-  hideAllPages(root);
-  closeOverlays(root);
-
-  const page = root.querySelector("#clientProfilePage");
-  if (page) page.hidden = false;
-
-  setClientProfileShellActive(true);
-  initClientProfile(root);
-  updateAccountButtons(root);
-  updateCtaDock(root);
-  syncRoute();
-  page?.scrollTo({ top: 0 });
-}
-
-export function leaveClientProfile(root) {
-  if (currentPage !== "client-profile") return;
-
-  currentPage = resolveProfileReturnPage(lastStorePage);
-
-  setClientProfileShellActive(false);
-
-  const page = root.querySelector("#clientProfilePage");
-  if (page) page.hidden = true;
 
   restoreView(root);
   syncRoute();
@@ -861,14 +786,12 @@ export function restoreView(root) {
   const productDetailPage = root.querySelector("#productDetailPage");
   const accountPage = root.querySelector("#accountPage");
   const dashboardPage = root.querySelector("#dashboardPage");
-  const clientProfilePage = root.querySelector("#clientProfilePage");
   const shoppingBagPage = root.querySelector("#shoppingBagPage");
   const wishlistPage = root.querySelector("#wishlistPage");
   const checkoutPage = root.querySelector("#checkoutPage");
 
   if (accountPage) accountPage.hidden = true;
   if (dashboardPage) dashboardPage.hidden = true;
-  if (clientProfilePage) clientProfilePage.hidden = true;
   if (shoppingBagPage) shoppingBagPage.hidden = true;
   if (wishlistPage) wishlistPage.hidden = true;
   if (checkoutPage) checkoutPage.hidden = true;
@@ -876,11 +799,6 @@ export function restoreView(root) {
 
   if (currentPage === "dashboard") {
     showDashboard(root);
-    return;
-  }
-
-  if (currentPage === "client-profile") {
-    showClientProfile(root);
     return;
   }
 
@@ -900,8 +818,14 @@ export function restoreView(root) {
   }
 
   if (currentPage === "account") {
-    if (getAuthToken()) showClientProfile(root);
-    else showAccount(root);
+    if (getAuthToken()) {
+      currentPage = resolveAccountReturnPage(pageBeforeAccount);
+      hideAllPages(root);
+      if (pageMain) pageMain.hidden = false;
+      attachSelectionWidget(root);
+    } else {
+      showAccount(root);
+    }
     return;
   }
 
@@ -954,7 +878,6 @@ export function initPages(root) {
   initProductCardNavigation(root);
 
   root.addEventListener("racelia:leave-dashboard", () => leaveDashboard(root));
-  root.addEventListener("racelia:leave-client-profile", () => leaveClientProfile(root));
   root.addEventListener("racelia:leave-shopping-bag", () => leaveShoppingBag(root));
   root.addEventListener("racelia:leave-wishlist", () => leaveWishlist(root));
   root.addEventListener("racelia:open-wishlist", () => showWishlist(root));

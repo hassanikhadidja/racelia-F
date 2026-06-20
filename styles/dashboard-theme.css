@@ -285,6 +285,13 @@
   color: #000;
 }
 
+#dashboardPage button.avatar-sm.js-dashboard-avatar-sm {
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
 #dashboardPage .gauge-label strong {
   color: #000;
 }
@@ -622,6 +629,10 @@
 }
 
 /* Account: profile & notifications sheets */
+#dashboardPage:has(.dashboard-sheet-overlay.open) {
+  overflow: hidden;
+}
+
 #dashboardPage .dashboard-sheet-overlay {
   display: none;
   position: fixed;
@@ -631,6 +642,8 @@
   align-items: flex-end;
   justify-content: center;
   padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 #dashboardPage .dashboard-sheet-overlay.open {
@@ -649,6 +662,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+  overscroll-behavior: contain;
 }
 
 #dashboardPage #dashboard-notifications-overlay .dashboard-sheet {
@@ -723,14 +738,12 @@
   display: none;
 }
 
-#dashboardPage .avatar-lg.has-photo,
-#dashboardPage .avatar-sm.has-photo,
-#dashboardPage .dashboard-profile-avatar.has-photo {
-  color: transparent;
-}
-
+#dashboardPage .dashboard-sheet.profile-sheet > form,
 #dashboardPage .dashboard-profile-body {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -756,28 +769,11 @@
   position: relative;
 }
 
-#dashboardPage .dashboard-profile-avatar-img {
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
 #dashboardPage .dashboard-profile-email {
   text-align: center;
   font-size: 13px;
   color: #888;
   margin: 0 0 20px;
-}
-
-#dashboardPage .dashboard-profile-avatar-btn {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-bottom: 1px solid #000;
-  padding-bottom: 2px;
 }
 
 #dashboardPage .dashboard-profile-field {
@@ -841,6 +837,7 @@
 #dashboardPage .dashboard-notifications-list {
   overflow-y: auto;
   overflow-x: visible;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
@@ -1099,7 +1096,7 @@
   margin-bottom: 16px;
 }
 
-#dashboardPage .dashboard-review-form label {
+#dashboardPage .dashboard-review-form .dashboard-review-field-label {
   display: block;
   font-size: 11px;
   font-weight: 600;
@@ -1136,6 +1133,22 @@
 
 #dashboardPage .dashboard-review-star.is-active {
   color: #f59e0b;
+}
+
+#dashboardPage .dashboard-review-photo-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  margin-top: 2px;
+  cursor: pointer;
+  border: 1px solid #e5e5e5;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+#dashboardPage .dashboard-review-photo-upload:hover {
+  background: #eee;
+  border-color: #ccc;
 }
 
 #dashboardPage .dashboard-review-submit {
@@ -1264,6 +1277,8 @@
 #dashboardPage .dashboard-webpic-sheet {
   max-height: 92vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 #dashboardPage .dashboard-webpic-field {
@@ -1280,7 +1295,7 @@
   margin-bottom: 8px;
 }
 
-#dashboardPage .dashboard-webpic-field label {
+#dashboardPage .dashboard-webpic-field label:not(.dashboard-webpic-photo-upload):not(.dashboard-webpic-check):not(.dashboard-webpic-device-opt) {
   display: block;
   font-size: 11px;
   font-weight: 600;
@@ -1288,6 +1303,22 @@
   text-transform: uppercase;
   color: #666;
   margin-bottom: 6px;
+}
+
+#dashboardPage .dashboard-webpic-photo-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  margin-top: 2px;
+  cursor: pointer;
+  border: 1px solid #e5e5e5;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+#dashboardPage .dashboard-webpic-photo-upload:hover {
+  background: #eee;
+  border-color: #ccc;
 }
 
 #dashboardPage .dashboard-webpic-field input[type="text"],
@@ -1570,7 +1601,7 @@
   margin-bottom: 16px;
 }
 
-#dashboardPage .dashboard-style-field label,
+#dashboardPage .dashboard-style-field label:not(.dashboard-style-photo-upload),
 #dashboardPage .dashboard-style-field-label {
   display: block;
   font-size: 11px;
@@ -1581,8 +1612,23 @@
   margin-bottom: 6px;
 }
 
-#dashboardPage .dashboard-style-field input[type="text"],
-#dashboardPage .dashboard-style-field input[type="file"] {
+#dashboardPage .dashboard-style-photo-upload {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  margin-top: 2px;
+  cursor: pointer;
+  border: 1px solid #e5e5e5;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+#dashboardPage .dashboard-style-photo-upload:hover {
+  background: #eee;
+  border-color: #ccc;
+}
+
+#dashboardPage .dashboard-style-field input[type="text"] {
   width: 100%;
   font-size: 14px;
 }
@@ -2011,6 +2057,8 @@
 #dashboardPage .dashboard-user-sheet {
   max-height: 92vh;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 #dashboardPage .dashboard-user-field {

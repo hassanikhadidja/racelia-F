@@ -62,6 +62,8 @@ export function updateTopbar(root) {
   const pdpHero = root.querySelector("#pdpHero");
   const onPdp = productDetailPage && !productDetailPage.hidden;
 
+  topbar.classList.toggle("topbar--pdp", Boolean(onPdp));
+
   if (onPdp && pdpHero) {
     const heroBottom = pdpHero.getBoundingClientRect().bottom;
     if (heroBottom > 56) {

@@ -233,9 +233,13 @@ body.checkout-active #racelia-app .cta-dock {
   border: 1px solid #e5e5e5;
   border-radius: 2px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.14);
-  display: flex;
+  display: none;
   flex-direction: column;
   overflow: hidden;
+}
+
+#checkoutPage .checkout-geo-select.is-open .checkout-geo-select__panel {
+  display: flex;
 }
 
 #checkoutPage .checkout-geo-select__search {

@@ -60,7 +60,7 @@ export function getDashboardAddWebPicOverlayMarkup() {
       </div>
       <form class="dashboard-webpic-form" id="dashboard-add-webpic-form">
         <div class="dashboard-webpic-field">
-          <label for="webpic-title">Label (optional)</label>
+          <label class="dashboard-webpic-field-label" for="webpic-title">Label (optional)</label>
           <input type="text" id="webpic-title" name="title" placeholder="e.g. Summer hero mobile" />
         </div>
         <div class="dashboard-webpic-field">
@@ -70,14 +70,17 @@ export function getDashboardAddWebPicOverlayMarkup() {
           </div>
         </div>
         <div class="dashboard-webpic-field">
-          <label for="webpic-section">Home page section</label>
+          <label class="dashboard-webpic-field-label" for="webpic-section">Home page section</label>
           <select id="webpic-section" name="section" required>
             ${sectionOptions}
           </select>
         </div>
         <div class="dashboard-webpic-field">
-          <label for="webpic-image">Picture</label>
-          <input type="file" id="webpic-image" name="image" accept="image/*" required />
+          <span class="dashboard-webpic-field-label" id="webpic-image-label">Picture</span>
+          <label class="edit-btn dashboard-webpic-photo-upload">
+            Choose photo
+            <input type="file" id="webpic-image" name="image" accept="image/*" hidden required aria-labelledby="webpic-image-label" />
+          </label>
           <div class="dashboard-webpic-preview" id="webpic-image-preview" hidden>
             <img id="webpic-image-preview-img" alt="" />
           </div>

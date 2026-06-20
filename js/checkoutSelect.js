@@ -4,12 +4,26 @@ export function closeCheckoutGeoPanels(page) {
   closeAllPanels(page);
 }
 
+function resetPanelPosition(panel) {
+  if (!panel) return;
+  panel.style.position = "";
+  panel.style.left = "";
+  panel.style.width = "";
+  panel.style.maxHeight = "";
+  panel.style.top = "";
+  panel.style.bottom = "";
+  panel.style.zIndex = "";
+}
+
 function closeAllPanels(page) {
-  page.querySelectorAll(".checkout-geo-select.is-open").forEach((wrap) => {
+  page.querySelectorAll(".checkout-geo-select").forEach((wrap) => {
     wrap.classList.remove("is-open");
     const panel = wrap.querySelector(".checkout-geo-select__panel");
     const trigger = wrap.querySelector(".checkout-geo-select__trigger");
-    if (panel) panel.hidden = true;
+    if (panel) {
+      panel.hidden = true;
+      resetPanelPosition(panel);
+    }
     if (trigger) trigger.setAttribute("aria-expanded", "false");
   });
 }
@@ -245,6 +259,7 @@ export function initCheckoutGeoSelects(page, { onWilayaChange } = {}) {
 
   wilayaSelect.renderList();
   refreshCommune("");
+  closeAllPanels(page);
 
   return { refreshCommune };
 }

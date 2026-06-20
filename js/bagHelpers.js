@@ -3,14 +3,9 @@ import {
   parsePrice,
   parsePriceFromCatalog,
 } from "./currency.js";
+import { getCatalogProductById } from "./productCatalog.js";
 
 export { formatPrice, parsePrice, parsePriceFromCatalog };
-
-const BAG_ITEM_IMAGES = {
-  "item-biscuit": "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=400&q=80",
-  "item-black": "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=400&q=80",
-  "item-quilted": "https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?auto=format&fit=crop&w=400&q=80",
-};
 
 const DEFAULT_IMAGE =
   "https://images.unsplash.com/photo-1547949003-9792a18a2601?auto=format&fit=crop&w=400&q=80";
@@ -58,6 +53,8 @@ export function upsertBagLineItem(root, { productId, name, price, priceEur, colo
       priceEl.dataset.priceEur = String(amount);
       priceEl.textContent = priceText;
     }
+    el.dataset.productId = productId;
+    notifyCartChanged(root);
     return true;
   }
 
@@ -68,6 +65,7 @@ export function upsertBagLineItem(root, { productId, name, price, priceEur, colo
   el = document.createElement("div");
   el.className = "bag-item";
   el.id = safeId;
+  el.dataset.productId = productId;
   el.innerHTML = `
     <div class="item-image">${imgHtml}</div>
     <div class="item-details">
@@ -87,7 +85,49 @@ export function upsertBagLineItem(root, { productId, name, price, priceEur, colo
     <button type="button" class="remove-btn" title="Remove item" aria-label="Remove item">✕</button>
   `;
   bagItems.appendChild(el);
+  notifyCartChanged(root);
   return true;
+}
+
+function notifyCartChanged(root) {
+  root?.dispatchEvent(new CustomEvent("racelia:cart-changed", { bubbles: true }));
+}
+
+export function addCategoryCardToBag(root, card, { qty = 1, mode = "add" } = {}) {
+  if (!card) return false;
+
+  const productId = card.dataset.productId;
+  if (!productId) return false;
+
+  const catalog = getCatalogProductById(productId);
+  const name =
+    card.querySelector(".category-product__name")?.textContent?.trim() ||
+    catalog?.name ||
+    "Product";
+  const priceEl = card.querySelector(".category-product__price");
+  const priceEur =
+    parseFloat(priceEl?.dataset.priceEur) ||
+    catalog?.priceEur ||
+    parsePriceFromCatalog(priceEl?.textContent);
+  const images = (card.dataset.images || "").split("|").filter(Boolean);
+  const selectedSwatch = card.querySelector(".category-product__swatch.is-selected");
+  const colorIndex = Number(selectedSwatch?.dataset.colorIndex ?? 0);
+  const swatchLabel = selectedSwatch?.getAttribute("aria-label") || "";
+  const color =
+    swatchLabel && swatchLabel !== "Color option"
+      ? swatchLabel
+      : catalog?.swatches?.[colorIndex]?.label || "";
+  const imageUrl = images[colorIndex] || images[0] || catalog?.images?.[0] || "";
+
+  return upsertBagLineItem(root, {
+    productId,
+    name,
+    priceEur,
+    color,
+    imageUrl,
+    qty,
+    mode,
+  });
 }
 
 export function collectBagItems(root) {
@@ -110,8 +150,8 @@ export function collectBagItems(root) {
       qty,
       unitPrice,
       lineTotal: qty * unitPrice,
-      imageUrl: img?.src || BAG_ITEM_IMAGES[id] || DEFAULT_IMAGE,
-      hasPhoto: Boolean(img?.src || BAG_ITEM_IMAGES[id]),
+      imageUrl: img?.src || DEFAULT_IMAGE,
+      hasPhoto: Boolean(img?.src),
       imageHtml: img ? "" : el.querySelector(".item-image")?.innerHTML?.trim() || "",
     };
   });

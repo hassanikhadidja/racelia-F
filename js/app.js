@@ -3,7 +3,7 @@ import { initCtaDock, updateCtaDock } from "./ctaDock.js";
 import { initRaceliaStyle, ensureStyleGrid, closeStyleSheet } from "./raceliaStyle.js";
 import { initAccount } from "./account.js";
 import { initCart } from "./cart.js";
-import { showHome, showCategory, showBlogs, showDashboard, showClientProfile, showWishlist, initPages } from "./pages.js";
+import { showHome, showCategory, showBlogs, showDashboard, showWishlist, initPages } from "./pages.js";
 import { defaultSelection } from "./data.js";
 import { initProductSliders } from "./productSliders.js";
 import { initTopbarSearch, updateTopbar } from "./topbar.js";
@@ -11,6 +11,7 @@ import { initHomeWebPics } from "./homeWebPics.js";
 import { refreshStyleGrid } from "./raceliaStyle.js";
 import { notifyCatalogUpdated } from "./productCatalog.js";
 import { renderHomeNewArrivals } from "./homeNewArrivals.js";
+import { initClientCartWishlist, syncWishlistHeartStates } from "./clientCartWishlist.js";
 
 function goHome(root) {
   showHome(root, { selectionLabel: defaultSelection });
@@ -51,12 +52,7 @@ function initReveal(root) {
 }
 
 function initStars(root) {
-  root.querySelectorAll(".wishlist-btn").forEach((btn) => {
-    btn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      btn.classList.toggle("active");
-    });
-  });
+  syncWishlistHeartStates(root);
 }
 
 function updateScrollLine(root) {
@@ -295,13 +291,6 @@ function initMenu(root) {
     });
   });
 
-  root.querySelectorAll(".js-client-profile-open").forEach((item) => {
-    item.addEventListener("click", () => {
-      closeMenu();
-      showClientProfile(root);
-    });
-  });
-
   root.querySelector("#menuWishlistBtn")?.addEventListener("click", () => {
     closeMenu();
     showWishlist(root);
@@ -352,6 +341,7 @@ export function initApp(root) {
   initFooter(root);
   initCtaDock(root);
   initCart(root);
+  initClientCartWishlist(root);
   initRaceliaStyle(root);
   initAccount(root);
   initPages(root);
@@ -363,5 +353,6 @@ export function initApp(root) {
     refreshStyleGrid(root);
     notifyCatalogUpdated(root);
     renderHomeNewArrivals(root);
+    syncWishlistHeartStates(root);
   });
 }

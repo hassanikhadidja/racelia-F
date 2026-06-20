@@ -99,6 +99,28 @@ button {
   border-bottom-color: #f0f0f0;
 }
 
+.topbar.topbar--pdp:not(.topbar--search-open) {
+  background: #fff;
+  border-bottom-color: rgba(0, 0, 0, 0.06);
+}
+
+.topbar.topbar--pdp:not(.topbar--search-open) .icon-btn svg {
+  stroke: #000;
+}
+
+.topbar.topbar--pdp:not(.topbar--search-open) .brand {
+  color: #000;
+}
+
+.topbar.topbar--pdp:not(.topbar--search-open) .brand img {
+  filter: none;
+}
+
+.topbar.topbar--pdp:not(.topbar--search-open) .topbar-cart-badge {
+  background: #000;
+  color: #fff;
+}
+
 .topbar.over-hero .icon-btn svg {
   stroke: #fff;
 }
@@ -141,60 +163,6 @@ button {
 
 .topbar-cart-badge[hidden] {
   display: none;
-}
-
-.topbar-account-btn.is-profile-avatar,
-.menu-account-btn.is-profile-avatar {
-  padding: 0;
-}
-
-.topbar-account-btn .avatar-wrap,
-.menu-account-btn .avatar-wrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  overflow: hidden;
-  display: block;
-  position: relative;
-}
-
-.topbar-account-btn .avatar-placeholder,
-.menu-account-btn .avatar-placeholder {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #c8d6e5, #a8b8c8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  color: #fff;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.topbar-account-btn .avatar-image,
-.menu-account-btn .avatar-image {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  display: none;
-  filter: grayscale(20%);
-}
-
-.topbar-account-btn .avatar-wrap.has-image .avatar-placeholder,
-.menu-account-btn .avatar-wrap.has-image .avatar-placeholder {
-  display: none;
-}
-
-.topbar-account-btn .avatar-wrap.has-image .avatar-image,
-.menu-account-btn .avatar-wrap.has-image .avatar-image {
-  display: block;
-}
-
-.topbar.over-hero .topbar-account-btn.is-profile-avatar .avatar-wrap {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.35);
 }
 
 .topbar.over-hero .brand {

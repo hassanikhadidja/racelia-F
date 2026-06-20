@@ -1,15 +1,26 @@
 import { showShoppingBag } from "./pages.js";
+import { addCategoryCardToBag, refreshShoppingBagTotals } from "./bagHelpers.js";
 
 let bagCount = 0;
-
 export function getBagCount() {
   return bagCount;
 }
 
-export function addToBag(root, quantity = 1) {
-  const amount = Math.max(1, Number(quantity) || 1);
-  bagCount += amount;
+export function syncBagCountFromDom(root) {
+  const page = root.querySelector("#shoppingBagPage");
+  bagCount = 0;
+
+  page?.querySelectorAll(".bag-item").forEach((item) => {
+    bagCount += parseInt(item.querySelector(".qty-select")?.value || "1", 10);
+  });
+
   updateTopbarCart(root);
+  return bagCount;
+}
+
+/** @deprecated Prefer upsertBagLineItem + syncBagCountFromDom */
+export function addToBag(root, quantity = 1) {
+  syncBagCountFromDom(root);
   return bagCount;
 }
 
@@ -30,14 +41,20 @@ export function updateTopbarCart(root) {
 }
 
 export function initCart(root) {
-  updateTopbarCart(root);
+  syncBagCountFromDom(root);
 
   root.addEventListener("click", (event) => {
     const addBtn = event.target.closest(".category-product__add");
     if (!addBtn || event.target.closest("#productDetailPage .category-product__add")) return;
 
     event.stopPropagation();
-    addToBag(root, 1);
+    const card = addBtn.closest(".category-product");
+    if (!card) return;
+
+    if (addCategoryCardToBag(root, card, { qty: 1, mode: "add" })) {
+      syncBagCountFromDom(root);
+      refreshShoppingBagTotals(root);
+    }
   });
 
   root.querySelector("#topbarCartBtn")?.addEventListener("click", () => {

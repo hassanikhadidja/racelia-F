@@ -55,16 +55,19 @@ export function getDashboardStyleOverlaysMarkup() {
       </div>
       <form class="dashboard-style-form" id="dashboard-style-creator-form">
         <div class="dashboard-style-field">
-          <label for="style-creator-title">Title</label>
+          <label class="dashboard-style-field-label" for="style-creator-title">Title</label>
           <input type="text" id="style-creator-title" name="title" required placeholder="e.g. Urban Edge" />
         </div>
         <div class="dashboard-style-field">
-          <label for="style-creator-tag">Tag (optional)</label>
+          <label class="dashboard-style-field-label" for="style-creator-tag">Tag (optional)</label>
           <input type="text" id="style-creator-tag" name="tag" placeholder="e.g. SS26" />
         </div>
         <div class="dashboard-style-field">
-          <label for="style-creator-image">Creator look picture</label>
-          <input type="file" id="style-creator-image" accept="image/*" required />
+          <span class="dashboard-style-field-label" id="style-creator-image-label">Creator look picture</span>
+          <label class="edit-btn dashboard-style-photo-upload">
+            Choose photo
+            <input type="file" id="style-creator-image" accept="image/*" hidden required aria-labelledby="style-creator-image-label" />
+          </label>
           <div class="dashboard-style-preview" id="style-creator-preview" hidden>
             <img id="style-creator-preview-img" alt="" />
           </div>
@@ -95,8 +98,11 @@ export function getDashboardStyleOverlaysMarkup() {
           </div>
         </div>
         <div class="dashboard-style-field">
-          <label for="style-product-image">Picture (optional)</label>
-          <input type="file" id="style-product-image" accept="image/*" />
+          <span class="dashboard-style-field-label" id="style-product-image-label">Picture (optional)</span>
+          <label class="edit-btn dashboard-style-photo-upload">
+            Choose photo
+            <input type="file" id="style-product-image" accept="image/*" hidden aria-labelledby="style-product-image-label" />
+          </label>
           <div class="dashboard-style-preview" id="style-product-preview" hidden>
             <img id="style-product-preview-img" alt="" />
           </div>

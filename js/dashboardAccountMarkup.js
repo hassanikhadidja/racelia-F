@@ -9,9 +9,6 @@ export function getDashboardAccountOverlaysMarkup() {
       <div class="dashboard-profile-body">
         <div class="dashboard-profile-avatar-wrap" id="dashboard-profile-avatar-wrap">
           <div class="dashboard-profile-avatar" id="dashboard-profile-avatar">A</div>
-          <img class="dashboard-profile-avatar-img" id="dashboard-profile-avatar-img" alt="" hidden />
-          <label class="dashboard-profile-avatar-btn" for="dashboard-profile-avatar-input">Change photo</label>
-          <input type="file" id="dashboard-profile-avatar-input" class="dashboard-profile-avatar-input" accept="image/*" hidden />
         </div>
         <p class="dashboard-profile-email" id="dashboard-profile-email-display">alex@racelia.com</p>
         <form id="dashboard-profile-form" class="dashboard-profile-form">

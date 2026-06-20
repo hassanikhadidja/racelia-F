@@ -101,25 +101,3 @@ export function applyProfilePageAvatar(page) {
   const profile = loadClientProfile();
   applyAvatarToWrap(wrap, getProfileAvatarUrl(), getInitials(profile.name));
 }
-
-export function applyAvatarToAccountButton(button, profile, loggedIn = false) {
-  const icon = button.querySelector(".account-btn-icon");
-  const wrap = button.querySelector(".avatar-wrap");
-  if (!wrap) return;
-
-  const url = getProfileAvatarUrl();
-  applyAvatarToWrap(wrap, url, getInitials(profile?.name));
-
-  if (loggedIn) {
-    button.classList.add("is-profile-avatar");
-    if (icon) icon.hidden = true;
-    wrap.hidden = false;
-    button.setAttribute("aria-label", profile?.name ? `${profile.name} profile` : "Profile");
-    return;
-  }
-
-  button.classList.remove("is-profile-avatar");
-  if (icon) icon.hidden = false;
-  wrap.hidden = true;
-  button.setAttribute("aria-label", "Account");
-}

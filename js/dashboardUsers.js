@@ -166,13 +166,14 @@ export function renderDashboardUsers(page) {
   });
 }
 
-function openUserOrders(page, userId) {
+function openUserOrders(page, userId, { returnToProfile = false } = {}) {
   const user = loadDashboardUsers().find((u) => u.id === userId);
   if (!user) return;
 
   const nameEl = page.querySelector("#dashboard-user-orders-name");
   const list = page.querySelector("#dashboard-user-orders-list");
   const empty = page.querySelector("#dashboard-user-orders-empty");
+  const overlay = page.querySelector("#dashboard-user-orders-overlay");
 
   if (nameEl) nameEl.textContent = user.name;
   const orders = user.orders || [];
@@ -182,10 +183,15 @@ function openUserOrders(page, userId) {
   }
   if (empty) empty.hidden = orders.length > 0;
 
+  if (overlay) {
+    overlay.dataset.userId = user.id;
+    overlay.dataset.returnToProfile = returnToProfile ? "true" : "false";
+  }
+
   openProfileSheet(page, "dashboard-user-orders-overlay");
 }
 
-function openUserPoints(page, userId) {
+function openUserPoints(page, userId, { returnToProfile = false } = {}) {
   const user = loadDashboardUsers().find((u) => u.id === userId);
   if (!user) return;
 
@@ -193,14 +199,35 @@ function openUserPoints(page, userId) {
   const nameEl = page.querySelector("#dashboard-user-points-name");
   const currentEl = page.querySelector("#dashboard-user-points-current");
   const amountInput = page.querySelector("#dashboard-user-points-amount");
+  const overlay = page.querySelector("#dashboard-user-points-overlay");
 
   if (idInput) idInput.value = user.id;
   if (nameEl) nameEl.textContent = user.name;
   if (currentEl) currentEl.textContent = Number(user.points || 0).toLocaleString();
   if (amountInput) amountInput.value = "";
 
+  if (overlay) {
+    overlay.dataset.userId = user.id;
+    overlay.dataset.returnToProfile = returnToProfile ? "true" : "false";
+  }
+
   openProfileSheet(page, "dashboard-user-points-overlay");
   amountInput?.focus();
+}
+
+function closeUserSubSheet(page, overlayId) {
+  const overlay = page.querySelector(`#${overlayId}`);
+  if (!overlay) return;
+
+  const returnToProfile = overlay.dataset.returnToProfile === "true";
+  const userId = overlay.dataset.userId;
+
+  closeProfileSheet(page, overlayId);
+  overlay.dataset.returnToProfile = "false";
+
+  if (returnToProfile && userId) {
+    openUserProfile(page, userId);
+  }
 }
 
 function bindUserSheets(page) {
@@ -208,9 +235,12 @@ function bindUserSheets(page) {
     page.insertAdjacentHTML("beforeend", getDashboardUsersOverlaysMarkup());
   }
 
-  const bindOverlayClose = (overlayId) => {
+  const bindOverlayClose = (overlayId, { returnToProfileOnClose = false } = {}) => {
     const overlay = page.querySelector(`#${overlayId}`);
-    const close = () => closeProfileSheet(page, overlayId);
+    const close = () => {
+      if (returnToProfileOnClose) closeUserSubSheet(page, overlayId);
+      else closeProfileSheet(page, overlayId);
+    };
     overlay?.querySelectorAll(`[data-close="${overlayId}"]`).forEach((btn) => {
       btn.addEventListener("click", close);
     });
@@ -223,22 +253,22 @@ function bindUserSheets(page) {
   };
 
   bindOverlayClose("dashboard-add-user-overlay");
-  bindOverlayClose("dashboard-user-points-overlay");
-  bindOverlayClose("dashboard-user-orders-overlay");
+  bindOverlayClose("dashboard-user-points-overlay", { returnToProfileOnClose: true });
+  bindOverlayClose("dashboard-user-orders-overlay", { returnToProfileOnClose: true });
   bindOverlayClose("dashboard-user-profile-overlay");
 
   page.querySelector(".js-dashboard-user-profile-orders")?.addEventListener("click", () => {
     const userId = page.querySelector("#dashboard-user-profile-overlay")?.dataset.userId;
     if (!userId) return;
     closeProfileSheet(page, "dashboard-user-profile-overlay");
-    openUserOrders(page, userId);
+    openUserOrders(page, userId, { returnToProfile: true });
   });
 
   page.querySelector(".js-dashboard-user-profile-points")?.addEventListener("click", () => {
     const userId = page.querySelector("#dashboard-user-profile-overlay")?.dataset.userId;
     if (!userId) return;
     closeProfileSheet(page, "dashboard-user-profile-overlay");
-    openUserPoints(page, userId);
+    openUserPoints(page, userId, { returnToProfile: true });
   });
 
   page.querySelectorAll(".js-dashboard-user-add-open").forEach((btn) => {
@@ -309,7 +339,11 @@ export function closeDashboardUsersOverlay(page) {
   ];
   for (const id of ids) {
     if (page.querySelector(`#${id}`)?.classList.contains("open")) {
-      closeProfileSheet(page, id);
+      if (id === "dashboard-user-points-overlay" || id === "dashboard-user-orders-overlay") {
+        closeUserSubSheet(page, id);
+      } else {
+        closeProfileSheet(page, id);
+      }
       return true;
     }
   }

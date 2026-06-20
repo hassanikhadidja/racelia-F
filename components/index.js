@@ -15,7 +15,6 @@ export { createCtaDock } from "./CtaDock.js";
 export { createRaceliaStyleView, createStyleSheet } from "./RaceliaStyleView.js";
 export { createAccountPanel } from "./AccountPanel.js";
 export { createDashboardPage } from "./DashboardPage.js";
-export { createClientProfilePage } from "./ClientProfilePage.js";
 export { createShoppingBagPage } from "./ShoppingBagPage.js";
 export { createWishlistPage } from "./WishlistPage.js";
 export { createCheckoutPage } from "./CheckoutPage.js";

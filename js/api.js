@@ -27,6 +27,9 @@ export function clearAuthSession() {
   } catch {
     /* ignore */
   }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("racelia:auth-cleared"));
+  }
 }
 
 export function getStoredUser() {

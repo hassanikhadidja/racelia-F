@@ -11,8 +11,6 @@ import "@/styles/blogsPage.css";
 import "@/styles/productDetail.css";
 import "@/styles/dashboard.css";
 import "@/styles/dashboard-theme.css";
-import "@/styles/clientProfile.css";
-import "@/styles/clientProfile-theme.css";
 import "@/styles/shoppingBag.css";
 import "@/styles/shoppingBag-theme.css";
 import "@/styles/wishlist.css";
