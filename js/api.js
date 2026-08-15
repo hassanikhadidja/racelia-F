@@ -1,4 +1,10 @@
-export const API_BASE_URL = "https://rac-lia-backend-gebj.vercel.app";
+function normalizeApiBase(url) {
+  return String(url || "").trim().replace(/\/+$/, "");
+}
+
+export const API_BASE_URL = normalizeApiBase(
+  process.env.NEXT_PUBLIC_API_URL || "https://rac-lia-backend-gebj.vercel.app"
+);
 
 const TOKEN_KEY = "raceliaAuthToken";
 const USER_KEY = "raceliaCurrentUser";
