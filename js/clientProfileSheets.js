@@ -60,7 +60,7 @@ export function bindProfileSheet(page, { overlayId, toggleSelector, focusSelecto
 
 export function getOpenProfileOverlay(page) {
   return page.querySelector(
-    ".profile-orders-overlay.open, .profile-review-overlay.open, .profile-points-overlay.open, .profile-edit-overlay.open"
+    ".profile-orders-overlay.open, .profile-review-overlay.open, .profile-points-overlay.open, .profile-edit-overlay.open, #profile-egifts-overlay.open"
   );
 }
 
@@ -68,6 +68,11 @@ export function closeTopProfileOverlay(page) {
   const orders = page.querySelector("#profile-orders-overlay");
   if (orders?.classList.contains("open")) {
     closeProfileSheet(page, "profile-orders-overlay", ".js-loyalty-orders-toggle");
+    return true;
+  }
+  const egifts = page.querySelector("#profile-egifts-overlay");
+  if (egifts?.classList.contains("open")) {
+    closeProfileSheet(page, "profile-egifts-overlay", ".js-egifts-toggle");
     return true;
   }
   const review = page.querySelector("#profile-review-overlay");

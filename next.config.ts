@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 
 const backendUrl =
-  process.env.NEXT_PUBLIC_API_URL || "https://rac-lia-backend-uspq.vercel.app";
+  process.env.NEXT_PUBLIC_API_URL || "https://rac-lia-backend-gebj.vercel.app";
 
 const nextConfig: NextConfig = {
   devIndicators: false,

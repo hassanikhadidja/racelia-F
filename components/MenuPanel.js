@@ -34,20 +34,25 @@ export function createMenuPanel() {
   wishlistBtn.className = "icon-btn js-menu-wishlist-open";
   wishlistBtn.id = "menuWishlistBtn";
   wishlistBtn.type = "button";
-  wishlistBtn.setAttribute("aria-label", "Wishlist");
+  wishlistBtn.setAttribute("aria-label", "Liste de souhaits");
   wishlistBtn.innerHTML = wishlistIcon;
 
   const accountBtn = document.createElement("button");
   accountBtn.className = "icon-btn js-account-open menu-account-btn";
   accountBtn.id = "menuAccountBtn";
   accountBtn.type = "button";
-  accountBtn.setAttribute("aria-label", "Account");
-  accountBtn.innerHTML = `<span class="account-btn-icon">${accountIcon}</span>`;
+  accountBtn.setAttribute("aria-label", "Compte");
+  accountBtn.innerHTML = `
+    <span class="account-btn-icon">${accountIcon}</span>
+    <span class="menu-account-avatar avatar-wrap" hidden>
+      <span class="avatar-placeholder"></span>
+    </span>
+  `;
 
   const closeBtn = document.createElement("button");
   closeBtn.className = "icon-btn";
   closeBtn.id = "menuClose";
-  closeBtn.setAttribute("aria-label", "Close");
+  closeBtn.setAttribute("aria-label", "Fermer");
   closeBtn.innerHTML = closeIcon;
 
   head.append(menuTab, styleTab, spacer, wishlistBtn, accountBtn, closeBtn);
@@ -58,7 +63,7 @@ export function createMenuPanel() {
 
   const search = document.createElement("div");
   search.className = "menu-search";
-  search.innerHTML = `<input type="text" placeholder="Search">${searchIcon}`;
+  search.innerHTML = `<input type="text" placeholder="Rechercher">${searchIcon}`;
 
   const list = document.createElement("ul");
   list.className = "menu-list";
@@ -74,7 +79,15 @@ export function createMenuPanel() {
       li.classList.add("js-dashboard-open", "js-dashboard-menu-item");
       li.hidden = true;
     }
+    if (item.action === "client-profile") {
+      li.classList.add("js-client-profile-open", "js-client-profile-menu-item");
+      li.hidden = true;
+    }
     if (item.action === "blogs") li.classList.add("js-menu-blogs-open");
+    if (item.page) {
+      li.classList.add("js-menu-category");
+      li.dataset.page = item.page;
+    }
 
     if (item.submenu) {
       const row = document.createElement("button");

@@ -1,6 +1,6 @@
 import { createCtaDock } from "./CtaDock.js";
 
-function createPdpAddedOverlay() {
+export function createPdpAddedOverlay() {
   const backdrop = document.createElement("div");
   backdrop.className = "pdp-added-backdrop";
   backdrop.id = "pdpAddedBackdrop";
@@ -15,14 +15,14 @@ function createPdpAddedOverlay() {
   overlay.setAttribute("aria-labelledby", "pdpAddedMsg");
   overlay.innerHTML = `
     <div class="pdp-added-top">
-      <div class="pdp-added-msg" id="pdpAddedMsg"><span id="pdpAddedCount">1</span> item(s) successfully added to bag.</div>
-      <button class="pdp-added-close" id="pdpAddedClose" type="button" aria-label="Close">
+      <div class="pdp-added-msg" id="pdpAddedMsg"><span id="pdpAddedCount">1</span> article(s) ajouté(s) au panier.</div>
+      <button class="pdp-added-close" id="pdpAddedClose" type="button" aria-label="Fermer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
       </button>
     </div>
     <div class="pdp-added-actions">
-      <button class="pdp-added-checkout" type="button">CHECKOUT</button>
-      <button class="pdp-added-view" type="button">VIEW SHOPPING BAG</button>
+      <button class="pdp-added-checkout" type="button">COMMANDER</button>
+      <button class="pdp-added-view" type="button">VOIR LE PANIER</button>
     </div>
   `;
 
@@ -46,8 +46,8 @@ function createPdpVirtualTryOn() {
   panel.setAttribute("aria-labelledby", "pdpVtoTitle");
   panel.innerHTML = `
     <div class="pdp-vto-head">
-      <span class="pdp-vto-label">Virtual Try-On</span>
-      <button class="pdp-vto-close" id="pdpVtoClose" type="button" aria-label="Close">
+      <span class="pdp-vto-label">Essayage virtuel</span>
+      <button class="pdp-vto-close" id="pdpVtoClose" type="button" aria-label="Fermer">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
       </button>
     </div>
@@ -56,7 +56,7 @@ function createPdpVirtualTryOn() {
     <div class="pdp-vto-preview">
       <img id="pdpVtoImg" alt="" />
     </div>
-    <p class="pdp-vto-note">Preview how this bag looks before you choose.</p>
+    <p class="pdp-vto-note">Visualisez ce sac avant de choisir.</p>
   `;
 
   const fragment = document.createDocumentFragment();
@@ -74,7 +74,6 @@ export function createProductDetailPage() {
   app.className = "pdp-app";
   app.id = "pdpRoot";
   page.appendChild(app);
-  page.appendChild(createPdpAddedOverlay());
   page.appendChild(createPdpVirtualTryOn());
   page.appendChild(
     createCtaDock({

@@ -4,6 +4,11 @@ import {
   parsePriceFromCatalog,
 } from "./currency.js";
 import { getCatalogProductById } from "./productCatalog.js";
+import {
+  getAppliedLoyaltyPromo,
+  computeLoyaltyDiscount,
+  loyaltyDiscountLabel,
+} from "./loyaltyCard.js";
 
 export { formatPrice, parsePrice, parsePriceFromCatalog };
 
@@ -25,6 +30,10 @@ function buildQtyOptions(selectedQty) {
     .join("");
 }
 
+function isEgiftProduct(productId) {
+  return String(productId || "").startsWith("egift-card");
+}
+
 /**
  * Add or update a bag line for the active PDP product.
  * @param {"set"|"add"} mode — set quantity or add to existing
@@ -39,7 +48,14 @@ export function upsertBagLineItem(root, { productId, name, price, priceEur, colo
   const amount =
     priceEur != null ? Number(priceEur) : parsePriceFromCatalog(price);
   const priceText = formatPrice(amount);
-  const colorText = color ? `Color: ${color}` : "";
+  const colorLabel = String(color || "").trim();
+  const colorText = colorLabel
+    ? isEgiftProduct(productId)
+      ? /^Pour\s*:/i.test(colorLabel)
+        ? colorLabel
+        : `Pour : ${colorLabel}`
+      : `Couleur : ${colorLabel}`
+    : "";
   const nextQty = Math.min(5, Math.max(1, Number(qty) || 1));
 
   let el = bagItems.querySelector(`#${CSS.escape(safeId)}`);
@@ -79,10 +95,10 @@ export function upsertBagLineItem(root, { productId, name, price, priceEur, colo
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
-        Save
+        Enregistrer
       </button>
     </div>
-    <button type="button" class="remove-btn" title="Remove item" aria-label="Remove item">✕</button>
+    <button type="button" class="remove-btn" title="Retirer l'article" aria-label="Retirer l'article">✕</button>
   `;
   bagItems.appendChild(el);
   notifyCartChanged(root);
@@ -103,7 +119,7 @@ export function addCategoryCardToBag(root, card, { qty = 1, mode = "add" } = {})
   const name =
     card.querySelector(".category-product__name")?.textContent?.trim() ||
     catalog?.name ||
-    "Product";
+    "Produit";
   const priceEl = card.querySelector(".category-product__price");
   const priceEur =
     parseFloat(priceEl?.dataset.priceEur) ||
@@ -145,7 +161,7 @@ export function collectBagItems(root) {
 
     return {
       id,
-      name: el.querySelector(".item-name")?.textContent.trim() || "Product",
+      name: el.querySelector(".item-name")?.textContent.trim() || "Produit",
       color: el.querySelector(".item-color")?.textContent.trim() || "",
       qty,
       unitPrice,
@@ -153,6 +169,14 @@ export function collectBagItems(root) {
       imageUrl: img?.src || DEFAULT_IMAGE,
       hasPhoto: Boolean(img?.src),
       imageHtml: img ? "" : el.querySelector(".item-image")?.innerHTML?.trim() || "",
+      productId: el.dataset.productId || "",
+      isGiftCard:
+        el.dataset.giftCard === "true" ||
+        String(el.dataset.productId || "").startsWith("egift-card"),
+      giftSender: el.dataset.giftSender || "",
+      giftRecipient: el.dataset.giftRecipient || "",
+      giftEmail: el.dataset.giftEmail || "",
+      giftMessage: el.dataset.giftMessage || "",
     };
   });
 }
@@ -161,21 +185,39 @@ export function refreshShoppingBagTotals(root) {
   const page = root.querySelector("#shoppingBagPage");
   if (!page) return;
 
-  let total = 0;
-  page.querySelectorAll(".bag-item").forEach((item) => {
-    const qty = parseInt(item.querySelector(".qty-select")?.value || "1", 10);
-    const priceEl = item.querySelector(".item-price");
-    const unit =
-      parseFloat(priceEl?.dataset.priceEur) ||
-      parsePrice(priceEl?.textContent);
-    total += qty * unit;
-  });
+  const items = collectBagItems(root);
+  const subtotalValue = items.reduce((sum, item) => sum + item.lineTotal, 0);
+  const promo = getAppliedLoyaltyPromo();
+  const discount = computeLoyaltyDiscount(items, promo);
+  const totalValue = Math.max(0, subtotalValue - discount);
 
-  const formatted = formatPrice(total);
+  const formattedSubtotal = formatPrice(subtotalValue);
+  const formattedTotal = formatPrice(totalValue);
   const subtotal = page.querySelector("#subtotal");
   const totalEl = page.querySelector("#total");
-  if (subtotal) subtotal.textContent = formatted;
-  if (totalEl) totalEl.textContent = formatted;
+  if (subtotal) subtotal.textContent = formattedSubtotal;
+  if (totalEl) totalEl.textContent = formattedTotal;
+
+  const discountRow = page.querySelector("#bagDiscountRow");
+  const discountEl = page.querySelector("#bagDiscount");
+  const discountLabel = page.querySelector("#bagDiscountLabel");
+  if (discountRow) discountRow.hidden = discount <= 0;
+  if (discountEl) discountEl.textContent = `−${formatPrice(discount)}`;
+  if (discountLabel) discountLabel.textContent = loyaltyDiscountLabel(promo);
+
+  const applied = page.querySelector("#bagPromoApplied");
+  if (applied) {
+    if (promo?.code) {
+      applied.hidden = false;
+      applied.textContent =
+        promo.type === "free_item"
+          ? `Code ${promo.code} appliqué — choisissez l’article offert au paiement.`
+          : `Code ${promo.code} appliqué`;
+    } else {
+      applied.hidden = true;
+      applied.textContent = "";
+    }
+  }
 
   let count = 0;
   page.querySelectorAll(".bag-item").forEach((item) => {
@@ -185,6 +227,6 @@ export function refreshShoppingBagTotals(root) {
   const headerTotal = page.querySelector(".bag-header-total");
   const labelEl = page.querySelector(".bag-header-items-label");
   if (countEl) countEl.textContent = String(count);
-  if (labelEl) labelEl.textContent = count === 1 ? "item" : "items";
-  if (headerTotal) headerTotal.textContent = formatted;
+  if (labelEl) labelEl.textContent = count === 1 ? "article" : "articles";
+  if (headerTotal) headerTotal.textContent = formattedTotal;
 }

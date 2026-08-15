@@ -1,5 +1,6 @@
 import { showShoppingBag } from "./pages.js";
 import { addCategoryCardToBag, refreshShoppingBagTotals } from "./bagHelpers.js";
+import { openPdpAddedOverlay } from "./cartAddedOverlay.js";
 
 let bagCount = 0;
 export function getBagCount() {
@@ -36,7 +37,7 @@ export function updateTopbarCart(root) {
   } else {
     cartBtn.hidden = true;
     badge.textContent = "0";
-    cartBtn.setAttribute("aria-label", "Shopping bag");
+    cartBtn.setAttribute("aria-label", "Panier");
   }
 }
 
@@ -54,6 +55,7 @@ export function initCart(root) {
     if (addCategoryCardToBag(root, card, { qty: 1, mode: "add" })) {
       syncBagCountFromDom(root);
       refreshShoppingBagTotals(root);
+      openPdpAddedOverlay(root, 1);
     }
   });
 

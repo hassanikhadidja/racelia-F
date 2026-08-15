@@ -52,26 +52,25 @@ export const products = [
 ];
 
 export const menuHandbagItems = [
-  { label: "MINI BAGS", page: "mini-bags" },
-  { label: "RACÈLIA BAGS", page: "racelia-handbag" },
-  { label: "MOM BAGS", page: "moms-bags" },
-  { label: "ALL SELECTION", page: "all-selection" },
+  { label: "MINI SACS", page: "mini-bags" },
+  { label: "SACS RACÈLIA", page: "racelia-handbag" },
+  { label: "SACS MOM", page: "moms-bags" },
 ];
 
 export const menuItems = [
-  { label: "NEW ARRIVALS", action: "new-arrivals" },
-  { label: "MÉTIERS D'ART", tag: "NEW", action: "blogs" },
-  { label: "HANDBAGS", chevron: true, gap: true, submenu: menuHandbagItems },
+  { label: "NOUVEAUTÉS", page: "nouveautes" },
+  { label: "MÉTIERS D'ART", tag: "NOUVEAU", action: "blogs" },
+  { label: "SACS", chevron: true, gap: true, submenu: menuHandbagItems },
+  { label: "CATALOGUE GROSSISTE", page: "catalogue-grossiste" },
   { label: "BOUTIQUES", sale: true },
-  { label: "DASHBOARD", muted: true, action: "dashboard" },
+  { label: "TABLEAU DE BORD", muted: true, action: "dashboard" },
 ];
 
-export const defaultSelection = "NEW ARRIVALS";
+export const defaultSelection = "TOUTE LA SÉLECTION";
 
 export const selectionItems = [
-  { label: "NEW ARRIVALS", page: "home" },
-  { label: "ALL SELECTION", page: "all-selection" },
-  { label: "MINI BAGS", page: "mini-bags" },
-  { label: "THE RACÈLIA HANDBAG", page: "racelia-handbag" },
-  { label: "MOMS BAGS", page: "moms-bags" },
+  { label: "NOUVEAUTÉS", page: "nouveautes" },
+  { label: "MINI SACS", page: "mini-bags" },
+  { label: "LE SAC RACÈLIA", page: "racelia-handbag" },
+  { label: "SACS MOM", page: "moms-bags" },
 ];

@@ -1,0 +1,125 @@
+.accessibility-page {
+  background: #f7f5f2;
+  color: #111;
+  font-family: Georgia, "Times New Roman", serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: calc(100vh - 120px);
+  min-height: calc(100dvh - 120px);
+}
+
+.accessibility-main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 82px 24px 24px;
+  line-height: 1.6;
+}
+
+.accessibility-main h1 {
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  margin: 0 0 8px;
+}
+
+.accessibility-effective {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 20px;
+}
+
+.accessibility-notice {
+  background: #f0ebe4;
+  border: 1px solid #ddd4c8;
+  padding: 14px 18px;
+  font-size: 14px;
+  color: #4a3f32;
+  margin-bottom: 32px;
+}
+
+.accessibility-main h2 {
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin: 40px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+}
+
+.accessibility-main p {
+  margin: 10px 0;
+  font-size: 15px;
+}
+
+.accessibility-main ul,
+.accessibility-main ol {
+  font-size: 15px;
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+.accessibility-main li {
+  margin: 6px 0;
+}
+
+.accessibility-main a {
+  color: #111;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.accessibility-main a:hover {
+  opacity: 0.7;
+}
+
+.accessibility-toc {
+  background: #fff;
+  border: 1px solid #e6e2dc;
+  padding: 18px 22px;
+  margin-bottom: 32px;
+}
+
+.accessibility-toc h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #666;
+  font-weight: 400;
+}
+
+.accessibility-toc ol {
+  columns: 2;
+  font-size: 13.5px;
+  padding-left: 18px;
+  margin: 0;
+}
+
+.accessibility-toc a {
+  text-decoration: none;
+}
+
+.accessibility-toc a:hover {
+  text-decoration: underline;
+}
+
+.accessibility-contact-block {
+  background: #fff;
+  border: 1px solid #e6e2dc;
+  padding: 16px 20px;
+  margin: 16px 0;
+  font-size: 15px;
+}
+
+@media (max-width: 520px) {
+  .accessibility-main {
+    padding: 66px 18px 16px;
+  }
+
+  .accessibility-main h1 {
+    font-size: 26px;
+  }
+
+  .accessibility-toc ol {
+    columns: 1;
+  }
+}

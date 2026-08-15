@@ -1,6 +1,7 @@
-import { collectBagItems, refreshShoppingBagTotals } from "./bagHelpers.js";
+import { refreshShoppingBagTotals } from "./bagHelpers.js";
 import { syncBagCountFromDom } from "./cart.js";
-import { formatPrice, parsePrice } from "./currency.js";
+import { applyLoyaltyCode } from "./loyaltyCard.js";
+import { getAuthToken } from "./api.js";
 
 export function initShoppingBag(root, { onBack } = {}) {
   const page = root.querySelector("#shoppingBagPage");
@@ -33,18 +34,7 @@ export function initShoppingBag(root, { onBack } = {}) {
   };
 
   const updateTotal = () => {
-    let total = 0;
-    page.querySelectorAll(".bag-item").forEach((item) => {
-      const qty = parseInt(item.querySelector(".qty-select")?.value || "1", 10);
-      const price = parsePrice(item.querySelector(".item-price")?.textContent);
-      total += qty * price;
-    });
-    const formatted = formatPrice(total);
-    const subtotal = page.querySelector("#subtotal");
-    const totalEl = page.querySelector("#total");
-    if (subtotal) subtotal.textContent = formatted;
-    if (totalEl) totalEl.textContent = formatted;
-    updateCount(page, formatted);
+    refreshShoppingBagTotals(root);
   };
 
   const removeItem = (el) => {
@@ -86,11 +76,25 @@ export function initShoppingBag(root, { onBack } = {}) {
       event.preventDefault();
       const code = promoInput?.value.trim() || "";
       if (!code) {
-        window.alert("Please enter a promo code.");
+        window.alert("Veuillez saisir un code promo.");
         return;
       }
-      window.alert(`Promo code "${code}" applied!`);
+      if (!getAuthToken()) {
+        window.alert("Connectez-vous pour utiliser un code de fidélité.");
+        return;
+      }
+      const result = applyLoyaltyCode(code);
+      if (!result.ok) {
+        window.alert(result.error);
+        return;
+      }
+      if (result.reward.type === "free_item") {
+        window.alert("Code appliqué. Choisissez l’article offert lors du paiement.");
+      } else {
+        window.alert(`Code promo « ${result.reward.code} » appliqué !`);
+      }
       closePromo();
+      updateTotal();
       return;
     }
 
@@ -102,7 +106,7 @@ export function initShoppingBag(root, { onBack } = {}) {
 
     if (target.closest(".js-shopping-bag-signin")) {
       event.preventDefault();
-      window.alert("Sign in — demo");
+      window.alert("Connexion — démo");
       return;
     }
 
@@ -122,7 +126,7 @@ export function initShoppingBag(root, { onBack } = {}) {
       event.preventDefault();
       const hasItems = page.querySelectorAll(".bag-item").length > 0;
       if (!hasItems) {
-        window.alert("Your bag is empty.");
+        window.alert("Votre panier est vide.");
         return;
       }
       root.dispatchEvent(new CustomEvent("racelia:open-checkout"));
@@ -159,17 +163,4 @@ export function initShoppingBag(root, { onBack } = {}) {
   });
 
   updateTotal();
-}
-
-function updateCount(page, totalText) {
-  let count = 0;
-  page.querySelectorAll(".bag-item").forEach((item) => {
-    count += parseInt(item.querySelector(".qty-select")?.value || "1", 10);
-  });
-  const countEl = page.querySelector(".bag-header-count");
-  const totalEl = page.querySelector(".bag-header-total");
-  const labelEl = page.querySelector(".bag-header-items-label");
-  if (countEl) countEl.textContent = String(count);
-  if (labelEl) labelEl.textContent = count === 1 ? "item" : "items";
-  if (totalEl && totalText) totalEl.textContent = totalText;
 }

@@ -9,15 +9,16 @@ import { initProductSliders } from "./productSliders.js";
 import { updateTopbar } from "./topbar.js";
 import { getAuthToken, isAdminUser } from "./api.js";
 import { updateAccountButtons } from "./accountUi.js";
-import { initProductDetailPage, mountProductDetail, closePdpAddedOverlay, closePdpVirtualTryOn } from "./productDetail.js";
+import { initProductDetailPage, mountProductDetail, closePdpVirtualTryOn } from "./productDetail.js";
+import { initCartAddedOverlay, closePdpAddedOverlay } from "./cartAddedOverlay.js";
 import { initDashboard } from "./dashboard.js";
+import { initClientProfile } from "./clientProfile.js";
 import { initShoppingBag } from "./shoppingBag.js";
 import { initWishlist } from "./wishlist.js";
 import { initCheckout } from "./checkout.js";
 import { collectBagItems } from "./bagHelpers.js";
 import { syncWishlistHeartStates } from "./clientCartWishlist.js";
-import { parseRoute, writeRoute, isValidProductRoute, shouldIgnoreHashChange } from "./route.js";
-import { applyHomeWebPics } from "./homeWebPics.js";
+import { parseRoute, writeRoute, isValidProductRoute, shouldIgnoreHashChange, goBackInApp, beginRouteRestore, endRouteRestore } from "./route.js";
 import { renderHomeNewArrivals } from "./homeNewArrivals.js";
 import {
   initBlogsPage,
@@ -25,6 +26,14 @@ import {
   renderBlogArticle,
   showBlogsListView,
 } from "./blogsPage.js";
+import { initPrivacyPage } from "./privacyPage.js";
+import { initTermsPage } from "./termsPage.js";
+import { scrollToHeading } from "./scrollToHeading.js";
+import { initBoutiquesPage } from "./boutiquesPage.js";
+import { initFaqPage } from "./faqPage.js";
+import { initReturnsPage } from "./returnsPage.js";
+import { initGiftCardPage } from "./giftCardPage.js";
+import { initContactPage } from "./contactPage.js";
 
 let currentPage = "home";
 let currentProductId = null;
@@ -36,8 +45,9 @@ let pageBeforeShoppingBag = "home";
 let pageBeforeAccount = "home";
 let activeCategoryFilters = [];
 
-function resolveAccountReturnPage(fromPage = currentPage) {
+function resolveProfileReturnPage(fromPage = currentPage) {
   if (fromPage === "account") return pageBeforeAccount || "home";
+  if (fromPage === "client-profile") return lastStorePage || "home";
   return fromPage || "home";
 }
 
@@ -49,6 +59,11 @@ function syncRoute() {
   if (currentPage === "dashboard") {
     const tab = sessionStorage.getItem("racelia-dashboard-tab") || "overview";
     writeRoute({ view: "dashboard", dashboardTab: tab });
+    return;
+  }
+
+  if (currentPage === "client-profile") {
+    writeRoute({ view: "client-profile" });
     return;
   }
 
@@ -87,6 +102,46 @@ function syncRoute() {
     return;
   }
 
+  if (currentPage === "privacy") {
+    writeRoute({ view: "privacy" });
+    return;
+  }
+
+  if (currentPage === "terms") {
+    writeRoute({ view: "terms" });
+    return;
+  }
+
+  if (currentPage === "shipping") {
+    writeRoute({ view: "shipping" });
+    return;
+  }
+
+  if (currentPage === "boutiques") {
+    writeRoute({ view: "boutiques" });
+    return;
+  }
+
+  if (currentPage === "faq") {
+    writeRoute({ view: "faq" });
+    return;
+  }
+
+  if (currentPage === "returns") {
+    writeRoute({ view: "returns" });
+    return;
+  }
+
+  if (currentPage === "gift-card") {
+    writeRoute({ view: "gift-card" });
+    return;
+  }
+
+  if (currentPage === "contact") {
+    writeRoute({ view: "contact" });
+    return;
+  }
+
   if (categoryPages[currentPage]) {
     writeRoute({ view: "category", categoryKey: currentPage });
     return;
@@ -97,67 +152,123 @@ function syncRoute() {
 
 export function restoreRouteFromUrl(root) {
   const route = parseRoute();
+  beginRouteRestore();
 
-  if (route.view === "dashboard") {
-    if (!isAdminUser()) {
+  try {
+    if (route.view === "home") {
       showHome(root);
       return;
     }
-    sessionStorage.setItem("racelia-dashboard-tab", route.dashboardTab);
-    showDashboard(root);
-    return;
-  }
 
-  if (route.view === "shopping-bag") {
-    showShoppingBag(root);
-    return;
-  }
-
-  if (route.view === "wishlist") {
-    showWishlist(root);
-    return;
-  }
-
-  if (route.view === "checkout") {
-    if (collectBagItems(root).length > 0) {
-      showCheckout(root);
-    } else {
-      showShoppingBag(root);
+    if (route.view === "dashboard") {
+      if (!isAdminUser()) {
+        showHome(root);
+        return;
+      }
+      sessionStorage.setItem("racelia-dashboard-tab", route.dashboardTab);
+      showDashboard(root);
+      return;
     }
-    return;
-  }
 
-  if (route.view === "account") {
-    if (getAuthToken()) showHome(root);
-    else showAccount(root);
-    return;
-  }
+    if (route.view === "client-profile") {
+      if (getAuthToken()) showClientProfile(root);
+      else showAccount(root);
+      return;
+    }
 
-  if (route.view === "category") {
-    showCategory(root, route.categoryKey);
-    return;
-  }
+    if (route.view === "shopping-bag") {
+      showShoppingBag(root);
+      return;
+    }
 
-  if (route.view === "blogs") {
-    showBlogs(root);
-    return;
-  }
+    if (route.view === "wishlist") {
+      showWishlist(root);
+      return;
+    }
 
-  if (route.view === "blog" && route.blogId) {
-    showBlogs(root, { blogId: route.blogId });
-    return;
-  }
+    if (route.view === "checkout") {
+      if (collectBagItems(root).length > 0) showCheckout(root);
+      else showShoppingBag(root);
+      return;
+    }
 
-  if (route.view === "product" && isValidProductRoute(route.productId)) {
-    showProductDetail(root, route.productId);
-    return;
-  }
+    if (route.view === "account") {
+      if (getAuthToken()) showClientProfile(root);
+      else showAccount(root);
+      return;
+    }
 
-  showHome(root);
+    if (route.view === "category") {
+      showCategory(root, route.categoryKey);
+      return;
+    }
+
+    if (route.view === "blogs") {
+      showBlogs(root);
+      return;
+    }
+
+    if (route.view === "blog" && route.blogId) {
+      showBlogs(root, { blogId: route.blogId });
+      return;
+    }
+
+    if (route.view === "privacy") {
+      showPrivacy(root);
+      return;
+    }
+
+    if (route.view === "terms") {
+      showTerms(root);
+      return;
+    }
+
+    if (route.view === "shipping") {
+      showShipping(root);
+      return;
+    }
+
+    if (route.view === "boutiques") {
+      showBoutiques(root);
+      return;
+    }
+
+    if (route.view === "faq") {
+      showFaq(root);
+      return;
+    }
+
+    if (route.view === "returns") {
+      showReturns(root);
+      return;
+    }
+
+    if (route.view === "gift-card") {
+      showGiftCard(root);
+      return;
+    }
+
+    if (route.view === "contact") {
+      showContact(root);
+      return;
+    }
+
+    if (route.view === "product" && isValidProductRoute(route.productId)) {
+      showProductDetail(root, route.productId);
+      return;
+    }
+
+    showHome(root);
+  } finally {
+    endRouteRestore();
+  }
 }
 
 export function showAccount(root) {
-  if (getAuthToken()) return;
+  if (getAuthToken()) {
+    showClientProfile(root);
+    return;
+  }
 
   const accountPage = root.querySelector("#accountPage");
   if (!accountPage || !accountPage.hidden) return;
@@ -175,6 +286,7 @@ export function showAccount(root) {
   root.querySelector("#categoryPage").hidden = true;
   root.querySelector("#productDetailPage").hidden = true;
   root.querySelector("#dashboardPage").hidden = true;
+  root.querySelector("#clientProfilePage").hidden = true;
   const shoppingBagPage = root.querySelector("#shoppingBagPage");
   if (shoppingBagPage) shoppingBagPage.hidden = true;
   const wishlistPage = root.querySelector("#wishlistPage");
@@ -192,6 +304,8 @@ export function showAccount(root) {
 export function closeAccount(root) {
   const accountPage = root.querySelector("#accountPage");
   if (!accountPage || accountPage.hidden) return;
+
+  if (goBackInApp()) return;
 
   accountPage.hidden = true;
   currentPage = pageBeforeAccount || "home";
@@ -231,7 +345,9 @@ function setSelectionLabel(root, label) {
   const ctaLabel = root.querySelector("#ctaLabel");
   const modalHeading = root.querySelector("#modalHeading");
   if (ctaLabel) ctaLabel.textContent = label;
-  if (modalHeading) modalHeading.textContent = label;
+  if (modalHeading && label === "TOUTE LA SÉLECTION") {
+    modalHeading.textContent = label;
+  }
 
   root.querySelectorAll("#modalListWrap li").forEach((item) => {
     item.classList.toggle("active", item.textContent === label);
@@ -291,6 +407,8 @@ function hideAllPages(root) {
   root.querySelector("#accountPage").hidden = true;
   const dashboard = root.querySelector("#dashboardPage");
   if (dashboard) dashboard.hidden = true;
+  const clientProfile = root.querySelector("#clientProfilePage");
+  if (clientProfile) clientProfile.hidden = true;
   const shoppingBag = root.querySelector("#shoppingBagPage");
   if (shoppingBag) shoppingBag.hidden = true;
   const wishlist = root.querySelector("#wishlistPage");
@@ -299,10 +417,27 @@ function hideAllPages(root) {
   if (checkout) checkout.hidden = true;
   const blogsPage = root.querySelector("#blogsPage");
   if (blogsPage) blogsPage.hidden = true;
+  const privacyPage = root.querySelector("#privacyPage");
+  if (privacyPage) privacyPage.hidden = true;
+  const termsPage = root.querySelector("#termsPage");
+  if (termsPage) termsPage.hidden = true;
+  const shippingPage = root.querySelector("#shippingPage");
+  if (shippingPage) shippingPage.hidden = true;
+  const boutiquesPage = root.querySelector("#boutiquesPage");
+  if (boutiquesPage) boutiquesPage.hidden = true;
+  const faqPage = root.querySelector("#faqPage");
+  if (faqPage) faqPage.hidden = true;
+  const returnsPage = root.querySelector("#returnsPage");
+  if (returnsPage) returnsPage.hidden = true;
+  const giftCardPage = root.querySelector("#giftCardPage");
+  if (giftCardPage) giftCardPage.hidden = true;
+  const contactPage = root.querySelector("#contactPage");
+  if (contactPage) contactPage.hidden = true;
 }
 
 function setOverlayShellActive(active) {
   document.body.classList.toggle("dashboard-active", active);
+  document.body.classList.toggle("client-profile-active", active);
   document.body.classList.toggle("shopping-bag-active", active);
   document.body.classList.toggle("wishlist-active", active);
   document.body.classList.toggle("checkout-active", active);
@@ -311,6 +446,17 @@ function setOverlayShellActive(active) {
 function setDashboardShellActive(active) {
   document.body.classList.toggle("dashboard-active", active);
   if (active) {
+    document.body.classList.remove("client-profile-active");
+    document.body.classList.remove("shopping-bag-active");
+    document.body.classList.remove("wishlist-active");
+    document.body.classList.remove("checkout-active");
+  }
+}
+
+function setClientProfileShellActive(active) {
+  document.body.classList.toggle("client-profile-active", active);
+  if (active) {
+    document.body.classList.remove("dashboard-active");
     document.body.classList.remove("shopping-bag-active");
     document.body.classList.remove("wishlist-active");
     document.body.classList.remove("checkout-active");
@@ -321,6 +467,7 @@ function setShoppingBagShellActive(active) {
   document.body.classList.toggle("shopping-bag-active", active);
   if (active) {
     document.body.classList.remove("dashboard-active");
+    document.body.classList.remove("client-profile-active");
     document.body.classList.remove("wishlist-active");
     document.body.classList.remove("checkout-active");
   }
@@ -330,6 +477,7 @@ function setWishlistShellActive(active) {
   document.body.classList.toggle("wishlist-active", active);
   if (active) {
     document.body.classList.remove("dashboard-active");
+    document.body.classList.remove("client-profile-active");
     document.body.classList.remove("shopping-bag-active");
     document.body.classList.remove("checkout-active");
   }
@@ -339,6 +487,7 @@ function setCheckoutShellActive(active) {
   document.body.classList.toggle("checkout-active", active);
   if (active) {
     document.body.classList.remove("dashboard-active");
+    document.body.classList.remove("client-profile-active");
     document.body.classList.remove("shopping-bag-active");
     document.body.classList.remove("wishlist-active");
   }
@@ -499,6 +648,7 @@ export function showDashboard(root) {
 
 export function leaveDashboard(root) {
   if (currentPage !== "dashboard") return;
+  if (goBackInApp()) return;
 
   currentPage = lastStorePage;
   setDashboardShellActive(false);
@@ -507,6 +657,51 @@ export function leaveDashboard(root) {
   if (dashboard) dashboard.hidden = true;
 
   restoreView(root);
+  syncRoute();
+  updateTopbar(root);
+  updateCtaDock(root);
+}
+
+export function showClientProfile(root) {
+  if (currentPage !== "client-profile") {
+    lastStorePage = resolveProfileReturnPage(currentPage);
+  }
+
+  currentPage = "client-profile";
+  hideAllPages(root);
+  closeOverlays(root);
+
+  const page = root.querySelector("#clientProfilePage");
+  if (page) page.hidden = false;
+
+  setClientProfileShellActive(true);
+  initClientProfile(root);
+  updateAccountButtons(root);
+  updateCtaDock(root);
+  syncRoute();
+  page?.scrollTo({ top: 0 });
+}
+
+export function leaveClientProfile(root) {
+  if (currentPage !== "client-profile") return;
+  if (goBackInApp()) return;
+
+  const returnPage = resolveProfileReturnPage(lastStorePage);
+  currentPage = returnPage === "client-profile" ? "home" : returnPage;
+
+  setClientProfileShellActive(false);
+
+  const page = root.querySelector("#clientProfilePage");
+  if (page) {
+    page.hidden = true;
+    page.setAttribute("hidden", "");
+  }
+
+  if (currentPage === "home" || !currentPage) {
+    showHome(root);
+  } else {
+    restoreView(root);
+  }
   syncRoute();
   updateTopbar(root);
   updateCtaDock(root);
@@ -534,6 +729,7 @@ export function showShoppingBag(root) {
 
 export function leaveShoppingBag(root) {
   if (currentPage !== "shopping-bag") return;
+  if (goBackInApp()) return;
 
   currentPage = pageBeforeShoppingBag;
   lastStorePage = pageBeforeShoppingBag;
@@ -563,11 +759,9 @@ export function showWishlist(root) {
   setWishlistShellActive(true);
   initWishlist(root, {
     onMoveToBag: () => {
-      leaveWishlist(root);
       showShoppingBag(root);
     },
     onOpenBag: () => {
-      leaveWishlist(root);
       showShoppingBag(root);
     },
   });
@@ -578,6 +772,7 @@ export function showWishlist(root) {
 
 export function leaveWishlist(root) {
   if (currentPage !== "wishlist") return;
+  if (goBackInApp()) return;
 
   currentPage = lastStorePage;
   setWishlistShellActive(false);
@@ -618,6 +813,7 @@ export function showCheckout(root) {
 
 export function leaveCheckout(root) {
   if (currentPage !== "checkout") return;
+  if (goBackInApp()) return;
 
   currentPage = lastStorePage;
   setCheckoutShellActive(false);
@@ -652,14 +848,17 @@ export function showHome(root, { selectionLabel = defaultSelection, scrollToGrid
   activeCategoryFilters = [];
 
   hideAllPages(root);
-  root.querySelector("#pageMain").hidden = false;
+  const pageMain = root.querySelector("#pageMain");
+  if (pageMain) pageMain.hidden = false;
 
   closeOverlays(root);
   updateTopbar(root);
   attachSelectionWidget(root);
-  setSelectionLabel(root, selectionLabel);
+  setSelectionLabel(root, defaultSelection);
   syncRoute();
-  requestAnimationFrame(() => applyHomeWebPics(root));
+  requestAnimationFrame(() => {
+    root.dispatchEvent(new CustomEvent("racelia:reveal"));
+  });
 
   if (scrollToGrid) {
     requestAnimationFrame(() => scrollToHomeProductGrid(root));
@@ -726,6 +925,169 @@ export function showBlogs(root, { blogId = null } = {}) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+export function showPrivacy(root) {
+  setOverlayShellActive(false);
+  currentPage = "privacy";
+  currentProductId = null;
+  currentBlogId = null;
+
+  hideAllPages(root);
+  const privacyPage = root.querySelector("#privacyPage");
+  if (privacyPage) privacyPage.hidden = false;
+
+  closeOverlays(root);
+  attachSelectionWidget(root);
+  updateCtaDock(root);
+  updateTopbar(root);
+  initPrivacyPage(root);
+  syncRoute();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+export function showTerms(root, { headingId } = {}) {
+  setOverlayShellActive(false);
+  currentPage = "terms";
+  currentProductId = null;
+  currentBlogId = null;
+
+  hideAllPages(root);
+  const termsPage = root.querySelector("#termsPage");
+  if (termsPage) termsPage.hidden = false;
+
+  closeOverlays(root);
+  attachSelectionWidget(root);
+  updateCtaDock(root);
+  updateTopbar(root);
+  initTermsPage(root);
+  syncRoute();
+
+  const target = headingId
+    ? termsPage?.querySelector(`#${CSS.escape(headingId)}`)
+    : null;
+  if (target) {
+    requestAnimationFrame(() => scrollToHeading(target));
+    return;
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+export function showShipping(root) {
+  setOverlayShellActive(false);
+  currentPage = "shipping";
+  currentProductId = null;
+  currentBlogId = null;
+
+  hideAllPages(root);
+  const shippingPage = root.querySelector("#shippingPage");
+  if (shippingPage) shippingPage.hidden = false;
+
+  closeOverlays(root);
+  attachSelectionWidget(root);
+  updateCtaDock(root);
+  updateTopbar(root);
+  syncRoute();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+export function showBoutiques(root, { query = "" } = {}) {
+  setOverlayShellActive(false);
+  currentPage = "boutiques";
+  currentProductId = null;
+  currentBlogId = null;
+
+  hideAllPages(root);
+  const boutiquesPage = root.querySelector("#boutiquesPage");
+  if (boutiquesPage) boutiquesPage.hidden = false;
+
+  closeOverlays(root);
+  attachSelectionWidget(root);
+  updateCtaDock(root);
+  updateTopbar(root);
+
+  const zipInput = boutiquesPage?.querySelector("#boutiquesZipInput");
+  if (zipInput && query) zipInput.value = query;
+
+  initBoutiquesPage(root);
+  syncRoute();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+export function showFaq(root) {
+  setOverlayShellActive(false);
+  currentPage = "faq";
+  currentProductId = null;
+  currentBlogId = null;
+
+  hideAllPages(root);
+  const faqPage = root.querySelector("#faqPage");
+  if (faqPage) faqPage.hidden = false;
+
+  closeOverlays(root);
+  attachSelectionWidget(root);
+  updateCtaDock(root);
+  updateTopbar(root);
+  initFaqPage(root);
+  syncRoute();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+export function showReturns(root) {
+  setOverlayShellActive(false);
+  currentPage = "returns";
+  currentProductId = null;
+  currentBlogId = null;
+
+  hideAllPages(root);
+  const returnsPage = root.querySelector("#returnsPage");
+  if (returnsPage) returnsPage.hidden = false;
+
+  closeOverlays(root);
+  attachSelectionWidget(root);
+  updateCtaDock(root);
+  updateTopbar(root);
+  initReturnsPage(root);
+  syncRoute();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+export function showGiftCard(root) {
+  setOverlayShellActive(false);
+  currentPage = "gift-card";
+  currentProductId = null;
+  currentBlogId = null;
+
+  hideAllPages(root);
+  const giftCardPage = root.querySelector("#giftCardPage");
+  if (giftCardPage) giftCardPage.hidden = false;
+
+  closeOverlays(root);
+  attachSelectionWidget(root);
+  updateCtaDock(root);
+  updateTopbar(root);
+  initGiftCardPage(root);
+  syncRoute();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+export function showContact(root) {
+  setOverlayShellActive(false);
+  currentPage = "contact";
+  currentProductId = null;
+  currentBlogId = null;
+
+  hideAllPages(root);
+  const contactPage = root.querySelector("#contactPage");
+  if (contactPage) contactPage.hidden = false;
+
+  closeOverlays(root);
+  attachSelectionWidget(root);
+  updateCtaDock(root);
+  updateTopbar(root);
+  initContactPage(root);
+  syncRoute();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 export function showBlogArticle(root, blogId) {
   if (!renderBlogArticle(root, blogId)) {
     showBlogs(root);
@@ -735,7 +1097,9 @@ export function showBlogArticle(root, blogId) {
   currentPage = "blog";
   currentBlogId = blogId;
   syncRoute();
+  updateTopbar(root);
   window.scrollTo({ top: 0, behavior: "smooth" });
+  requestAnimationFrame(() => updateTopbar(root));
 }
 
 export function showCategory(root, pageKey) {
@@ -775,7 +1139,9 @@ export function showCategory(root, pageKey) {
   attachSelectionWidget(root);
   setSelectionLabel(root, config.selectionLabel);
   syncRoute();
+  updateTopbar(root);
   window.scrollTo({ top: 0, behavior: "smooth" });
+  requestAnimationFrame(() => updateTopbar(root));
 }
 
 export function restoreView(root) {
@@ -786,12 +1152,14 @@ export function restoreView(root) {
   const productDetailPage = root.querySelector("#productDetailPage");
   const accountPage = root.querySelector("#accountPage");
   const dashboardPage = root.querySelector("#dashboardPage");
+  const clientProfilePage = root.querySelector("#clientProfilePage");
   const shoppingBagPage = root.querySelector("#shoppingBagPage");
   const wishlistPage = root.querySelector("#wishlistPage");
   const checkoutPage = root.querySelector("#checkoutPage");
 
   if (accountPage) accountPage.hidden = true;
   if (dashboardPage) dashboardPage.hidden = true;
+  if (clientProfilePage) clientProfilePage.hidden = true;
   if (shoppingBagPage) shoppingBagPage.hidden = true;
   if (wishlistPage) wishlistPage.hidden = true;
   if (checkoutPage) checkoutPage.hidden = true;
@@ -799,6 +1167,11 @@ export function restoreView(root) {
 
   if (currentPage === "dashboard") {
     showDashboard(root);
+    return;
+  }
+
+  if (currentPage === "client-profile") {
+    showClientProfile(root);
     return;
   }
 
@@ -818,21 +1191,28 @@ export function restoreView(root) {
   }
 
   if (currentPage === "account") {
-    if (getAuthToken()) {
-      currentPage = resolveAccountReturnPage(pageBeforeAccount);
-      hideAllPages(root);
-      if (pageMain) pageMain.hidden = false;
-      attachSelectionWidget(root);
-    } else {
-      showAccount(root);
-    }
+    if (getAuthToken()) showClientProfile(root);
+    else showAccount(root);
+    return;
+  }
+
+  if (currentPage === "returns") {
+    showReturns(root);
+    return;
+  }
+
+  if (currentPage === "gift-card") {
+    showGiftCard(root);
+    return;
+  }
+
+  if (currentPage === "contact") {
+    showContact(root);
     return;
   }
 
   if (currentPage === "home") {
-    hideAllPages(root);
-    if (pageMain) pageMain.hidden = false;
-    attachSelectionWidget(root);
+    showHome(root);
     return;
   }
 
@@ -852,10 +1232,7 @@ export function restoreView(root) {
       if (productDetailPage) productDetailPage.hidden = false;
       attachSelectionWidget(root);
     } else {
-      currentPage = "home";
-      hideAllPages(root);
-      if (pageMain) pageMain.hidden = false;
-      attachSelectionWidget(root);
+      showHome(root);
     }
     return;
   }
@@ -869,15 +1246,14 @@ export function restoreView(root) {
     return;
   }
 
-  hideAllPages(root);
-  if (categoryPage) categoryPage.hidden = false;
-  attachSelectionWidget(root);
+  showHome(root);
 }
 
 export function initPages(root) {
   initProductCardNavigation(root);
 
   root.addEventListener("racelia:leave-dashboard", () => leaveDashboard(root));
+  root.addEventListener("racelia:leave-client-profile", () => leaveClientProfile(root));
   root.addEventListener("racelia:leave-shopping-bag", () => leaveShoppingBag(root));
   root.addEventListener("racelia:leave-wishlist", () => leaveWishlist(root));
   root.addEventListener("racelia:open-wishlist", () => showWishlist(root));
@@ -889,6 +1265,18 @@ export function initPages(root) {
     if (productId) showProductDetail(root, productId);
   });
   root.addEventListener("racelia:open-blogs", () => showBlogs(root));
+  root.addEventListener("racelia:open-privacy", () => showPrivacy(root));
+  root.addEventListener("racelia:open-terms", (event) => {
+    showTerms(root, { headingId: event.detail?.headingId });
+  });
+  root.addEventListener("racelia:open-shipping", () => showShipping(root));
+  root.addEventListener("racelia:open-boutiques", (event) => {
+    showBoutiques(root, { query: event.detail?.query || "" });
+  });
+  root.addEventListener("racelia:open-faq", () => showFaq(root));
+  root.addEventListener("racelia:open-returns", () => showReturns(root));
+  root.addEventListener("racelia:open-gift-card", () => showGiftCard(root));
+  root.addEventListener("racelia:open-contact", () => showContact(root));
   root.addEventListener("racelia:open-blog", (event) => {
     const blogId = event.detail?.blogId;
     if (blogId) showBlogArticle(root, blogId);
@@ -927,6 +1315,7 @@ export function initPages(root) {
   });
 
   initCategoryFilter(root);
+  initCartAddedOverlay(root);
   initProductDetailPage(root, {
     onProductSelect: (productId) => showProductDetail(root, productId),
   });

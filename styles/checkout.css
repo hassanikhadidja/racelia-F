@@ -6,7 +6,7 @@
   display: none;
   height: 100dvh;
   height: 100svh;
-  font-family: var(--font-inter), "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: Georgia, "Times New Roman", serif;
   -webkit-font-smoothing: antialiased;
   background: #fff;
   color: #000;
@@ -345,6 +345,27 @@ body.checkout-active #racelia-app .cta-dock {
   font-weight: 600;
   white-space: nowrap;
   padding-top: 2px;
+}
+
+#checkoutPage .checkout-item__free {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #000;
+  cursor: pointer;
+}
+
+#checkoutPage .checkout-item.is-free .checkout-item__price {
+  color: #1a7f4b;
+}
+
+#checkoutPage .checkout-item__price-was {
+  display: block;
+  color: #999;
+  font-weight: 400;
+  text-decoration: line-through;
 }
 
 #checkoutPage .checkout-payment-section {

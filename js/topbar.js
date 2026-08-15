@@ -46,6 +46,10 @@ export function initTopbarSearch(root) {
   });
 }
 
+function isPageVisible(el) {
+  return Boolean(el && !el.hidden);
+}
+
 export function updateTopbar(root) {
   const topbar = root.querySelector(".topbar");
   const hero = root.querySelector(".hero");
@@ -60,13 +64,21 @@ export function updateTopbar(root) {
   const pageMain = root.querySelector("#pageMain");
   const productDetailPage = root.querySelector("#productDetailPage");
   const pdpHero = root.querySelector("#pdpHero");
-  const onPdp = productDetailPage && !productDetailPage.hidden;
+  const onPdp = isPageVisible(productDetailPage);
+  const onHome = isPageVisible(pageMain);
 
-  topbar.classList.toggle("topbar--pdp", Boolean(onPdp));
+  topbar.classList.toggle("topbar--pdp", onPdp);
+
+  // Non-home / non-PDP surfaces are always light — never keep white hero icons.
+  if (!onHome && !onPdp) {
+    topbar.classList.remove("over-hero");
+    topbar.classList.add("scrolled");
+    return;
+  }
 
   if (onPdp && pdpHero) {
     const heroBottom = pdpHero.getBoundingClientRect().bottom;
-    if (heroBottom > 56) {
+    if (heroBottom > 64) {
       topbar.classList.add("over-hero");
       topbar.classList.remove("scrolled");
     } else {
@@ -76,8 +88,6 @@ export function updateTopbar(root) {
     return;
   }
 
-  const onHome = pageMain && !pageMain.hidden;
-
   if (!onHome || !hero) {
     topbar.classList.remove("over-hero");
     topbar.classList.add("scrolled");
@@ -85,7 +95,7 @@ export function updateTopbar(root) {
   }
 
   const heroBottom = hero.getBoundingClientRect().bottom;
-  if (heroBottom > 56) {
+  if (heroBottom > 64) {
     topbar.classList.add("over-hero");
     topbar.classList.remove("scrolled");
   } else {

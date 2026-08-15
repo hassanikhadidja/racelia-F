@@ -20,6 +20,11 @@
 # production
 /build
 
+# backend (separate project)
+/Racélia backend/
+/Racelia backend/
+/Rac*lia backend/
+
 # misc
 .DS_Store
 *.pem

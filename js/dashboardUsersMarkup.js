@@ -3,7 +3,7 @@ export function getDashboardUsersSectionMarkup() {
       <div class="page-head">
         <div>
           <h1 class="page-title">Users</h1>
-          <p class="page-sub">Manage customers, gift points, and order history.</p>
+          <p class="page-sub">Manage customers, roles, passwords, and orders.</p>
         </div>
         <button type="button" class="primary-btn js-dashboard-user-add-open">+ Add user</button>
       </div>
@@ -11,7 +11,7 @@ export function getDashboardUsersSectionMarkup() {
         <div class="users-head dashboard-users-head">
           <span>Name</span>
           <span>Email</span>
-          <span>Points</span>
+          <span>Role</span>
           <span>Orders</span>
           <span>Actions</span>
         </div>
@@ -19,6 +19,18 @@ export function getDashboardUsersSectionMarkup() {
       </div>
       <p class="dashboard-users-empty" id="dashboard-users-empty" hidden>No users yet.</p>
   `;
+}
+
+function roleSelectHtml(id, selected = "Customer") {
+  const roles = ["Admin", "Manager", "Support", "Customer"];
+  return `<select id="${id}" name="role">
+    ${roles
+      .map(
+        (role) =>
+          `<option value="${role}"${role === selected ? " selected" : ""}>${role}</option>`
+      )
+      .join("")}
+  </select>`;
 }
 
 export function getDashboardUsersOverlaysMarkup() {
@@ -42,26 +54,34 @@ export function getDashboardUsersOverlaysMarkup() {
           <label for="dash-user-password">Password</label>
           <input type="password" id="dash-user-password" name="password" required autocomplete="new-password" minlength="6" />
         </div>
+        <div class="dashboard-user-field">
+          <label for="dash-user-role">Role</label>
+          ${roleSelectHtml("dash-user-role", "Customer")}
+        </div>
         <button type="submit" class="dashboard-user-submit">Create user</button>
       </form>
     </div>
   </div>
 
-  <div class="dashboard-sheet-overlay" id="dashboard-user-points-overlay" aria-hidden="true">
-    <div class="dashboard-sheet profile-sheet dashboard-user-sheet" role="dialog" aria-labelledby="dashboard-user-points-title">
+  <div class="dashboard-sheet-overlay" id="dashboard-user-access-overlay" aria-hidden="true">
+    <div class="dashboard-sheet profile-sheet dashboard-user-sheet" role="dialog" aria-labelledby="dashboard-user-access-title">
       <div class="dashboard-sheet-header">
-        <h3 id="dashboard-user-points-title">Gift points</h3>
-        <button type="button" class="dashboard-sheet-close" data-close="dashboard-user-points-overlay">Close</button>
+        <h3 id="dashboard-user-access-title">Edit access</h3>
+        <button type="button" class="dashboard-sheet-close" data-close="dashboard-user-access-overlay">Close</button>
       </div>
-      <p class="dashboard-user-points-user" id="dashboard-user-points-name"></p>
-      <p class="dashboard-user-points-balance">Current balance: <strong id="dashboard-user-points-current">0</strong> pts</p>
-      <form class="dashboard-user-form" id="dashboard-user-points-form">
-        <input type="hidden" id="dashboard-user-points-id" value="" />
+      <p class="dashboard-user-access-user" id="dashboard-user-access-name"></p>
+      <form class="dashboard-user-form" id="dashboard-user-access-form">
+        <input type="hidden" id="dashboard-user-access-id" value="" />
         <div class="dashboard-user-field">
-          <label for="dashboard-user-points-amount">Points to add</label>
-          <input type="number" id="dashboard-user-points-amount" name="amount" min="1" step="1" required placeholder="e.g. 150" />
+          <label for="dashboard-user-access-role">Role</label>
+          ${roleSelectHtml("dashboard-user-access-role", "Customer")}
         </div>
-        <button type="submit" class="dashboard-user-submit">Add points</button>
+        <div class="dashboard-user-field">
+          <label for="dashboard-user-access-password">New password</label>
+          <input type="password" id="dashboard-user-access-password" name="password" autocomplete="new-password" minlength="6" placeholder="Leave empty to keep current" />
+          <p class="dashboard-user-hint">Leave blank if you only want to change the role.</p>
+        </div>
+        <button type="submit" class="dashboard-user-submit">Save changes</button>
       </form>
     </div>
   </div>
@@ -122,18 +142,14 @@ export function getDashboardUsersOverlaysMarkup() {
           <dd id="dashboard-user-profile-status"></dd>
         </div>
         <div class="dashboard-user-profile-detail">
-          <dt>Gift points</dt>
-          <dd id="dashboard-user-profile-points"></dd>
-        </div>
-        <div class="dashboard-user-profile-detail">
           <dt>Orders</dt>
           <dd id="dashboard-user-profile-orders"></dd>
         </div>
       </dl>
       <div class="dashboard-user-profile-cards" id="dashboard-user-profile-cards"></div>
       <div class="dashboard-user-profile-actions">
+        <button type="button" class="dashboard-user-action js-dashboard-user-profile-access">Edit role / password</button>
         <button type="button" class="dashboard-user-action js-dashboard-user-profile-orders">View orders</button>
-        <button type="button" class="dashboard-user-action js-dashboard-user-profile-points">Manage points</button>
       </div>
     </div>
   </div>

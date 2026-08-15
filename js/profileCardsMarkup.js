@@ -1,3 +1,5 @@
+import { getLoyaltyStampCount, stampSlotMarkup, LOYALTY_REWARDS, BIRTHDAY_STAMP, BIRTHDAY_MESSAGE } from "./loyaltyCard.js";
+
 export const PROFILE_CARD_ASSETS = {
   loyaltyFront:
     "https://res.cloudinary.com/dbtkfjrvd/image/upload/v1780493042/8_1_vf3lgz.png",
@@ -22,15 +24,8 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
-function loyaltyStampSlots(stampCount) {
-  const count = Math.max(0, Math.min(8, Number(stampCount) || 0));
-  return Array.from({ length: 8 }, (_, index) => {
-    const icon =
-      index < count
-        ? `<img class="loyalty-stamp-icon" src="${PROFILE_CARD_ASSETS.stampIcon}" alt="" />`
-        : "";
-    return `<span class="loyalty-stamp-slot">${icon}</span>`;
-  }).join("");
+function loyaltyStampSlots(stampCount, birthdayLocked = false) {
+  return stampSlotMarkup(stampCount, { birthdayLocked });
 }
 
 export function getUserPromoCode(points = 0) {
@@ -78,7 +73,7 @@ export function loadClientEgiftFields(profile) {
           to: parsed.to ?? "",
           from: parsed.from ?? getDefaultEgiftFields(profile?.name).from,
           amount: parsed.amount ?? "0 DZD",
-          expiry: parsed.expiry ?? formatEgiftDate(new Date()),
+          expiry: formatEgiftDate(new Date()),
         };
       }
     }
@@ -114,7 +109,7 @@ export function applyEgiftFieldsToPage(page, fields) {
   if (to) to.value = fields.to ?? "";
   if (from) from.value = fields.from ?? "";
   if (amount) amount.value = fields.amount ?? "0 DZD";
-  if (expiry) expiry.value = fields.expiry ?? formatEgiftDate(new Date());
+  if (expiry) expiry.value = formatEgiftDate(new Date());
 }
 
 export function readEgiftFieldsFromPage(page) {
@@ -127,7 +122,7 @@ export function readEgiftFieldsFromPage(page) {
 }
 
 export function getUserStampCount(orders = []) {
-  return orders.filter((order) => order.status === "delivered").length;
+  return getLoyaltyStampCount(orders);
 }
 
 export function getUserEgiftFields(user = {}) {
@@ -137,6 +132,7 @@ export function getUserEgiftFields(user = {}) {
 export function getProfileCardsMarkup({
   prefix = "profile-card",
   stampCount = 0,
+  birthdayLocked = false,
   promoCode = "—",
   promoMessage = "",
   egift = {},
@@ -157,13 +153,13 @@ export function getProfileCardsMarkup({
             <div class="loyalty-card-face loyalty-card-back">
               <img src="${PROFILE_CARD_ASSETS.loyaltyBack}" alt="Loyalty card back" />
               <div class="loyalty-stamp-overlay" aria-hidden="true">
-                ${loyaltyStampSlots(stampCount)}
+                ${loyaltyStampSlots(stampCount, birthdayLocked)}
               </div>
             </div>
           </div>
         </div>
         <p class="loyalty-promo-message">${escapeHtml(message)}</p>
-        <div class="loyalty-promo-code-box">${escapeHtml(promoCode)}</div>
+        ${promoCode && promoCode !== "—" ? `<div class="loyalty-promo-code-box">${escapeHtml(promoCode)}</div>` : ""}
       </div>
     </div>
 
@@ -231,12 +227,18 @@ export function initProfileCardFlips(root, prefix = "profile-card") {
 }
 
 export function renderUserProfileCards(user, prefix = "dashboard-user-card") {
-  const points = Number(user.points || 0);
+  const stampCount = getUserStampCount(user.orders);
+  const spec = LOYALTY_REWARDS[stampCount];
+  const birthdayLocked = Boolean(user.birthday);
+  const showBirthday = stampCount === BIRTHDAY_STAMP && !birthdayLocked;
   return getProfileCardsMarkup({
     prefix,
-    stampCount: getUserStampCount(user.orders),
-    promoCode: getUserPromoCode(points),
-    promoMessage: getUserPromoMessage(points),
+    stampCount,
+    birthdayLocked,
+    promoCode: spec ? "—" : "—",
+    promoMessage: showBirthday
+      ? BIRTHDAY_MESSAGE
+      : spec?.message || "",
     egift: getUserEgiftFields(user),
   });
 }

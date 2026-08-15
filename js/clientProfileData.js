@@ -12,8 +12,21 @@ const emptyProfile = {
   address: "",
   wilaya: "",
   commune: "",
+  birthday: "",
   points: 0,
+  newsletter: true,
 };
+
+function readLocalNewsletter() {
+  try {
+    const saved = localStorage.getItem(PROFILE_STORAGE_KEY);
+    if (!saved) return true;
+    const parsed = JSON.parse(saved);
+    return parsed?.newsletter !== false;
+  } catch {
+    return true;
+  }
+}
 
 export function userToProfile(user) {
   if (!user) return { ...emptyProfile };
@@ -28,7 +41,9 @@ export function userToProfile(user) {
     address,
     wilaya: user.wilaya || "",
     commune: user.commune || "",
+    birthday: user.birthday || "",
     points: user.points ?? 0,
+    newsletter: user.newsletter == null ? readLocalNewsletter() : Boolean(user.newsletter),
     id: user.id,
     _id: user._id,
     role: user.role,
@@ -80,6 +95,8 @@ export function mapOrderForProfile(order) {
     total: order.total || "",
     status: order.status || "processing",
     statusLabel: order.statusLabel || order.status || "",
+    items: Array.isArray(order.items) ? order.items : [],
+    paymentMode: order.paymentMode || "",
     promoUsed:
       Number(order.discount) > 0
         ? { code: "ONLINE5", label: "5% online discount applied" }

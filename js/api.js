@@ -1,4 +1,4 @@
-export const API_BASE_URL = "https://rac-lia-backend-uspq.vercel.app";
+export const API_BASE_URL = "https://rac-lia-backend-gebj.vercel.app";
 
 const TOKEN_KEY = "raceliaAuthToken";
 const USER_KEY = "raceliaCurrentUser";
@@ -134,12 +134,6 @@ export const api = {
     apiFetch(`/blog/admin/${encodeURIComponent(id)}`, { method: "PATCH", body: form }),
   deleteBlog: (id) => apiJson(`/blog/admin/${encodeURIComponent(id)}`, { method: "DELETE" }),
 
-  getWebPics: () => apiJson("/webpic"),
-  createWebPic: (form) => apiFetch("/webpic", { method: "POST", body: form }),
-  updateWebPic: (id, form) =>
-    apiFetch(`/webpic/${encodeURIComponent(id)}`, { method: "PATCH", body: form }),
-  deleteWebPic: (id) => apiJson(`/webpic/${encodeURIComponent(id)}`, { method: "DELETE" }),
-
   getStorefrontStyleLooks: () => apiJson("/style/storefront"),
   getAdminStyleLooks: () => apiJson("/style"),
   createStyleLook: (form) => apiFetch("/style", { method: "POST", body: form }),
@@ -163,8 +157,11 @@ export const api = {
   createOrder: (body) => apiJson("/order", { method: "POST", body }),
   getMyOrders: () => apiJson("/order/mine"),
   getOrders: () => apiJson("/order"),
-  updateOrderStatus: (id, status) =>
-    apiJson(`/order/${encodeURIComponent(id)}`, { method: "PATCH", body: { status } }),
+  updateOrderStatus: (id, status, issueComment) =>
+    apiJson(`/order/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: { status, ...(issueComment ? { issueComment } : {}) },
+    }),
 
   register: (body) => apiJson("/user/register", { method: "POST", body }),
   login: (body) => apiJson("/user/login", { method: "POST", body }),
@@ -173,4 +170,16 @@ export const api = {
   updateMyProfileForm: (form) => apiFetch("/user/me", { method: "PATCH", body: form }),
   getUsers: () => apiJson("/user"),
   updateUser: (id, body) => apiJson(`/user/${encodeURIComponent(id)}`, { method: "PATCH", body }),
+
+  getEmails: () => apiJson("/email"),
+  upsertEmail: (body) => apiJson("/email", { method: "POST", body }),
+  updateEmail: (id, body) =>
+    apiJson(`/email/${encodeURIComponent(id)}`, { method: "PATCH", body }),
+  deleteEmail: (id) => apiJson(`/email/${encodeURIComponent(id)}`, { method: "DELETE" }),
+
+  getReturns: () => apiJson("/return"),
+  createReturn: (form) => apiFetch("/return", { method: "POST", body: form }),
+  updateReturn: (id, body) =>
+    apiJson(`/return/${encodeURIComponent(id)}`, { method: "PATCH", body }),
+  deleteReturn: (id) => apiJson(`/return/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

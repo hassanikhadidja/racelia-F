@@ -6,7 +6,7 @@ export function createHero() {
 
   const img = document.createElement("img");
   img.src = heroImage;
-  img.alt = "Chanel Collection";
+  img.alt = "Collection RACÈLIA";
   img.onerror = () => {
     img.style.display = "none";
   };

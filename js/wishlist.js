@@ -24,7 +24,7 @@ export function initWishlist(root, { onMoveToBag, onOpenBag } = {}) {
     renderWishlistPage(root);
     const count = list?.querySelectorAll(".wishlist-item").length ?? 0;
     if (countEl) countEl.textContent = String(count);
-    if (labelEl) labelEl.textContent = count === 1 ? "item" : "items";
+    if (labelEl) labelEl.textContent = count === 1 ? "article" : "articles";
     if (list) list.hidden = count === 0;
     if (empty) empty.hidden = count > 0;
     page.querySelector(".wishlist-footer")?.toggleAttribute("hidden", count === 0);

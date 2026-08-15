@@ -1,17 +1,26 @@
 .account-page {
   background: #fff;
   color: #000;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: Georgia, "Times New Roman", serif;
   -webkit-font-smoothing: antialiased;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  box-sizing: border-box;
 }
 
 .account-page__inner {
+  width: 100%;
   max-width: 720px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .account-main {
   padding: 80px 24px 80px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .account-title {
@@ -20,13 +29,16 @@
   letter-spacing: 0.2em;
   font-size: 28px;
   margin: 0 0 50px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .account-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   border-bottom: 1px solid #ddd;
   margin-bottom: 40px;
+  max-width: 100%;
 }
 
 .account-tab {
@@ -278,9 +290,11 @@
 
 .account-channels {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 22px 16px;
   margin: 24px 0 24px 30px;
+  max-width: calc(100% - 30px);
+  box-sizing: border-box;
 }
 
 .account-channels label {
@@ -291,11 +305,34 @@
   cursor: pointer;
 }
 
+.account-intro,
+.account-legal,
+.account-fine,
+.account-ack,
+.account-consent-row {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
 .account-fine {
   font-size: 13px;
   line-height: 1.7;
   color: #444;
   margin-left: 30px;
+  max-width: calc(100% - 30px);
+  box-sizing: border-box;
+}
+
+@media (max-width: 420px) {
+  .account-channels {
+    margin-left: 0;
+    max-width: 100%;
+  }
+
+  .account-fine {
+    margin-left: 0;
+    max-width: 100%;
+  }
 }
 
 .account-ack {

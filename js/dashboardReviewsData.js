@@ -70,7 +70,8 @@ export function getProductReviewsForDisplay(productId, productName = "") {
   if (!count) {
     return {
       score: "0",
-      count: "0 Reviews",
+      count: "0 avis",
+      totalCount: 0,
       chips: [],
       bars: [
         { stars: 5, pct: 0 },
@@ -91,15 +92,18 @@ export function getProductReviewsForDisplay(productId, productName = "") {
   });
 
   const items = published.slice(0, 6).map((review) => ({
+    author: String(review.author || "Guest"),
     meta: `${String(review.author || "Guest").toUpperCase()}, ${String(review.date || "").toUpperCase()}`,
     title: review.comment?.split(/[.!?]/)[0]?.trim() || "Customer review",
     text: review.comment || "",
     stars: Number(review.stars) || 5,
+    photo: review.photo || null,
   }));
 
   return {
     score: avg.toFixed(1),
-    count: `${count} Review${count === 1 ? "" : "s"}`,
+    count: `${count} avis`,
+    totalCount: count,
     chips: [],
     bars,
     items,

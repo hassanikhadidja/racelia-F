@@ -1,4 +1,4 @@
-import { selectionItems, defaultSelection } from "../js/data.js";
+import { selectionItems } from "../js/data.js";
 
 function normalizeSelectionItem(item) {
   if (typeof item === "string") {
@@ -26,8 +26,8 @@ export function createSelectionWidget() {
   ctaView.type = "button";
   ctaView.innerHTML = `
     <span class="bottom-cta__content">
-      <span class="bottom-cta__eyebrow">HANDBAGS</span>
-      <span class="bottom-cta__label" id="ctaLabel">${defaultSelection}</span>
+      <span class="bottom-cta__eyebrow">SACS</span>
+      <span class="bottom-cta__label" id="ctaLabel">TOUTE LA SÉLECTION</span>
     </span>
     <span class="chev"></span>
   `;
@@ -44,12 +44,15 @@ export function createSelectionWidget() {
   const tabBtn = document.createElement("button");
   tabBtn.className = "active";
   tabBtn.type = "button";
-  tabBtn.textContent = "HANDBAGS";
+  tabBtn.textContent = "SACS";
   tabs.appendChild(tabBtn);
 
-  const heading = document.createElement("h3");
+  const heading = document.createElement("button");
+  heading.type = "button";
+  heading.className = "modal__primary";
   heading.id = "modalHeading";
-  heading.textContent = defaultSelection;
+  heading.dataset.page = "home";
+  heading.textContent = "TOUTE LA SÉLECTION";
 
   const listWrap = document.createElement("div");
   listWrap.className = "modal__list-wrap";
@@ -61,7 +64,6 @@ export function createSelectionWidget() {
     const li = document.createElement("li");
     li.textContent = label;
     if (page) li.dataset.page = page;
-    if (label === defaultSelection) li.classList.add("active");
     list.appendChild(li);
   });
   listWrap.appendChild(list);
@@ -77,7 +79,7 @@ export function createSelectionWidget() {
   closeBtn.className = "close";
   closeBtn.id = "closeModal";
   closeBtn.type = "button";
-  closeBtn.setAttribute("aria-label", "Close");
+  closeBtn.setAttribute("aria-label", "Fermer");
 
   footer.append(scrollLine, closeBtn);
   modalView.append(tabs, heading, listWrap, footer);

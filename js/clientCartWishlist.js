@@ -3,6 +3,7 @@ import { getCatalogProductById } from "./productCatalog.js";
 import { getProductDetail } from "./productDetailData.js";
 import { formatPrice, parsePriceFromCatalog, upsertBagLineItem, refreshShoppingBagTotals } from "./bagHelpers.js";
 import { syncBagCountFromDom } from "./cart.js";
+import { openPdpAddedOverlay } from "./cartAddedOverlay.js";
 
 const CART_PREFIX = "raceliaClientCart:";
 const WISHLIST_PREFIX = "raceliaClientWishlist:";
@@ -59,6 +60,7 @@ function extractProductFromCard(card) {
   const detail = getProductDetail(productId);
   const name =
     card.querySelector(".category-product__name")?.textContent?.trim() ||
+    card.querySelector(".editorial__name")?.textContent?.trim() ||
     card.querySelector(".meta span")?.textContent?.trim() ||
     catalog?.name ||
     detail?.name ||
@@ -80,7 +82,16 @@ function extractProductFromCard(card) {
       ? swatchLabel
       : catalog?.swatches?.[colorIndex]?.label || "";
 
-  const imageUrl = images[colorIndex] || images[0] || catalog?.images?.[0] || detail?.images?.[0] || "";
+  const editorialImg = card.classList.contains("editorial")
+    ? card.querySelector(".editorial__media img, img")?.getAttribute("src")
+    : "";
+  const imageUrl =
+    images[colorIndex] ||
+    images[0] ||
+    editorialImg ||
+    catalog?.images?.[0] ||
+    detail?.images?.[0] ||
+    "";
 
   return {
     productId,
@@ -117,7 +128,7 @@ function extractProductFromPdp(root) {
 }
 
 function resolveWishlistProduct(root, btn) {
-  const card = btn.closest(".category-product, .product");
+  const card = btn.closest(".category-product, .product, .editorial");
   if (card) return extractProductFromCard(card);
 
   const pdp = btn.closest("#productDetailPage");
@@ -139,7 +150,7 @@ function serializeBagFromDom(root) {
     const qty = parseInt(el.querySelector(".qty-select")?.value || "1", 10);
     const priceEur = parseFloat(el.querySelector(".item-price")?.dataset.priceEur);
     const colorRaw = el.querySelector(".item-color")?.textContent?.trim() || "";
-    const color = colorRaw.replace(/^Color:\s*/i, "");
+    const color = colorRaw.replace(/^(Color|Couleur)\s*:\s*/i, "");
     const img = el.querySelector(".item-image img");
 
     items.push({
@@ -149,6 +160,11 @@ function serializeBagFromDom(root) {
       color,
       imageUrl: img?.src || "",
       qty: Math.min(5, Math.max(1, qty)),
+      isGiftCard: el.dataset.giftCard === "true" || productId.startsWith("egift-card"),
+      giftSender: el.dataset.giftSender || "",
+      giftRecipient: el.dataset.giftRecipient || "",
+      giftEmail: el.dataset.giftEmail || "",
+      giftMessage: el.dataset.giftMessage || "",
     });
   });
 
@@ -191,7 +207,16 @@ function restoreBagFromStorage(root, items = []) {
     });
     const safeId = `item-pdp-${item.productId}`.replace(/[^\w-]/g, "-");
     const el = root.querySelector(`#${CSS.escape(safeId)}`);
-    if (el) el.dataset.productId = item.productId;
+    if (el) {
+      el.dataset.productId = item.productId;
+      if (item.isGiftCard || String(item.productId || "").startsWith("egift-card")) {
+        el.dataset.giftCard = "true";
+        if (item.giftSender) el.dataset.giftSender = item.giftSender;
+        if (item.giftRecipient) el.dataset.giftRecipient = item.giftRecipient;
+        if (item.giftEmail) el.dataset.giftEmail = item.giftEmail;
+        if (item.giftMessage) el.dataset.giftMessage = item.giftMessage;
+      }
+    }
   });
 
   refreshShoppingBagTotals(root);
@@ -199,8 +224,16 @@ function restoreBagFromStorage(root, items = []) {
 }
 
 function renderWishlistItem(item) {
-  const colorHtml = item.color
-    ? `<p class="wishlist-color">Color: ${escapeHtml(item.color)}</p>`
+  const isEgift = String(item.productId || "").startsWith("egift-card");
+  const colorLabel = String(item.color || "").trim();
+  const colorHtml = colorLabel
+    ? `<p class="wishlist-color">${escapeHtml(
+        isEgift
+          ? /^Pour\s*:/i.test(colorLabel)
+            ? colorLabel
+            : `Pour : ${colorLabel}`
+          : `Couleur : ${colorLabel}`
+      )}</p>`
     : "";
   const imageHtml = item.imageUrl
     ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)}" loading="lazy" />`
@@ -216,8 +249,8 @@ function renderWishlistItem(item) {
       ${colorHtml}
       <p class="wishlist-price">${escapeHtml(formatPrice(item.priceEur))}</p>
       <div class="wishlist-actions">
-        <a href="#" class="js-wishlist-move-to-bag">Move to Bag</a>
-        <a href="#" class="js-wishlist-remove">Remove</a>
+        <a href="#" class="js-wishlist-move-to-bag">Ajouter au panier</a>
+        <a href="#" class="js-wishlist-remove">Retirer</a>
       </div>
     </div>
   `;
@@ -241,13 +274,13 @@ export function renderWishlistPage(root) {
   const countEl = root.querySelector("#wishlistPage .wishlist-count");
   const labelEl = root.querySelector("#wishlistPage .wishlist-count-label");
   if (countEl) countEl.textContent = String(count);
-  if (labelEl) labelEl.textContent = count === 1 ? "item" : "items";
+  if (labelEl) labelEl.textContent = count === 1 ? "article" : "articles";
   root.querySelector("#wishlistPage .wishlist-footer")?.toggleAttribute("hidden", count === 0);
 }
 
 export function syncWishlistHeartStates(root) {
   root.querySelectorAll(".wishlist-btn").forEach((btn) => {
-    const card = btn.closest(".category-product, .product");
+    const card = btn.closest(".category-product, .product, .editorial");
     const productId =
       card?.dataset.productId ||
       (btn.closest("#productDetailPage") ? root.querySelector("#productDetailPage")?.dataset.activeProductId : null);
@@ -308,6 +341,7 @@ export function moveWishlistItemToBag(root, productId) {
   refreshShoppingBagTotals(root);
   syncBagCountFromDom(root);
   persistClientCart(root);
+  openPdpAddedOverlay(root, 1);
   return true;
 }
 

@@ -1,0 +1,102 @@
+.shipping-page {
+  background: #fff;
+  color: #111;
+  font-family: Georgia, "Times New Roman", serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: calc(100vh - 120px);
+  min-height: calc(100dvh - 120px);
+}
+
+.livraison-main {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  background: #fff;
+  padding: 97px 24px 24px;
+  color: #111;
+}
+
+.livraison-title1 {
+  font-size: clamp(2rem, 6vw, 2.5rem);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  margin: 0 0 20px;
+  line-height: 1.15;
+}
+
+.livraison-title2 {
+  font-size: clamp(1.35rem, 4vw, 1.75rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin: 0 0 18px;
+  line-height: 1.25;
+}
+
+.livraison-text {
+  max-width: 420px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 14px;
+  color: #1a1a1a;
+}
+
+.livraison-text-2 {
+  list-style-type: circle;
+  padding-left: 1.35em;
+}
+
+.livraison-text-2 li {
+  line-height: 1.6;
+}
+
+.livraison-table-wrap {
+  margin-top: 22px;
+  overflow-x: auto;
+}
+
+.livraison-table-wrap + .livraison-text {
+  margin-top: 22px;
+}
+
+.livraison-table {
+  width: 100%;
+  max-width: 640px;
+  border-collapse: collapse;
+  border: 1px solid #111;
+  table-layout: fixed;
+  font-size: 0.95rem;
+}
+
+.livraison-table th,
+.livraison-table td {
+  border: 1px solid #111;
+  padding: 14px 12px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.livraison-table thead th {
+  background: #111;
+  color: #fff;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.livraison-table tbody tr {
+  background: #fff;
+}
+
+@media (max-width: 520px) {
+  .livraison-main {
+    padding: 81px 18px 16px;
+  }
+
+  .livraison-table {
+    font-size: 0.85rem;
+  }
+
+  .livraison-table th,
+  .livraison-table td {
+    padding: 10px 8px;
+  }
+}

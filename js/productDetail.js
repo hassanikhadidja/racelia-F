@@ -2,17 +2,15 @@ import { getProductDetail } from "../js/productDetailData.js";
 import { getCategoryProductById } from "../js/categoryData.js";
 import { getCatalogProductById } from "../js/productCatalog.js";
 import { getPdpImages, getCloserLookForColor } from "../js/productImages.js";
-import { createCategoryProduct } from "../components/CategoryProduct.js";
-import { initProductSliders } from "./productSliders.js";
-import { initPdpActionBar, updatePdpActionBar } from "./pdpActionBar.js";
+import { initPdpActionBar, updatePdpActionBar, resetPdpActionBar } from "./pdpActionBar.js";
 import { syncBagCountFromDom } from "./cart.js";
 import {
-  addCategoryCardToBag,
   refreshShoppingBagTotals,
   upsertBagLineItem,
 } from "./bagHelpers.js";
 import { syncWishlistHeartStates } from "./clientCartWishlist.js";
 import { queueClientReviewForModeration } from "./dashboardReviewsData.js";
+import { openPdpAddedOverlay } from "./cartAddedOverlay.js";
 
 function starsHtml(count) {
   const n = Math.max(0, Math.min(5, Math.round(Number(count) || 0)));
@@ -24,9 +22,9 @@ function renderReviews(reviews, productName = "") {
     return `
       <div class="pdp-reviews-empty">
         <div class="pdp-rs-score">0</div>
-        <p class="pdp-reviews-empty__count">0 Reviews</p>
-        <p class="pdp-reviews-empty__text">No reviews yet for ${productName}. Be the first to share your experience.</p>
-        <button class="pdp-add-review-btn" type="button" id="pdpAddReviewBtn">Write a review</button>
+        <p class="pdp-reviews-empty__count">0 avis</p>
+        <p class="pdp-reviews-empty__text">Aucun avis pour ${productName}. Soyez le premier à partager votre expérience.</p>
+        <button class="pdp-add-review-btn" type="button" id="pdpAddReviewBtn">Écrire un avis</button>
       </div>
     `;
   }
@@ -53,7 +51,7 @@ function renderReviews(reviews, productName = "") {
         <div class="pdp-rv-meta"><span>${item.meta}</span><span>${starsHtml(item.stars)}</span></div>
         <div class="pdp-rv-title">${item.title}</div>
         <div class="pdp-rv-text">${item.text}</div>
-        <span class="pdp-rv-verified">Verified review</span>
+        <span class="pdp-rv-verified">Avis vérifié</span>
       </div>`
     )
     .join("");
@@ -67,11 +65,11 @@ function renderReviews(reviews, productName = "") {
           <div class="pdp-rs-count">${reviews.count}</div>
         </div>
       </div>
-      ${chips ? `<div class="pdp-rs-label">Customers describe this product as:</div><div class="pdp-rs-chips">${chips}</div>` : ""}
+      ${chips ? `<div class="pdp-rs-label">Les clients décrivent ce produit comme :</div><div class="pdp-rs-chips">${chips}</div>` : ""}
       <div class="pdp-rs-bars">${bars}</div>
     </div>
     ${cards}
-    <button class="pdp-add-review-btn pdp-add-review-btn--inline" type="button" id="pdpAddReviewBtn">Write a review</button>
+    <button class="pdp-add-review-btn pdp-add-review-btn--inline" type="button" id="pdpAddReviewBtn">Écrire un avis</button>
   `;
 }
 
@@ -114,31 +112,31 @@ function getPdpReviewOverlayHtml(productName) {
     <div class="pdp-review-overlay" id="pdpReviewOverlay" aria-hidden="true">
       <div class="pdp-review-sheet" role="dialog" aria-labelledby="pdp-review-title">
         <div class="pdp-review-sheet__head">
-          <h3 id="pdp-review-title">Write a review</h3>
-          <button type="button" class="pdp-review-sheet__close" id="pdpReviewClose">Close</button>
+          <h3 id="pdp-review-title">Écrire un avis</h3>
+          <button type="button" class="pdp-review-sheet__close" id="pdpReviewClose">Fermer</button>
         </div>
         <form id="pdpReviewForm" class="pdp-review-form">
           <input type="hidden" id="pdp-review-product-name" value="${productName.replace(/"/g, "&quot;")}" />
           <div class="pdp-review-field">
-            <label for="pdp-review-author">Your name</label>
+            <label for="pdp-review-author">Votre nom</label>
             <input type="text" id="pdp-review-author" required />
           </div>
           <div class="pdp-review-field">
-            <label>Rating</label>
+            <label>Note</label>
             <div class="pdp-review-stars" id="pdp-review-stars">
               ${[1, 2, 3, 4, 5]
                 .map(
                   (n) =>
-                    `<button type="button" class="pdp-review-star" data-star="${n}" aria-label="${n} stars">★</button>`
+                    `<button type="button" class="pdp-review-star" data-star="${n}" aria-label="${n} étoile${n > 1 ? "s" : ""}">★</button>`
                 )
                 .join("")}
             </div>
           </div>
           <div class="pdp-review-field">
-            <label for="pdp-review-comment">Your review</label>
+            <label for="pdp-review-comment">Votre avis</label>
             <textarea id="pdp-review-comment" rows="4" required></textarea>
           </div>
-          <button type="submit" class="pdp-review-submit">Submit for approval</button>
+          <button type="submit" class="pdp-review-submit">Envoyer pour validation</button>
         </form>
       </div>
     </div>
@@ -172,6 +170,7 @@ function bindPdpReviewOverlay(root) {
   page.addEventListener("click", (event) => {
     if (event.target.closest("#pdpAddReviewBtn")) {
       event.preventDefault();
+      closePdpCommentsDrawer(root);
       open();
     }
     if (event.target.closest("#pdpReviewClose") || event.target === overlay) {
@@ -207,7 +206,7 @@ function bindPdpReviewOverlay(root) {
       productSlug: product.id,
       stars: selectedStars,
       comment,
-      date: new Date().toLocaleDateString("en-GB", {
+      date: new Date().toLocaleDateString("fr-FR", {
         day: "numeric",
         month: "short",
         year: "numeric",
@@ -215,7 +214,7 @@ function bindPdpReviewOverlay(root) {
     };
 
     queueClientReviewForModeration(review);
-    window.alert("Thank you! Your review was sent to our team for approval.");
+    window.alert("Merci ! Votre avis a été envoyé à notre équipe pour validation.");
     event.target.reset();
     close();
   });
@@ -228,100 +227,10 @@ function renderCloserLookExtras(extras, productName) {
     .map(
       (src, index) => `
       <section class="pdp-closer-look pdp-closer-look--frame">
-        <img src="${src}" alt="${productName} detail ${index + 2}" loading="lazy" />
+        <img src="${src}" alt="${productName} détail ${index + 2}" loading="lazy" />
       </section>`
     )
     .join("");
-}
-
-function resetPdpQtyMenuPosition(qtyMenu) {
-  qtyMenu.classList.remove("is-viewport-fixed");
-  qtyMenu.style.position = "";
-  qtyMenu.style.top = "";
-  qtyMenu.style.left = "";
-  qtyMenu.style.bottom = "";
-  qtyMenu.style.maxHeight = "";
-}
-
-function positionPdpQtyMenu(page) {
-  const qtyBtn = page.querySelector("#pdpQtyBtn");
-  const qtyMenu = page.querySelector("#pdpQtyMenu");
-  const bar = page.querySelector("#pdpActionBar");
-  if (!qtyBtn || !qtyMenu || !bar || !qtyMenu.classList.contains("open")) return;
-
-  if (!bar.classList.contains("is-fixed")) {
-    resetPdpQtyMenuPosition(qtyMenu);
-    return;
-  }
-
-  const rect = qtyBtn.getBoundingClientRect();
-  const spaceAbove = rect.top - 8;
-
-  qtyMenu.classList.add("is-viewport-fixed");
-  qtyMenu.style.left = `${rect.left}px`;
-  qtyMenu.style.top = "auto";
-  qtyMenu.style.bottom = `${window.innerHeight - rect.top + 8}px`;
-  qtyMenu.style.maxHeight = `${Math.max(160, spaceAbove - 8)}px`;
-}
-
-export function openPdpAddedOverlay(root, quantity) {
-  const page = root.querySelector("#productDetailPage");
-  const backdrop = root.querySelector("#pdpAddedBackdrop");
-  const overlay = root.querySelector("#pdpAddedOverlay");
-  const count = root.querySelector("#pdpAddedCount");
-  if (!page || !backdrop || !overlay) return;
-
-  const qtyMenu = page.querySelector("#pdpQtyMenu");
-  const qtyBtn = page.querySelector("#pdpQtyBtn");
-  if (qtyMenu?.classList.contains("open")) {
-    qtyMenu.classList.remove("open");
-    qtyBtn?.classList.remove("open");
-    resetPdpQtyMenuPosition(qtyMenu);
-  }
-
-  if (count) count.textContent = String(quantity);
-  backdrop.classList.add("open");
-  backdrop.setAttribute("aria-hidden", "false");
-  overlay.classList.add("open");
-  overlay.setAttribute("aria-hidden", "false");
-  document.body.classList.add("pdp-added-open");
-}
-
-export function closePdpAddedOverlay(root) {
-  const backdrop = root.querySelector("#pdpAddedBackdrop");
-  const overlay = root.querySelector("#pdpAddedOverlay");
-  if (!backdrop || !overlay) return;
-
-  backdrop.classList.remove("open");
-  backdrop.setAttribute("aria-hidden", "true");
-  overlay.classList.remove("open");
-  overlay.setAttribute("aria-hidden", "true");
-  document.body.classList.remove("pdp-added-open");
-}
-
-function renderVirtualTryOnAction() {
-  return `
-    <button class="pdp-virtual-try-on" type="button">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-        <path d="M12 5a7 7 0 0 1 7 7c0 5-7 11-7 11S5 17 5 12a7 7 0 0 1 7-7z"/>
-        <circle cx="12" cy="12" r="2.5"/>
-      </svg>
-      Virtual Try-On
-    </button>`;
-}
-
-function renderAccordionItem(item) {
-  const hasTryOn = item.virtualTryOn || item.title === "SEE BAG SIZE";
-  const contentClass = hasTryOn ? "pdp-acc-content pdp-acc-content--with-vto" : "pdp-acc-content";
-
-  return `
-    <div class="pdp-acc-item${hasTryOn ? " pdp-acc-item--bag-size" : ""}">
-      <button class="pdp-acc-header" type="button">${item.title} <span class="pdp-acc-plus">+</span></button>
-      <div class="${contentClass}">
-        <p class="pdp-acc-text">${item.body}</p>
-        ${hasTryOn ? renderVirtualTryOnAction() : ""}
-      </div>
-    </div>`;
 }
 
 export function openPdpVirtualTryOn(root) {
@@ -334,12 +243,12 @@ export function openPdpVirtualTryOn(root) {
   if (!page || page.hidden || !backdrop || !panel || !img) return;
 
   const heroImg = page.querySelector("#pdpSlides img");
-  const productTitle = page.querySelector(".pdp-title")?.textContent?.trim() || "RACÈLIA Bag";
+  const productTitle = page.querySelector(".pdp-title")?.textContent?.trim() || "Sac RACÈLIA";
   const activeSwatch = page.querySelector(".pdp-swatch.is-active");
-  const colorLabel = activeSwatch?.getAttribute("aria-label") || activeSwatch?.dataset.color || "Selected color";
+  const colorLabel = activeSwatch?.getAttribute("aria-label") || activeSwatch?.dataset.color || "Couleur sélectionnée";
 
   img.src = heroImg?.getAttribute("src") || "";
-  img.alt = `${productTitle} virtual try-on preview`;
+  img.alt = `${productTitle} — aperçu essayage virtuel`;
   if (title) title.textContent = productTitle;
   if (color) color.textContent = colorLabel;
 
@@ -362,6 +271,149 @@ export function closePdpVirtualTryOn(root) {
   document.body.classList.remove("pdp-vto-open");
 }
 
+function openPdpCommentsDrawer(root) {
+  /* legacy no-op: comments now live in-page under FAQ */
+}
+
+function closePdpCommentsDrawer(root) {
+  document.body.classList.remove("pdp-comments-open");
+}
+
+function scrollToPdpComments(root) {
+  const page = root.querySelector("#productDetailPage");
+  const section = page?.querySelector("#pdpComments");
+  if (!section) return;
+  const top = section.getBoundingClientRect().top + window.scrollY - 72;
+  window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+}
+
+function renderProductDescription(product) {
+  const description =
+    product.description ||
+    `${product.name} — pièce signature RACÈLIA, conçue pour le quotidien avec une finition raffinée.`;
+
+  const details = Array.isArray(product.details) ? product.details.filter(Boolean) : [];
+  const detailsHtml = details.length
+    ? details.map((line) => `<li>${line}</li>`).join("")
+    : `<li>Détails à venir.</li>`;
+
+  return `
+    <section class="pdp-description">
+      <h2 class="pdp-description__title">Description du produit</h2>
+      <p class="pdp-description__text">${description}</p>
+      <h3 class="pdp-description__subtitle">Détails du produit</h3>
+      <ul class="pdp-description__list">${detailsHtml}</ul>
+    </section>`;
+}
+
+function renderPdpFaq() {
+  const items = [
+    {
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8l8-5 8 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z"/><path d="M4 8l8 5 8-5"/></svg>`,
+      q: "Quand recevrai-je ma commande ?",
+      a: "Les commandes sont préparées sous 24–48 h. La livraison standard prend généralement 2 à 5 jours ouvrés selon votre wilaya.",
+    },
+    {
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 14l-4-4 4-4"/><path d="M5 10h11a4 4 0 0 1 0 8h-3"/></svg>`,
+      q: "Quelle est la politique de retour ?",
+      a: "Vous pouvez retourner un article non utilisé sous 14 jours après réception. Contactez le service client pour organiser le retour.",
+    },
+    {
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20.6 13.5l-1.2-6.2A2 2 0 0 0 17.4 5.5H6.6a2 2 0 0 0-2 1.8l-1.2 6.2"/><path d="M4 13.5h16v2a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-2z"/><circle cx="8.5" cy="16.5" r=".8" fill="currentColor"/><circle cx="15.5" cy="16.5" r=".8" fill="currentColor"/></svg>`,
+      q: "Est-ce que tous les achats sont des ventes finales ?",
+      a: "Non. Seuls les articles soldés ou personnalisés peuvent être exclus des retours. Les autres articles restent éligibles selon notre politique.",
+    },
+    {
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><path d="M12 8v5l3 2"/></svg>`,
+      q: "Quels sont les délais de traitement ?",
+      a: "Chaque commande est vérifiée et emballée avec soin. Le traitement prend en moyenne 1 à 2 jours ouvrés avant expédition.",
+    },
+    {
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r="1" style="fill:currentColor;stroke:none"/></svg>`,
+      q: "Où sont fabriqués vos produits ?",
+      a: "Nos pièces RACÈLIA sont conçues avec attention et fabriquées par des ateliers partenaires sélectionnés pour leur savoir-faire.",
+    },
+    {
+      icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="8" width="12" height="8" rx="1"/><path d="M13 10h4l3 3v3h-7v-6z"/><circle cx="6" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>`,
+      q: "Combien coûte la livraison ?",
+      a: "Les frais de livraison dépendent de votre wilaya et sont calculés au moment du paiement. Certaines offres peuvent inclure la livraison offerte.",
+    },
+  ];
+
+  return `
+    <section class="pdp-faq" id="pdpFaq">
+      <h2 class="pdp-faq__title">Foire aux questions</h2>
+      <div class="pdp-faq__list">
+        ${items
+          .map(
+            (item, index) => `
+          <div class="pdp-faq__item">
+            <button type="button" class="pdp-faq__question" aria-expanded="false" aria-controls="pdpFaqAnswer${index}">
+              <span class="pdp-faq__icon" aria-hidden="true">${item.icon}</span>
+              <span class="pdp-faq__q-text">${item.q}</span>
+              <span class="pdp-faq__chev" aria-hidden="true"></span>
+            </button>
+            <div class="pdp-faq__answer" id="pdpFaqAnswer${index}" hidden>
+              <p>${item.a}</p>
+            </div>
+          </div>`
+          )
+          .join("")}
+      </div>
+    </section>`;
+}
+
+function bagPlusIcon() {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/><path d="M3 3h2l2.2 11.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H6"/><path d="M12 9v4"/><path d="M10 11h4"/></svg>`;
+}
+
+function rateStarIcon() {
+  return `<svg class="pdp-comments-btn__star" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3.2l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.5 7.2 18.1l.9-5.4-3.9-3.8 5.4-.8L12 3.2z"/></svg>`;
+}
+
+function renderCommentsSection(product) {
+  const reviews = product.reviews || {};
+  const total = Number(reviews.totalCount || 0);
+  const score = reviews.score || "0";
+  const items = reviews.items || [];
+
+  const listHtml = items.length
+    ? items
+        .map((item) => {
+          const initial = (item.author || "G").trim().charAt(0).toUpperCase();
+          const photo = item.photo
+            ? `<img class="pdp-comments__avatar-img" src="${item.photo}" alt="" />`
+            : `<span class="pdp-comments__avatar-fallback">${initial}</span>`;
+          return `
+            <article class="pdp-comments__card">
+              <div class="pdp-comments__card-head">
+                <div class="pdp-comments__avatar">${photo}</div>
+                <div class="pdp-comments__meta">
+                  <p class="pdp-comments__name">${item.author || "Invité"}</p>
+                  <p class="pdp-comments__stars" aria-label="${item.stars} étoile${item.stars > 1 ? "s" : ""}">${starsHtml(item.stars)}</p>
+                </div>
+              </div>
+              <p class="pdp-comments__text">${item.text || ""}</p>
+            </article>`;
+        })
+        .join("")
+    : `<p class="pdp-comments__empty">Aucun avis pour le moment. Soyez le premier à partager votre expérience.</p>`;
+
+  return `
+    <section class="pdp-comments" id="pdpComments">
+      <div class="pdp-comments__head">
+        <h2 class="pdp-comments__title">Avis</h2>
+        <p class="pdp-comments__summary">
+          <span class="pdp-comments__score">${score}</span>
+          <span class="pdp-comments__summary-stars">${starsHtml(Number(score) || 0)}</span>
+          <span class="pdp-comments__count">${total} avis</span>
+        </p>
+      </div>
+      <div class="pdp-comments__list">${listHtml}</div>
+      <button type="button" class="pdp-comments__write" id="pdpAddReviewBtn">Écrire un avis</button>
+    </section>`;
+}
+
 export function renderProductDetail(product) {
   const swatches = product.swatches
     .map(
@@ -374,17 +426,22 @@ export function renderProductDetail(product) {
     .map((src) => `<img src="${src}" alt="${product.name}" loading="lazy" onerror="this.style.visibility='hidden'" />`)
     .join("");
 
-  const accordions = product.accordions.map((item) => renderAccordionItem(item)).join("");
+  const dots = product.images
+    .map(
+      (_, index) =>
+        `<button type="button" class="pdp-dot${index === 0 ? " is-active" : ""}" data-dot-index="${index}" aria-label="Image ${index + 1}"></button>`
+    )
+    .join("");
 
   const stockBadge = product.stockNote
     ? `<span class="pdp-badge pdp-badge--${product.stockNote}">${
         product.stockNote === "sold-out"
-          ? "SOLD OUT"
+          ? "ÉPUISÉ"
           : product.stockNote === "dispo"
             ? "DISPO"
             : product.stockNote === "not"
-              ? "NOT AVAILABLE"
-              : "NEW"
+              ? "INDISPONIBLE"
+              : "NOUVEAU"
       }</span>`
     : "";
   const tagBadge = product.tag ? `<span class="pdp-badge pdp-badge--tag">${product.tag}</span>` : "";
@@ -392,63 +449,40 @@ export function renderProductDetail(product) {
     ? `<span class="pdp-badge pdp-badge--pack">${product.packLabel || "PACK"}</span>`
     : "";
 
+  const reviewScore = product.reviews?.score || "0";
+
   return `
     <section class="pdp-hero" id="pdpHero">
       <div class="pdp-hero__media">
         <div class="pdp-slides" id="pdpSlides">${images}</div>
       </div>
-      <div class="pdp-hero__card">
-        <div class="pdp-progress">
-          <div class="pdp-progress-bar">
-            <div class="pdp-progress-fill" id="pdpProgressFill"></div>
-          </div>
-        </div>
-        <div class="pdp-hero__price" data-price-eur="${product.priceEur ?? ""}">${product.price}</div>
-        <div class="pdp-swatches">${swatches}</div>
-      </div>
+      <div class="pdp-dots" id="pdpDots" role="tablist" aria-label="Images du produit">${dots}</div>
     </section>
 
     <section class="pdp-sheet" id="pdpSheet">
       <div class="pdp-title-block">
         <div class="pdp-badges">${stockBadge}${tagBadge}${packBadge}</div>
         <h1 class="pdp-title">${product.name}</h1>
+        <div class="pdp-price" data-price-eur="${product.priceEur ?? ""}">${product.price}</div>
+        <div class="pdp-swatches">${swatches}</div>
       </div>
 
       <div class="pdp-action-bar-wrap" id="pdpActionBarWrap">
         <div class="pdp-action-bar" id="pdpActionBar">
           <div class="pdp-qty" id="pdpQtyBtn">
+            <button type="button" class="pdp-qty__btn" id="pdpQtyMinus" aria-label="Diminuer la quantité">−</button>
             <span id="pdpQtyNum">1</span>
-            <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="3,7 6,4 9,7"/></svg>
-            <div class="pdp-qty-menu" id="pdpQtyMenu"></div>
+            <button type="button" class="pdp-qty__btn" id="pdpQtyPlus" aria-label="Augmenter la quantité">+</button>
           </div>
-          <button class="pdp-add-btn" id="pdpAddBtn" type="button">Add to Bag</button>
-          <button class="pdp-buy-btn" id="pdpBuyBtn" type="button">Buy Now</button>
+          <button class="pdp-add-btn" id="pdpAddBtn" type="button">AJOUTER LE PRODUIT</button>
+          <button type="button" class="pdp-comments-btn" id="pdpCommentsBtn" aria-label="Voir la note et les avis">
+            ${rateStarIcon()}
+            <span class="pdp-comments-btn__score">${reviewScore}</span>
+          </button>
         </div>
       </div>
 
-      <div class="pdp-shipping">
-        Shipping And Returns
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="8.01"/><path d="M11 12h1v4h1"/></svg>
-      </div>
-
-      <div class="pdp-tabs" role="tablist">
-        <button class="pdp-tab active" type="button" data-tab="details" role="tab">Details</button>
-        <button class="pdp-tab" type="button" data-tab="reviews" role="tab">Reviews</button>
-        <button class="pdp-tab" type="button" data-tab="foryou" role="tab">
-          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l1.5 4.5L18 8l-4.5 1.5L12 14l-1.5-4.5L6 8l4.5-1.5L12 2z"/></svg>
-          For You
-        </button>
-      </div>
-
-      <div class="pdp-accordion" id="pdpAccordion">${accordions}</div>
-
-      <div class="pdp-tab-panel active" id="pdpPanelDetails"></div>
-
-      <div class="pdp-tab-panel" id="pdpPanelReviews">${renderReviews(product.reviews, product.name)}</div>
-
-      <div class="pdp-tab-panel" id="pdpPanelForyou">
-        <div class="pdp-foryou-grid" id="pdpForYouGrid"></div>
-      </div>
+      ${renderProductDescription(product)}
 
       <section class="pdp-closer-look">
         <img src="${product.closerLook.image}" alt="${product.closerLook.title}" loading="lazy" />
@@ -458,10 +492,14 @@ export function renderProductDetail(product) {
 
       ${renderCloserLookExtras(product.closerLookExtra, product.name)}
 
-      <section class="pdp-similar">
-        <h2 class="pdp-similar-title">Similar Styles</h2>
-        <div class="pdp-similar-scroll" id="pdpSimilarGrid"></div>
+      <section class="pdp-also-like">
+        <h2 class="pdp-also-like__title">Vous aimerez aussi</h2>
+        <div class="pdp-also-like__grid" id="pdpAlsoLikeGrid"></div>
       </section>
+
+      ${renderPdpFaq()}
+
+      ${renderCommentsSection(product)}
 
       <div class="pdp-footer-space"></div>
     </section>
@@ -514,6 +552,44 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
       return;
     }
 
+    const faqBtn = event.target.closest(".pdp-faq__question");
+    if (faqBtn) {
+      const item = faqBtn.closest(".pdp-faq__item");
+      const answer = item?.querySelector(".pdp-faq__answer");
+      const open = faqBtn.getAttribute("aria-expanded") === "true";
+      page.querySelectorAll(".pdp-faq__question").forEach((btn) => {
+        btn.setAttribute("aria-expanded", "false");
+        btn.closest(".pdp-faq__item")?.classList.remove("is-open");
+        const ans = btn.closest(".pdp-faq__item")?.querySelector(".pdp-faq__answer");
+        if (ans) ans.hidden = true;
+      });
+      if (!open && answer) {
+        faqBtn.setAttribute("aria-expanded", "true");
+        item?.classList.add("is-open");
+        answer.hidden = false;
+      }
+      return;
+    }
+
+    if (event.target.closest("#pdpCommentsBtn")) {
+      scrollToPdpComments(root);
+      return;
+    }
+
+    if (event.target.closest("#pdpQtyMinus")) {
+      event.stopPropagation();
+      const qtyEl = page.querySelector("#pdpQtyNum");
+      if (qtyEl) qtyEl.textContent = String(Math.max(1, Number(qtyEl.textContent || 1) - 1));
+      return;
+    }
+
+    if (event.target.closest("#pdpQtyPlus")) {
+      event.stopPropagation();
+      const qtyEl = page.querySelector("#pdpQtyNum");
+      if (qtyEl) qtyEl.textContent = String(Math.min(99, Number(qtyEl.textContent || 1) + 1));
+      return;
+    }
+
     if (event.target.closest(".pdp-virtual-try-on")) {
       event.stopPropagation();
       openPdpVirtualTryOn(root);
@@ -534,96 +610,27 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
       return;
     }
 
-    if (event.target.closest("#pdpAddedClose")) {
-      closePdpAddedOverlay(root);
-      return;
-    }
-
-    if (event.target.closest("#pdpBuyBtn")) {
-      event.preventDefault();
-      proceedToCheckoutFromPdp(root, { quantity: getPdpQuantity(root), mode: "set" });
-      return;
-    }
-
-    if (event.target.closest(".pdp-added-checkout")) {
-      event.preventDefault();
-      closePdpAddedOverlay(root);
-      root.dispatchEvent(new CustomEvent("racelia:open-checkout"));
-      return;
-    }
-
-    if (event.target.closest(".pdp-added-view")) {
-      event.preventDefault();
-      closePdpAddedOverlay(root);
-      root.dispatchEvent(new CustomEvent("racelia:open-shopping-bag"));
-      return;
-    }
-
     if (event.target.closest(".pdp-view-all")) {
-      window.alert("View all reviews (demo)");
+      window.alert("Voir tous les avis (démo)");
     }
   });
-
-  page.addEventListener("click", (event) => {
-    const qtyBtn = page.querySelector("#pdpQtyBtn");
-    const qtyMenu = page.querySelector("#pdpQtyMenu");
-    if (!qtyBtn || !qtyMenu) return;
-
-    if (event.target.closest("#pdpQtyBtn")) {
-      event.stopPropagation();
-      const isOpen = qtyMenu.classList.contains("open");
-      if (isOpen) {
-        qtyMenu.classList.remove("open");
-        qtyBtn.classList.remove("open");
-        resetPdpQtyMenuPosition(qtyMenu);
-      } else {
-        qtyMenu.innerHTML = "";
-        const current = Number(page.querySelector("#pdpQtyNum")?.textContent || 1);
-        for (let i = 1; i <= 10; i += 1) {
-          const opt = document.createElement("button");
-          opt.type = "button";
-          opt.className = `pdp-qty-option${i === current ? " is-selected" : ""}`;
-          opt.textContent = String(i);
-          opt.addEventListener("click", (e) => {
-            e.stopPropagation();
-            page.querySelector("#pdpQtyNum").textContent = String(i);
-            qtyMenu.classList.remove("open");
-            qtyBtn.classList.remove("open");
-            resetPdpQtyMenuPosition(qtyMenu);
-          });
-          qtyMenu.appendChild(opt);
-        }
-        qtyMenu.classList.add("open");
-        qtyBtn.classList.add("open");
-        positionPdpQtyMenu(page);
-      }
-      return;
-    }
-
-    if (!event.target.closest("#pdpQtyBtn")) {
-      qtyMenu.classList.remove("open");
-      qtyBtn.classList.remove("open");
-      resetPdpQtyMenuPosition(qtyMenu);
-    }
-  });
-
-  const syncQtyMenuPosition = () => positionPdpQtyMenu(page);
-  window.addEventListener("scroll", syncQtyMenuPosition, { passive: true });
-  window.addEventListener("resize", syncQtyMenuPosition);
 }
 
 export function initProductDetailSlider(root) {
   const page = root.querySelector("#productDetailPage");
   const slides = page?.querySelector("#pdpSlides");
-  const fill = page?.querySelector("#pdpProgressFill");
-  if (!slides || !fill) return;
+  const dots = page?.querySelector("#pdpDots");
+  if (!slides) return;
 
-  const count = slides.querySelectorAll("img").length;
+  const images = [...slides.querySelectorAll("img")];
+  const count = images.length;
   if (!count) return;
 
   const setActive = (index) => {
-    fill.style.width = `${100 / count}%`;
-    fill.style.left = `${(index / count) * 100}%`;
+    const safe = Math.min(count - 1, Math.max(0, index));
+    dots?.querySelectorAll(".pdp-dot").forEach((dot, i) => {
+      dot.classList.toggle("is-active", i === safe);
+    });
   };
 
   setActive(0);
@@ -642,62 +649,65 @@ export function initProductDetailSlider(root) {
     { passive: true }
   );
 
-  page.querySelector(".pdp-progress-bar")?.addEventListener("click", (event) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const ratio = (event.clientX - rect.left) / rect.width;
-    const index = Math.min(count - 1, Math.max(0, Math.floor(ratio * count)));
+  dots?.addEventListener("click", (event) => {
+    const dot = event.target.closest(".pdp-dot");
+    if (!dot) return;
+    const index = Number(dot.dataset.dotIndex || 0);
     slides.scrollTo({ left: index * slides.clientWidth, behavior: "smooth" });
     setActive(index);
   });
 }
 
-function initPdpRelatedProductCards(root, scope) {
-  scope.querySelectorAll(".category-product__swatch").forEach((swatch) => {
-    swatch.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const group = swatch.closest(".category-product__swatches");
-      group?.querySelectorAll(".category-product__swatch").forEach((item) => {
-        item.classList.remove("is-selected");
-      });
-      swatch.classList.add("is-selected");
-    });
-  });
-
-  scope.querySelectorAll(".category-product__add").forEach((btn) => {
-    btn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const card = btn.closest(".category-product");
-      if (addCategoryCardToBag(root, card, { qty: 1, mode: "add" })) {
-        syncBagCountFromDom(root);
-        refreshShoppingBagTotals(root);
-      }
-    });
-  });
+function createAlsoLikeCard(product) {
+  const card = document.createElement("article");
+  card.className = "pdp-like-card js-product-open";
+  card.dataset.productId = product.id;
+  const image = product.images?.[0] || "";
+  card.innerHTML = `
+    <div class="pdp-like-card__media">
+      <img src="${image}" alt="${product.name}" loading="lazy" onerror="this.style.visibility='hidden'" />
+      <button type="button" class="pdp-like-card__add" aria-label="Ajouter ${product.name} au panier">
+        ${bagPlusIcon()}
+      </button>
+    </div>
+    <h3 class="pdp-like-card__name">${product.name}</h3>
+    <p class="pdp-like-card__price" data-price-eur="${product.priceEur ?? ""}">${product.price}</p>
+  `;
+  return card;
 }
 
 function mountRelatedProducts(root, product) {
-  const forYouRoot = root.querySelector("#pdpForYouGrid");
-  const similarRoot = root.querySelector("#pdpSimilarGrid");
+  const alsoLikeRoot = root.querySelector("#pdpAlsoLikeGrid");
+  if (!alsoLikeRoot) return;
 
-  if (forYouRoot) {
-    forYouRoot.replaceChildren();
-    product.forYou.forEach((id) => {
-      const item = getCategoryProductById(id);
-      if (item) forYouRoot.appendChild(createCategoryProduct(item));
-    });
-    initPdpRelatedProductCards(root, forYouRoot);
-    initProductSliders(root, forYouRoot);
-  }
+  alsoLikeRoot.replaceChildren();
+  const ids = [...new Set([...(product.forYou || []), ...(product.similar || [])])].slice(0, 4);
+  ids.forEach((id) => {
+    const item = getCategoryProductById(id);
+    if (item) alsoLikeRoot.appendChild(createAlsoLikeCard(item));
+  });
 
-  if (similarRoot) {
-    similarRoot.replaceChildren();
-    product.similar.forEach((id) => {
-      const item = getCategoryProductById(id);
-      if (item) similarRoot.appendChild(createCategoryProduct(item));
+  alsoLikeRoot.querySelectorAll(".pdp-like-card__add").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const card = btn.closest(".pdp-like-card");
+      const productId = card?.dataset.productId;
+      const detail = productId ? getProductDetail(productId) : null;
+      if (!detail) return;
+      upsertBagLineItem(root, {
+        productId: detail.id,
+        name: detail.name,
+        priceEur: detail.priceEur,
+        color: "",
+        imageUrl: detail.images?.[0] || "",
+        qty: 1,
+        mode: "add",
+      });
+      syncBagCountFromDom(root);
+      refreshShoppingBagTotals(root);
+      openPdpAddedOverlay(root, 1);
     });
-    initPdpRelatedProductCards(root, similarRoot);
-    initProductSliders(root, similarRoot);
-  }
+  });
 }
 
 function getPdpColorLabel(root) {
@@ -729,15 +739,6 @@ function syncPdpToBag(root, quantity, mode = "set") {
   });
 }
 
-function proceedToCheckoutFromPdp(root, { quantity, mode = "set" }) {
-  const qty = Math.max(1, Number(quantity) || 1);
-  syncPdpToBag(root, qty, mode);
-  syncBagCountFromDom(root);
-  refreshShoppingBagTotals(root);
-  closePdpAddedOverlay(root);
-  root.dispatchEvent(new CustomEvent("racelia:open-checkout"));
-}
-
 export function mountProductDetail(root, productId) {
   const product = getProductDetail(productId);
   const pdpRoot = root.querySelector("#pdpRoot");
@@ -745,6 +746,12 @@ export function mountProductDetail(root, productId) {
 
   const page = root.querySelector("#productDetailPage");
   if (page) page.dataset.activeProductId = productId;
+
+  /* Clear docked/orphan bars before re-render (dock lives outside #pdpRoot). */
+  resetPdpActionBar(root);
+  root.querySelectorAll(".pdp-action-bar").forEach((el) => {
+    if (!pdpRoot.contains(el)) el.remove();
+  });
 
   pdpRoot.innerHTML = renderProductDetail(product);
   initProductDetailSlider(root);

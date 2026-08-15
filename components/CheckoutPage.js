@@ -4,7 +4,7 @@ export function createCheckoutPage() {
   const page = document.createElement("section");
   page.id = "checkoutPage";
   page.hidden = true;
-  page.setAttribute("aria-label", "Checkout");
+  page.setAttribute("aria-label", "Paiement");
   page.innerHTML = getCheckoutMarkup();
   return page;
 }

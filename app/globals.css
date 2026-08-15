@@ -8,6 +8,6 @@ body {
 }
 
 body {
-  font-family: var(--font-inter, "Inter"), Helvetica, Arial, sans-serif;
+  font-family: Georgia, "Times New Roman", serif;
   -webkit-font-smoothing: antialiased;
 }

@@ -86,7 +86,7 @@ function transformCss(input) {
 
 css = transformCss(css);
 css = css
-  .replace(/font-family:\s*'DM Sans'[^;]*/g, 'font-family: var(--font-inter), "Inter", Helvetica, Arial, sans-serif')
+  .replace(/font-family:\s*'DM Sans'[^;]*/g, 'font-family: Georgia, "Times New Roman", serif')
   .replace(/background:\s*#F4F6FB/gi, "background: #fff")
   .replace(/color:\s*#0F172A/gi, "color: #000")
   .replace(/--blue:\s*#2563EB/gi, "--blue: #000")
@@ -103,18 +103,24 @@ const shell = `/* Base layout — brand tokens in dashboard-theme.css */
   position: fixed;
   inset: 0;
   z-index: 1100;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-x: none;
   background: #fff;
   display: none;
-  font-family: var(--font-inter), "Inter", Helvetica, Arial, sans-serif;
+  font-family: Georgia, "Times New Roman", serif;
   color: #000;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 #dashboardPage:not([hidden]) {
   display: block;
 }
 body.dashboard-active {
   overflow: hidden;
+  overscroll-behavior-x: none;
 }
 body.dashboard-active #racelia-app > .topbar,
 body.dashboard-active #racelia-app > .site-footer,
@@ -170,7 +176,7 @@ body.dashboard-active #racelia-app .cta-dock {
 #dashboardPage .search-bar--compact {
   flex: 1 1 auto;
   min-width: 0;
-  max-width: min(360px, calc(100vw - 300px));
+  max-width: min(360px, calc(100% - 300px));
 }
 
 `;
@@ -180,7 +186,7 @@ const topbarOverrides = `
   flex: 1 1 auto !important;
   width: auto !important;
   min-width: 0 !important;
-  max-width: min(360px, calc(100vw - 300px)) !important;
+  max-width: min(360px, calc(100% - 300px)) !important;
 }
 @media (max-width: 768px) {
   #dashboardPage .dashboard-topbar .search-bar.search-bar--compact {

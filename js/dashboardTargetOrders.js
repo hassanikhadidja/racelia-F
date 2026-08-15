@@ -1,4 +1,6 @@
 import { loadDashboardOrders } from "./dashboardOrdersData.js";
+import { loadCatalogProducts, isInSalesReport } from "./productCatalog.js";
+import { eurToDzd, formatDzdPrice, USD_TO_DZD } from "./currency.js";
 
 const THUMB_SVG =
   '<svg viewBox="0 0 24 24"><path d="M13.5 5.5c1.09 0 1.91.91 1.91 2s-.82 2-1.91 2-1.91-.91-1.91-2 .82-2 1.91-2zM20 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2z"/></svg>';
@@ -12,7 +14,25 @@ export const TARGET_ORDER_PERIODS = [
   { id: "last-year", label: "Last Year" },
 ];
 
-const TARGET_ORDERS = 50;
+const ORDERS_PER_DAY = 10;
+
+function calendarDays(start, end) {
+  const from = startOfDay(start).getTime();
+  const to = startOfDay(end).getTime();
+  return Math.max(1, Math.round((to - from) / 86400000) + 1);
+}
+
+function targetOrdersForPeriod(periodId) {
+  const { start, end } = getPeriodBounds(periodId);
+  return calendarDays(start, end) * ORDERS_PER_DAY;
+}
+
+function periodTargetTitle(periodId) {
+  if (periodId.includes("month")) return "Monthly Target";
+  if (periodId.includes("quarter")) return "Quarterly Target";
+  if (periodId.includes("year")) return "Yearly Target";
+  return "Weekly Target";
+}
 
 function escapeHtml(text) {
   return String(text)
@@ -98,48 +118,102 @@ function getPeriodBounds(periodId, now = new Date()) {
   }
 }
 
+function isReceivedOrder(order) {
+  return String(order?.status || "").toLowerCase() === "received";
+}
+
 function filterOrdersByPeriod(orders, periodId) {
   const { start, end } = getPeriodBounds(periodId);
   return orders.filter((order) => {
+    if (!isReceivedOrder(order)) return false;
     const date = parseOrderDate(order);
     if (!date) return periodId === "this-month";
     return date >= start && date <= end;
   });
 }
 
-function parseTotal(value) {
-  return parseFloat(String(value || "").replace(/[^\d.]/g, "")) || 0;
+function parseTotalDzd(value) {
+  const raw = String(value || "");
+  const numeric = parseFloat(raw.replace(/[^\d.]/g, "")) || 0;
+  if (/dzd/i.test(raw)) return numeric;
+  if (/\$/.test(raw)) return numeric * USD_TO_DZD;
+  return eurToDzd(numeric);
+}
+
+function productMatchesOrderItem(product, item = {}) {
+  const slug = String(product.id || "").toLowerCase();
+  const name = String(product.name || "").toLowerCase();
+  const itemSlug = String(item.productSlug || item.productId || "").toLowerCase();
+  const itemName = String(item.name || "").toLowerCase();
+  return Boolean((slug && itemSlug && slug === itemSlug) || (name && itemName && name === itemName));
+}
+
+function soldQtyForProduct(orders, product) {
+  return orders.reduce((sum, order) => {
+    const items = Array.isArray(order.items) && order.items.length
+      ? order.items
+      : [{ productSlug: order.productSlug, name: order.product, quantity: order.quantity || 1 }];
+    return (
+      sum +
+      items.reduce((itemSum, item) => {
+        if (!productMatchesOrderItem(product, item)) return itemSum;
+        return itemSum + (Number(item.quantity) || 1);
+      }, 0)
+    );
+  }, 0);
 }
 
 function buildReportFromOrders(orders, periodId) {
   const filtered = filterOrdersByPeriod(orders, periodId);
   const { compareText } = getPeriodBounds(periodId);
-  const counts = {};
-  let revenue = 0;
+  const reportProducts = loadCatalogProducts().filter(isInSalesReport);
 
-  filtered.forEach((order) => {
-    const name = order.product || "Order";
-    counts[name] = (counts[name] || 0) + 1;
-    revenue += parseTotal(order.total);
-  });
+  const rows = reportProducts
+    .map((product) => {
+      const sold = soldQtyForProduct(filtered, product);
+      return {
+        name: product.name || product.id,
+        image: product.cardCover || product.coverImage || product.cardImages?.[0] || "",
+        sold,
+        profit: sold > 0 ? formatDzdPrice(Math.round(parseOrderProductRevenue(filtered, product))) : "—",
+      };
+    })
+    .sort((a, b) => b.sold - a.sold);
 
-  const rows = Object.entries(counts)
-    .map(([name, sold]) => ({
-      name,
-      sold,
-      profit: revenue > 0 ? `€${Math.round((revenue * sold) / Math.max(filtered.length, 1))}` : "—",
-    }))
-    .sort((a, b) => b.sold - a.sold)
-    .slice(0, 5);
+  const target = targetOrdersForPeriod(periodId);
+  const progress = Math.min(100, Math.round((filtered.length / target) * 100));
 
-  const progress = Math.min(100, Math.round((filtered.length / TARGET_ORDERS) * 100));
+  return {
+    progress,
+    completed: filtered.length,
+    target,
+    compareText,
+    title: periodTargetTitle(periodId),
+    rows,
+  };
+}
 
-  return { progress, compareText, rows };
+function parseOrderProductRevenue(orders, product) {
+  return orders.reduce((sum, order) => {
+    const items = Array.isArray(order.items) && order.items.length
+      ? order.items
+      : [{ productSlug: order.productSlug, name: order.product, quantity: order.quantity || 1, price: order.total }];
+    const matched = items.filter((item) => productMatchesOrderItem(product, item));
+    if (!matched.length) return sum;
+    return (
+      sum +
+      matched.reduce((itemSum, item) => {
+        const line = Number(item.price) * (Number(item.quantity) || 1);
+        if (line > 0) return itemSum + parseTotalDzd(line);
+        return itemSum + parseTotalDzd(order.total);
+      }, 0)
+    );
+  }, 0);
 }
 
 function renderReportRows(rows) {
   if (!rows.length) {
-    return `<p class="target-orders-empty">No orders in this period yet.</p>`;
+    return `<p class="target-orders-empty">No products marked for the sales report yet.</p>`;
   }
 
   return rows
@@ -148,7 +222,7 @@ function renderReportRows(rows) {
     <div class="table-row">
       <span class="row-num">${index + 1}</span>
       <div class="product-cell">
-        <div class="product-img-thumb">${THUMB_SVG}</div>
+        <div class="product-img-thumb"${row.image ? ` style="background-image:url('${escapeHtml(row.image)}');background-size:cover;background-position:center"` : ""}>${row.image ? "" : THUMB_SVG}</div>
         <span class="product-name">${escapeHtml(row.name)}</span>
       </div>
       <span class="cell-sold">${escapeHtml(String(row.sold))}</span>
@@ -159,16 +233,25 @@ function renderReportRows(rows) {
 }
 
 function updateGauge(page, data) {
+  const title = page.querySelector("#targetOrdersGaugeTitle");
   const label = page.querySelector("#targetOrdersGaugeLabel");
   const gaugePath = page.querySelector("#targetOrdersGaugeProgress");
+  const needle = page.querySelector("#targetOrdersGaugeNeedle");
+
+  if (title) title.textContent = data.title;
 
   if (label) {
-    label.innerHTML = `You completed <strong>${data.progress}%</strong> of your target orders ${data.compareText}`;
+    label.innerHTML = `You completed <strong>${data.progress}%</strong> of your target ${data.compareText} (${data.completed} of ${data.target} orders · ${ORDERS_PER_DAY}/day)`;
   }
 
   if (gaugePath) {
     const dashoffset = Math.round(302 * (1 - data.progress / 100));
     gaugePath.setAttribute("stroke-dashoffset", String(dashoffset));
+  }
+
+  if (needle) {
+    const angle = -90 + (data.progress / 100) * 180;
+    needle.setAttribute("transform", `rotate(${angle}, 120, 124)`);
   }
 }
 
@@ -191,4 +274,9 @@ export function initTargetOrders(page) {
 
   select.addEventListener("change", render);
   page.addEventListener("racelia:backend-synced", render);
+  page.querySelector('[data-screen="product"]')?.addEventListener("click", () => {
+    requestAnimationFrame(render);
+  });
+  const root = page.closest("#racelia-app") || page;
+  root.addEventListener("racelia:catalog-updated", render);
 }

@@ -100,7 +100,7 @@ const shell = `#shoppingBagPage {
   z-index: 1100;
   overflow: auto;
   display: none;
-  font-family: var(--font-inter), "Inter", Helvetica, Arial, sans-serif;
+  font-family: Georgia, "Times New Roman", serif;
   -webkit-font-smoothing: antialiased;
   background: #fff;
   color: #000;

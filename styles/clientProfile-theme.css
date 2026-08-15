@@ -1,0 +1,909 @@
+/**
+ * RACÈLIA storefront alignment for client profile.
+ * Loaded after clientProfile.css
+ */
+
+#clientProfilePage {
+  background: #fff;
+  color: #000;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#clientProfilePage .client-profile-phone-frame {
+  width: 100%;
+  max-width: 480px;
+  min-height: 100vh;
+  margin: 0 auto;
+  background: #fff;
+}
+
+/* Top bar */
+#clientProfilePage .top-bar {
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  padding: 16px 20px 12px;
+}
+
+#clientProfilePage .top-bar h1 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #000;
+}
+
+#clientProfilePage .top-bar .btn-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 2px;
+  background: #fff;
+  border: 1px solid #e5e5e5;
+  box-shadow: none;
+  overflow: visible;
+}
+
+#clientProfilePage .top-bar .btn-icon svg {
+  fill: none;
+  stroke: #000;
+  overflow: visible;
+}
+
+#clientProfilePage .top-bar .btn-icon:hover {
+  background: #f5f5f5;
+  border-color: #000;
+}
+
+/* Avatar */
+#clientProfilePage .avatar-section {
+  padding: 28px 20px 24px;
+}
+
+#clientProfilePage .avatar-section h2 {
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #000;
+}
+
+#clientProfilePage .avatar-placeholder {
+  background: #000;
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* Cards & rows */
+#clientProfilePage .card {
+  border-radius: 2px;
+  border: 1px solid #f0f0f0;
+  margin: 0 16px 16px;
+  box-shadow: none;
+}
+
+#clientProfilePage .info-row:active {
+  background: #fafafa;
+}
+
+#clientProfilePage .info-row--static {
+  cursor: default;
+}
+
+#clientProfilePage .info-row--static:active {
+  background: transparent;
+}
+
+#clientProfilePage .info-row:not(:last-child)::after {
+  background: #f0f0f0;
+  left: 56px;
+}
+
+#clientProfilePage .row-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #666;
+}
+
+#clientProfilePage .row-value {
+  font-size: 14px;
+  color: #000;
+}
+
+#clientProfilePage .row-icon svg {
+  stroke: #000;
+  stroke-width: 1.5;
+}
+
+#clientProfilePage .chevron svg {
+  stroke: #000;
+  opacity: 0.35;
+}
+
+/* Section headings */
+#clientProfilePage .section-title-row {
+  padding: 8px 20px 12px;
+}
+
+#clientProfilePage .section-title-row h3 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #000;
+}
+
+#clientProfilePage .section-title-row--action {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#clientProfilePage .section-title-row--action:active {
+  opacity: 0.7;
+}
+
+#clientProfilePage .info-row--action {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#clientProfilePage .profile-newsletter-row {
+  gap: 8px;
+}
+
+#clientProfilePage .profile-newsletter-filter {
+  display: flex;
+  flex-shrink: 0;
+  border: 1px solid #e5e5e5;
+}
+
+#clientProfilePage .profile-newsletter-opt {
+  appearance: none;
+  background: #fff;
+  border: 0;
+  color: #111;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  min-width: 52px;
+  padding: 8px 12px;
+  text-transform: uppercase;
+}
+
+#clientProfilePage .profile-newsletter-opt.is-selected {
+  background: #111;
+  color: #fff;
+}
+
+#clientProfilePage .profile-newsletter-opt:focus-visible {
+  outline: 1px solid #111;
+  outline-offset: 2px;
+}
+
+/* Loyalty & e-gift blocks */
+#clientProfilePage .loyalty-card-wrap,
+#clientProfilePage .egift-card-wrap {
+  padding: 0 16px 20px;
+}
+
+#clientProfilePage .loyalty-reward {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+#clientProfilePage .loyalty-reward[hidden] {
+  display: none !important;
+}
+
+#clientProfilePage .loyalty-promo-code-box[hidden],
+#clientProfilePage .loyalty-birthday-form[hidden],
+#clientProfilePage .loyalty-birthday-confirmed[hidden] {
+  display: none !important;
+}
+
+#clientProfilePage .loyalty-birthday-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 8px;
+}
+
+#clientProfilePage .loyalty-birthday-form label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #666;
+}
+
+#clientProfilePage .loyalty-birthday-form input[type="date"] {
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #e5e5e5;
+  border-radius: 2px;
+  font: inherit;
+  color: #000;
+  background: #fff;
+}
+
+#clientProfilePage .loyalty-birthday-confirm {
+  height: 44px;
+  background: #000;
+  color: #fff;
+  border: 0;
+  border-radius: 2px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+#clientProfilePage .loyalty-birthday-hint {
+  font-size: 12px;
+  color: #888;
+  text-align: center;
+}
+
+#clientProfilePage .loyalty-birthday-confirmed {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: #000;
+}
+
+#clientProfilePage .loyalty-promo-code-box {
+  border: 1px solid #000;
+  border-radius: 2px;
+  background: #fff;
+  color: #000;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+}
+
+#clientProfilePage .loyalty-stamp-slot {
+  border-color: #000;
+  background: transparent;
+}
+
+#clientProfilePage .loyalty-stamp-slot:nth-child(5) {
+  background: transparent;
+}
+
+#clientProfilePage .loyalty-stamp-slot:nth-child(5).is-stamped,
+#clientProfilePage .loyalty-stamp-slot:nth-child(5).has-white-bg,
+#clientProfilePage .loyalty-stamp-slot:nth-child(5):has(.loyalty-stamp-icon) {
+  background: #fff;
+}
+
+#clientProfilePage .loyalty-stamp-slot:nth-child(4).has-white-bg {
+  background: #fff;
+}
+
+#clientProfilePage .egift-field-box {
+  border-radius: 2px;
+  border: none;
+  background: transparent;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+#clientProfilePage .egift-field-box:focus {
+  box-shadow: none;
+}
+
+#clientProfilePage .egift-card-caption {
+  margin: 14px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid #e5e5e5;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+#clientProfilePage .egift-card-caption a {
+  color: #111;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+#clientProfilePage .contact-card-below {
+  margin-bottom: 40px;
+}
+
+/* Edit profile sheet */
+#clientProfilePage .profile-edit-overlay {
+  background: rgba(0, 0, 0, 0.45);
+  align-items: center;
+  padding: 24px 16px;
+}
+
+#clientProfilePage .profile-edit-overlay.open {
+  display: flex;
+}
+
+#clientProfilePage .profile-edit-sheet {
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  background: #fff;
+  border-radius: 2px;
+  border: 1px solid #f0f0f0;
+  padding: 28px 24px 32px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+#clientProfilePage .profile-edit-header h3 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+#clientProfilePage .profile-edit-close {
+  color: #000;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#clientProfilePage .profile-edit-field label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #666;
+}
+
+#clientProfilePage .profile-edit-field input {
+  border-radius: 0;
+  border: none;
+  border-bottom: 1px solid #bbb;
+  background: transparent;
+  padding: 20px 0 8px;
+  box-shadow: none;
+}
+
+#clientProfilePage .profile-edit-field input:focus {
+  box-shadow: none;
+  border-bottom-color: #000;
+}
+
+#clientProfilePage .profile-edit-save {
+  margin-top: 24px;
+  border-radius: 2px;
+  background: #000;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 16px;
+}
+
+#clientProfilePage .profile-edit-save:active {
+  opacity: 0.85;
+  background: #222;
+}
+
+#clientProfilePage .profile-orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#clientProfilePage .profile-order {
+  border: 1px solid #f0f0f0;
+  border-radius: 2px;
+  padding: 14px;
+}
+
+#clientProfilePage .profile-order__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+#clientProfilePage .profile-order__id {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #000;
+  margin: 0 0 2px;
+}
+
+#clientProfilePage .profile-order__date {
+  font-size: 12px;
+  color: #888;
+  margin: 0;
+}
+
+#clientProfilePage .profile-order__status {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 2px;
+}
+
+#clientProfilePage .profile-order__status--delivered {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+#clientProfilePage .profile-order__status--on_way {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+
+#clientProfilePage .profile-order__status--cancelled {
+  background: #fce4ec;
+  color: #b71c1c;
+}
+
+#clientProfilePage .profile-order__status--processing {
+  background: #fff8e1;
+  color: #f57f17;
+}
+
+#clientProfilePage .profile-order__product {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 0 0 4px;
+}
+
+#clientProfilePage .profile-order__total {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+
+#clientProfilePage .profile-order__promo {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+#clientProfilePage .profile-order__promo--none {
+  color: #aaa;
+  font-style: italic;
+}
+
+#clientProfilePage .profile-order__promo-code {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #000;
+}
+
+#clientProfilePage .profile-order__promo-detail {
+  color: #666;
+}
+
+/* Shared profile sheets */
+#clientProfilePage .profile-orders-overlay,
+#clientProfilePage .profile-review-overlay,
+#clientProfilePage .profile-points-overlay,
+#clientProfilePage #profile-egifts-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  background: rgba(0, 0, 0, 0.45);
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+#clientProfilePage .profile-orders-overlay.open,
+#clientProfilePage .profile-review-overlay.open,
+#clientProfilePage .profile-points-overlay.open,
+#clientProfilePage #profile-egifts-overlay.open {
+  display: flex;
+}
+
+#clientProfilePage .profile-sheet {
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  background: #fff;
+  border-radius: 2px 2px 0 0;
+  border: 1px solid #f0f0f0;
+  border-bottom: 0;
+  padding: 20px 16px 28px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+#clientProfilePage .profile-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+#clientProfilePage .profile-sheet-header h3 {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+#clientProfilePage .profile-sheet-close {
+  border: 0;
+  background: none;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #000;
+  cursor: pointer;
+  padding: 8px 0;
+}
+
+#clientProfilePage .profile-orders-list,
+#clientProfilePage .profile-points-body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Review form */
+#clientProfilePage .profile-review-form {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+#clientProfilePage .profile-review-field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+#clientProfilePage .profile-review-field input:not([type="file"]),
+#clientProfilePage .profile-review-field select,
+#clientProfilePage .profile-review-field textarea {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #bbb;
+  background: transparent;
+  font: 400 15px Georgia, "Times New Roman", serif;
+  color: #000;
+  padding: 8px 0;
+  outline: 0;
+}
+
+#clientProfilePage .profile-review-field textarea {
+  resize: vertical;
+  min-height: 88px;
+  border: 1px solid #e5e5e5;
+  padding: 10px;
+  border-radius: 2px;
+}
+
+#clientProfilePage .profile-review-field input:not([type="file"]):focus,
+#clientProfilePage .profile-review-field select:focus,
+#clientProfilePage .profile-review-field textarea:focus {
+  border-bottom-color: #000;
+}
+
+#clientProfilePage .profile-review-field textarea:focus {
+  border-color: #000;
+}
+
+#clientProfilePage .profile-review-stars {
+  display: flex;
+  gap: 4px;
+}
+
+#clientProfilePage .profile-review-star {
+  border: 0;
+  background: none;
+  font-size: 28px;
+  line-height: 1;
+  color: #ddd;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+#clientProfilePage .profile-review-star.is-active {
+  color: #000;
+}
+
+#clientProfilePage .profile-review-photo-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+#clientProfilePage .profile-review-photo-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  box-sizing: border-box;
+  border: 1px solid #000;
+  border-radius: 2px;
+  background: #fff;
+  color: #000;
+  font: 700 12px Georgia, "Times New Roman", serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+#clientProfilePage .profile-review-photo-btn:hover,
+#clientProfilePage .profile-review-photo-btn:focus-within {
+  background: #000;
+  color: #fff;
+}
+
+#clientProfilePage .profile-review-photo-name {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #888;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+#clientProfilePage .profile-review-photo-name.has-file {
+  color: #000;
+}
+
+#clientProfilePage .profile-review-photo-preview {
+  margin-top: 10px;
+}
+
+#clientProfilePage .profile-review-photo-preview img {
+  display: block;
+  max-width: 100%;
+  max-height: 160px;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+#clientProfilePage .profile-review-photo-remove {
+  margin-top: 8px;
+  border: 0;
+  background: none;
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+  color: #666;
+}
+
+#clientProfilePage .profile-review-submit {
+  margin-top: 8px;
+  border: 0;
+  border-radius: 2px;
+  background: #000;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 16px;
+  cursor: pointer;
+}
+
+#clientProfilePage .profile-review-submit:active {
+  opacity: 0.85;
+}
+
+/* Gift points */
+#clientProfilePage .profile-points__hero {
+  text-align: center;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+#clientProfilePage .profile-points__total-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #666;
+  margin: 0 0 6px;
+}
+
+#clientProfilePage .profile-points__total {
+  font-size: 36px;
+  font-weight: 300;
+  margin: 0 0 12px;
+  color: #000;
+}
+
+#clientProfilePage .profile-points__total span {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+#clientProfilePage .profile-points__split {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 13px;
+  color: #666;
+}
+
+#clientProfilePage .profile-points__split strong {
+  color: #000;
+  font-weight: 700;
+}
+
+#clientProfilePage .profile-points__promo-progress,
+#clientProfilePage .profile-points__promo-earned {
+  margin-bottom: 20px;
+  padding: 14px;
+  background: #fafafa;
+  border: 1px solid #f0f0f0;
+  border-radius: 2px;
+}
+
+#clientProfilePage .profile-points__promo-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+
+#clientProfilePage .profile-points__promo-copy {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+#clientProfilePage .profile-points__bar {
+  height: 6px;
+  background: #eee;
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+#clientProfilePage .profile-points__bar-fill {
+  display: block;
+  height: 100%;
+  background: #000;
+  border-radius: 2px;
+}
+
+#clientProfilePage .profile-points__promo-hint {
+  font-size: 12px;
+  color: #888;
+  margin: 0;
+  line-height: 1.5;
+}
+
+#clientProfilePage .profile-points__promo-code {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 12px 20px;
+  border: 1px solid #000;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+#clientProfilePage .profile-points__history-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #666;
+  margin: 0 0 12px;
+}
+
+#clientProfilePage .profile-points__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#clientProfilePage .profile-points__row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #f0f0f0;
+  border-radius: 2px;
+}
+
+#clientProfilePage .profile-points__source {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+#clientProfilePage .profile-points__row--review .profile-points__source {
+  color: #000;
+}
+
+#clientProfilePage .profile-points__label {
+  display: block;
+  font-size: 13px;
+  color: #000;
+  margin-bottom: 2px;
+}
+
+#clientProfilePage .profile-points__date {
+  font-size: 11px;
+  color: #aaa;
+}
+
+#clientProfilePage .profile-points__pts {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #000;
+}
+
+@media (min-width: 769px) {
+  #clientProfilePage .profile-edit-overlay {
+    align-items: center;
+  }
+
+  #clientProfilePage .profile-edit-sheet {
+    border-radius: 2px;
+  }
+
+  #clientProfilePage .profile-orders-overlay,
+  #clientProfilePage .profile-review-overlay,
+  #clientProfilePage .profile-points-overlay,
+  #clientProfilePage #profile-egifts-overlay {
+    align-items: center;
+    padding: 24px 16px;
+  }
+
+  #clientProfilePage .profile-sheet {
+    border-radius: 2px;
+    border-bottom: 1px solid #f0f0f0;
+    max-height: 85vh;
+  }
+}

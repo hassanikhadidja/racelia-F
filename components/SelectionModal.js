@@ -16,23 +16,23 @@ export function createSelectionModal() {
 
   const tabBtn = document.createElement("button");
   tabBtn.className = "active";
-  tabBtn.textContent = "HANDBAGS";
+  tabBtn.textContent = "SACS";
   tabs.appendChild(tabBtn);
 
   const heading = document.createElement("h3");
-  heading.textContent = "ALL SELECTION";
+  heading.textContent = "TOUTE LA SÉLECTION";
 
   const list = document.createElement("ul");
-  selectionItems.forEach((label) => {
+  selectionItems.forEach((item) => {
     const li = document.createElement("li");
-    li.textContent = label;
+    li.textContent = typeof item === "string" ? item : item.label;
     list.appendChild(li);
   });
 
   const closeBtn = document.createElement("button");
   closeBtn.className = "close";
   closeBtn.id = "closeModal";
-  closeBtn.setAttribute("aria-label", "Close");
+  closeBtn.setAttribute("aria-label", "Fermer");
 
   modal.append(tabs, heading, list, closeBtn);
 

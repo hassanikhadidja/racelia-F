@@ -1,23 +1,24 @@
 import { api, getAuthToken, setAuthToken, setStoredUser, uploadImageField } from "./api.js";
-import {
-  applyStoredUser,
-  saveClientOrders,
-  saveClientProfileLocal,
-  userToProfile,
-} from "./clientProfileData.js";
-import { cacheProfileAvatar } from "./profileAvatar.js";
-import { dataUrlToBlob } from "./api.js";
+import { applyStoredUser, saveClientOrders, saveClientProfileLocal, userToProfile } from "./clientProfileData.js";
+import { ensureLoyaltyRewards } from "./loyaltyCard.js";
 import {
   saveCatalogProducts,
   normalizeCatalogProduct,
   loadCatalogProducts,
 } from "./productCatalog.js";
 import { saveBlogs, normalizeBlog } from "./dashboardBlogsData.js";
-import { saveWebPics } from "./dashboardWebPicsData.js";
 import { saveStyleLooks } from "./dashboardRaceliaStyleData.js";
 import { savePublishedReviews, savePendingReviews } from "./dashboardReviewsData.js";
 import { saveDashboardUsers } from "./dashboardUsersData.js";
 import { saveDashboardOrders } from "./dashboardOrdersData.js";
+import {
+  saveCollectedEmails,
+  saveReturnRequests,
+  loadCollectedEmails,
+  loadReturnRequests,
+  normalizeEmail,
+  notifyEmailsUpdated,
+} from "./dashboardEmailsData.js";
 
 const ORDER_CONFIG_KEY = "raceliaOrderConfig";
 
@@ -82,6 +83,7 @@ function mergeCatalogProductFromApi(incoming, local) {
   const merged = {
     ...incoming,
     isNewArrival: incoming.isNewArrival || local.isNewArrival,
+    inSalesReport: incoming.inSalesReport ?? local.inSalesReport,
     hasColorImages: incoming.hasColorImages || local.hasColorImages,
   };
 
@@ -101,6 +103,8 @@ function mergeCatalogProductFromApi(incoming, local) {
     merged.tag = local.tag || incoming.tag;
     merged.name = local.name || incoming.name;
     merged.description = local.description || incoming.description;
+    merged.details = local.details?.length ? local.details : incoming.details;
+    merged.inSalesReport = local.inSalesReport ?? incoming.inSalesReport;
     merged.updatedAt = localTime;
   }
 
@@ -131,10 +135,9 @@ function mergeCatalogFromApi(incomingList) {
 }
 
 async function syncPublicData() {
-  const [products, blogs, webPicsPayload, styleLooks, reviews, config] = await Promise.all([
+  const [products, blogs, styleLooks, reviews, config] = await Promise.all([
     api.getProducts().catch(() => null),
     api.getPublishedBlogs().catch(() => null),
-    api.getWebPics().catch(() => null),
     api.getStorefrontStyleLooks().catch(() => null),
     api.getPublishedReviews().catch(() => null),
     api.getOrderConfig().catch(() => null),
@@ -146,12 +149,6 @@ async function syncPublicData() {
 
   if (Array.isArray(blogs)) {
     saveBlogs(blogs.map(normalizeBlog).filter(Boolean));
-  }
-
-  if (webPicsPayload?.all) {
-    saveWebPics(webPicsPayload.all);
-  } else if (Array.isArray(webPicsPayload)) {
-    saveWebPics(webPicsPayload);
   }
 
   if (Array.isArray(styleLooks)) {
@@ -171,12 +168,14 @@ async function syncPublicData() {
 export async function syncAdminData() {
   if (!getAuthToken()) return;
 
-  const [blogs, orders, users, pendingReviews, styleLooks] = await Promise.all([
+  const [blogs, orders, users, pendingReviews, styleLooks, emails, returns] = await Promise.all([
     api.getAdminBlogs().catch(() => null),
     api.getOrders().catch(() => null),
     api.getUsers().catch(() => null),
     api.getPendingReviews().catch(() => null),
     api.getAdminStyleLooks().catch(() => null),
+    api.getEmails().catch(() => null),
+    api.getReturns().catch(() => null),
   ]);
 
   if (Array.isArray(blogs)) {
@@ -196,6 +195,15 @@ export async function syncAdminData() {
       ),
     }));
     saveDashboardUsers(enriched);
+  }
+  if (Array.isArray(emails)) {
+    saveCollectedEmails(emails, { silent: true });
+  }
+  if (Array.isArray(returns)) {
+    saveReturnRequests(returns, { silent: true });
+  }
+  if (Array.isArray(emails) || Array.isArray(returns)) {
+    notifyEmailsUpdated();
   }
   if (Array.isArray(pendingReviews)) {
     savePendingReviews(pendingReviews);
@@ -220,6 +228,7 @@ export async function syncClientData(root) {
     if (Array.isArray(orders)) {
       saveClientOrders(orders);
     }
+    ensureLoyaltyRewards();
 
     root?.dispatchEvent(new CustomEvent("racelia:client-synced", { bubbles: true }));
   } catch (error) {
@@ -234,18 +243,6 @@ export async function updateClientProfile(body, root) {
   } else if (body) {
     const profile = userToProfile({ ...loadClientProfileFallback(), ...body });
     saveClientProfileLocal(profile);
-  }
-  root?.dispatchEvent(new CustomEvent("racelia:client-synced", { bubbles: true }));
-  return result;
-}
-
-export async function uploadProfileAvatar(dataUrl, root) {
-  const form = new FormData();
-  form.append("avatar", dataUrlToBlob(dataUrl), "avatar.jpg");
-  const result = await api.updateMyProfileForm(form);
-  if (result?.user) {
-    applyStoredUser(result.user);
-    if (result.user.avatar) cacheProfileAvatar(result.user.avatar);
   }
   root?.dispatchEvent(new CustomEvent("racelia:client-synced", { bubbles: true }));
   return result;
@@ -399,6 +396,7 @@ function productPayload(product) {
     description: product.description,
     isPack: product.isPack,
     isNewArrival: product.isNewArrival,
+    inSalesReport: product.inSalesReport,
     hasColorImages: product.hasColorImages,
     packLabel: product.packLabel,
     sections: product.sections,
@@ -413,8 +411,7 @@ function productPayload(product) {
     closerLookMain: product.closerLookMain,
     colors: product.colors,
     colorVariants: product.colorVariants,
-    materials: product.materials,
-    size: product.size,
+    details: Array.isArray(product.details) ? product.details : [],
     filters: product.filters,
   };
 }
@@ -478,30 +475,6 @@ export async function syncBlogDelete(id) {
   return api.deleteBlog(id);
 }
 
-export async function syncWebPicCreate(pic) {
-  if (!getAuthToken()) return null;
-  const form = new FormData();
-  form.append("webPicKey", pic.id);
-  form.append("id", pic.id);
-  form.append("title", pic.title || "");
-  form.append("device", pic.device);
-  form.append("section", pic.section);
-  form.append("linksToProduct", String(Boolean(pic.linksToProduct)));
-  form.append("productSlug", pic.productId || "");
-  if (pic.image?.startsWith("data:")) {
-    const upload = await uploadImageField(pic.image, "file");
-    upload?.forEach((value, key) => form.append(key, value));
-  } else if (pic.image) {
-    form.append("imageUrl", pic.image);
-  }
-  return api.createWebPic(form);
-}
-
-export async function syncWebPicDelete(id) {
-  if (!getAuthToken() || !id) return null;
-  return api.deleteWebPic(id);
-}
-
 export async function syncStyleLookUpsert(look) {
   if (!getAuthToken()) return null;
   const form = new FormData();
@@ -556,9 +529,113 @@ export async function syncPublishedReviewCreate(review) {
   return api.createReview(form);
 }
 
-export async function syncOrderStatus(orderId, status) {
+export async function syncOrderStatus(orderId, status, issueComment) {
   if (!getAuthToken() || !orderId || !status) return null;
-  return api.updateOrderStatus(orderId, status);
+  return api.updateOrderStatus(orderId, status, issueComment);
+}
+
+export async function syncCollectedEmail(payload) {
+  try {
+    const result = await api.upsertEmail({
+      email: payload.email,
+      name: payload.name || "",
+      newsletter: payload.newsletter,
+      source: payload.source,
+      sources: payload.sources,
+      forceNewsletter: payload.forceNewsletter === true,
+    });
+    if (result?.email) {
+      const incoming = result.email;
+      const list = loadCollectedEmails();
+      const next = [
+        incoming,
+        ...list.filter(
+          (item) =>
+            normalizeEmail(item.email) !== normalizeEmail(incoming.email) && item.id !== incoming.id
+        ),
+      ];
+      saveCollectedEmails(next, { silent: true });
+      return incoming;
+    }
+  } catch (error) {
+    console.warn("RACÈLIA email sync failed:", error.message);
+  }
+  return null;
+}
+
+export async function syncCollectedEmailUpdate(id, body) {
+  if (!getAuthToken() || !id) return null;
+  try {
+    return await api.updateEmail(id, body);
+  } catch (error) {
+    console.warn("RACÈLIA email update failed:", error.message);
+    return null;
+  }
+}
+
+export async function syncCollectedEmailDelete(id) {
+  if (!getAuthToken() || !id) return null;
+  try {
+    return await api.deleteEmail(id);
+  } catch (error) {
+    console.warn("RACÈLIA email delete failed:", error.message);
+    return null;
+  }
+}
+
+export async function syncReturnCreate(payload, file) {
+  const form = new FormData();
+  form.append("requestType", payload.requestType || "reclamation");
+  form.append("name", payload.name || "");
+  form.append("phone", payload.phone || "");
+  form.append("email", payload.email || "");
+  form.append("wilaya", payload.wilaya || "");
+  form.append("wilayaName", payload.wilayaName || "");
+  form.append("comment", payload.comment || "");
+  form.append("status", payload.status || "pending");
+  if (payload.id) form.append("requestKey", payload.id);
+  if (file) {
+    form.append("picture", file);
+  } else if (payload.picture?.startsWith("data:")) {
+    const upload = await uploadImageField(payload.picture, "picture");
+    upload?.forEach((value, key) => form.append(key, value));
+  }
+  try {
+    const result = await api.createReturn(form);
+    if (result?.returnRequest) {
+      const incoming = result.returnRequest;
+      const list = loadReturnRequests();
+      saveReturnRequests(
+        [incoming, ...list.filter((item) => item.id !== incoming.id)],
+        { silent: true }
+      );
+      notifyEmailsUpdated();
+      return incoming;
+    }
+  } catch (error) {
+    console.warn("RACÈLIA return sync failed:", error.message);
+  }
+  return null;
+}
+
+export async function syncReturnUpdate(id, body) {
+  if (!getAuthToken() || !id) return null;
+  try {
+    return await api.updateReturn(id, body);
+  } catch (error) {
+    console.warn("RACÈLIA return update failed:", error.message);
+    return null;
+  }
+}
+
+export async function syncReturnDelete(id) {
+  if (!getAuthToken() || !id) return null;
+  try {
+    return await api.deleteReturn(id);
+  } catch (error) {
+    console.warn("RACÈLIA return delete failed:", error.message);
+    return null;
+  }
 }
 
 export async function refreshCatalogFromBackend() {

@@ -1,0 +1,141 @@
+.contact-page {
+  background: #fff;
+  color: #111;
+  font-family: Georgia, "Times New Roman", serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: calc(100vh - 120px);
+  min-height: calc(100dvh - 120px);
+}
+
+.contact-main {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 81px 20px 16px;
+  color: #111;
+}
+
+.contact-title {
+  font-size: clamp(1.65rem, 5vw, 2rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  margin: 0 0 14px;
+  line-height: 1.2;
+}
+
+.contact-intro {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 16px;
+  color: #1a1a1a;
+}
+
+.contact-required-note {
+  font-size: 0.82rem;
+  color: #666;
+  margin: 0 0 28px;
+}
+
+.contact-section-title {
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin: 8px 0 16px;
+  color: #1a1a1a;
+}
+
+.contact-field {
+  margin-bottom: 16px;
+}
+
+.contact-label {
+  display: block;
+  font-size: 0.88rem;
+  margin-bottom: 6px;
+  color: #1a1a1a;
+}
+
+.contact-label .req {
+  color: #111;
+}
+
+.contact-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #d0d0d0;
+  background: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  color: #111;
+  padding: 12px 14px;
+  outline: none;
+}
+
+.contact-input:focus {
+  border-color: #111;
+}
+
+.contact-textarea {
+  min-height: 132px;
+  resize: none;
+  line-height: 1.5;
+}
+
+.contact-counter {
+  text-align: right;
+  font-size: 0.75rem;
+  color: #9a9a9a;
+  margin: 8px 0 0;
+}
+
+.contact-privacy {
+  display: block;
+  margin: 22px 0 24px;
+  padding-top: 12px;
+  border-top: 1px solid #cfcfcf;
+  color: #111;
+  font-size: 0.92rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.contact-btn {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  padding: 15px;
+  min-height: 48px;
+  font-size: 1rem;
+  font-family: Georgia, "Times New Roman", serif;
+  cursor: pointer;
+  text-align: center;
+  background: #111;
+  color: #fff;
+}
+
+.contact-btn:disabled {
+  background: #c7ccd4;
+  cursor: not-allowed;
+}
+
+.contact-form-status {
+  min-height: 1.2em;
+  margin: 12px 0 0;
+  font-size: 0.88rem;
+}
+
+.contact-form-status.is-error {
+  color: #b00020;
+}
+
+.contact-form-status.is-ok {
+  color: #1a1a1a;
+}
+
+@media (min-width: 768px) {
+  .contact-main {
+    max-width: 520px;
+    padding: 97px 24px 24px;
+  }
+}

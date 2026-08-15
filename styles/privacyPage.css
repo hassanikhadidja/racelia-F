@@ -1,0 +1,147 @@
+.privacy-page {
+  background: #f7f5f2;
+  color: #111;
+  font-family: Georgia, "Times New Roman", serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: calc(100vh - 120px);
+  min-height: calc(100dvh - 120px);
+}
+
+.privacy-main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 97px 24px 24px;
+  line-height: 1.6;
+}
+
+.privacy-main h1 {
+  font-size: 32px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  margin: 0 0 8px;
+}
+
+.privacy-effective {
+  color: #666;
+  font-size: 14px;
+  margin: 0 0 28px;
+}
+
+.privacy-main h2 {
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  margin: 40px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+  scroll-margin-top: 80px;
+}
+
+.privacy-main h3 {
+  font-size: 16px;
+  font-weight: 400;
+  margin: 24px 0 10px;
+}
+
+.privacy-main p {
+  margin: 10px 0;
+  font-size: 15px;
+}
+
+.privacy-main ul,
+.privacy-main ol {
+  font-size: 15px;
+  padding-left: 20px;
+  margin: 10px 0;
+}
+
+.privacy-main li {
+  margin: 6px 0;
+}
+
+.privacy-main a {
+  color: #111;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.privacy-main a:hover {
+  opacity: 0.7;
+}
+
+.privacy-toc {
+  background: #fff;
+  border: 1px solid #e6e2dc;
+  padding: 18px 22px;
+  margin-bottom: 32px;
+}
+
+.privacy-toc h3 {
+  margin: 0 0 12px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #666;
+}
+
+.privacy-toc ol {
+  columns: 2;
+  font-size: 13.5px;
+  padding-left: 18px;
+  margin: 0;
+}
+
+.privacy-toc a {
+  text-decoration: none;
+}
+
+.privacy-toc a:hover {
+  text-decoration: underline;
+}
+
+.privacy-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 24px;
+  font-size: 13.5px;
+}
+
+.privacy-table th,
+.privacy-table td {
+  border: 1px solid #e6e2dc;
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.privacy-table th {
+  background: #eeeae4;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+.privacy-table tr:nth-child(even) td {
+  background: #fcfbf9;
+}
+
+.privacy-contact-block {
+  background: #fff;
+  border: 1px solid #e6e2dc;
+  padding: 16px 20px;
+  margin: 16px 0;
+  font-size: 15px;
+}
+
+@media (max-width: 520px) {
+  .privacy-main {
+    padding: 81px 18px 16px;
+  }
+
+  .privacy-main h1 {
+    font-size: 26px;
+  }
+
+  .privacy-toc ol {
+    columns: 1;
+  }
+}

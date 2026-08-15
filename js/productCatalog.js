@@ -21,12 +21,18 @@ import { getProductReviewsForDisplay } from "./dashboardReviewsData.js";
 
 export const CATALOG_STORAGE_KEY = "raceliaProductCatalog";
 
+export function isInSalesReport(product) {
+  const value = product?.inSalesReport;
+  return value === true || value === "yes" || value === "true" || value === "Yes";
+}
+
 export const PRODUCT_SECTIONS = [
   { id: "mini-bags", label: "Mini Bags" },
   { id: "racelia-handbag", label: "The RACÈLIA Handbag" },
   { id: "moms-bags", label: "Moms Bags" },
   { id: "all-selection", label: "All Selection" },
   { id: "metiers-dart", label: "Métiers d'Art" },
+  { id: "catalogue-grossiste", label: "Catalogue Grossiste" },
 ];
 
 export const STOCK_NOTES = [
@@ -56,6 +62,16 @@ function hexToSwatchStyle(hex) {
   const light = `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`;
   const dark = `rgb(${Math.max(0, r - 30)}, ${Math.max(0, g - 30)}, ${Math.max(0, b - 30)})`;
   return `radial-gradient(circle at 30% 30%, ${light}, ${dark})`;
+}
+
+function normalizeProductDetails(product = {}) {
+  if (Array.isArray(product.details) && product.details.length) {
+    return product.details.map((line) => String(line || "").trim()).filter(Boolean);
+  }
+  const legacy = [];
+  if (product.materials) legacy.push(String(product.materials).trim());
+  if (product.size) legacy.push(String(product.size).trim());
+  return legacy.filter(Boolean);
 }
 
 export function normalizeCatalogProduct(product) {
@@ -97,6 +113,7 @@ export function normalizeCatalogProduct(product) {
     isPack: Boolean(product.isPack),
     packLabel: String(product.packLabel || "").trim(),
     isNewArrival: Boolean(product.isNewArrival),
+    inSalesReport: isInSalesReport(product),
     hasColorImages: Boolean(product.hasColorImages) || colorVariants.some(
       (v) =>
         v.cardCover ||
@@ -124,8 +141,7 @@ export function normalizeCatalogProduct(product) {
     },
     colors,
     colorVariants,
-    materials: String(product.materials || "").trim(),
-    size: String(product.size || "").trim(),
+    details: normalizeProductDetails(product),
     filters: Array.isArray(product.filters) ? product.filters.filter(Boolean) : [],
     createdAt: product.createdAt || Date.now(),
     updatedAt: product.updatedAt || Date.now(),
@@ -170,6 +186,9 @@ export function getAllCatalogProducts() {
 
 export function getProductsForSection(sectionKey) {
   const products = loadCatalogProducts();
+  if (sectionKey === "nouveautes") {
+    return products.filter((p) => p.isNewArrival);
+  }
   if (sectionKey === "all-selection") {
     return products.filter((p) => p.sections.includes("all-selection"));
   }
@@ -244,17 +263,14 @@ function buildProductDetail(catalogProduct) {
 
   const accordions = [
     {
-      title: "SEE BAG SIZE",
-      body: p.size || "Dimensions and strap drop vary by style.",
-      virtualTryOn: true,
-    },
-    {
-      title: "MATERIALS & CARE",
-      body: p.materials || "Refined pebble leather. Wipe with a soft, dry cloth.",
-    },
-    {
       title: "DESCRIPTION",
       body: p.description || p.name,
+    },
+    {
+      title: "DÉTAILS DU PRODUIT",
+      body: (p.details || []).length
+        ? (p.details || []).map((line) => `• ${line}`).join("\n")
+        : "Détails à venir.",
     },
   ];
 
@@ -281,6 +297,8 @@ function buildProductDetail(catalogProduct) {
     stockNote: p.stockNote,
     isPack: p.isPack,
     packLabel: p.packLabel,
+    description: p.description || "",
+    details: Array.isArray(p.details) ? p.details : [],
     hasColorImages: p.hasColorImages,
     images,
     swatches: swatches.length
@@ -299,28 +317,45 @@ function buildProductDetail(catalogProduct) {
   };
 }
 
-export function getNewArrivalProducts() {
+function toHomeProductCard(p) {
+  const normalized = normalizeCatalogProduct(p);
+  const cardImages = getCardImages(normalized, 0);
+  const images = cardImages.length ? cardImages : getPdpImages(normalized, 0);
+  if (!images.length) return null;
+  return {
+    id: normalized.id,
+    name: normalized.name,
+    images,
+  };
+}
+
+/** Ordered catalogue pool for home product grids (new arrivals first, then rest). */
+export function getHomeProductPool(limit = 8) {
   const all = loadCatalogProducts();
   let source = all.filter((p) => p.isNewArrival);
 
   if (!source.length) {
-    source = [...all]
-      .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
-      .slice(0, 4);
+    source = [...all].sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
   }
 
-  return source
-    .map((p) => {
-      const normalized = normalizeCatalogProduct(p);
-      const cardImages = getCardImages(normalized, 0);
-      const images = cardImages.length ? cardImages : getPdpImages(normalized, 0);
-      return {
-        id: normalized.id,
-        name: normalized.name,
-        images,
-      };
-    })
-    .filter((p) => p.images.length);
+  const seen = new Set(source.map((p) => p.id));
+  const fillers = [...all]
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0))
+    .filter((p) => p.id && !seen.has(p.id));
+
+  return [...source, ...fillers]
+    .slice(0, limit)
+    .map(toHomeProductCard)
+    .filter(Boolean);
+}
+
+export function getNewArrivalProducts() {
+  return getHomeProductPool(4);
+}
+
+/** Second 2×2 grid under the home editorial image. */
+export function getEditorialGridProducts() {
+  return getHomeProductPool(8).slice(4, 8);
 }
 
 export function getProductDetail(id) {
@@ -396,6 +431,7 @@ export function createEmptyCatalogProduct() {
     isPack: false,
     packLabel: "",
     isNewArrival: false,
+    inSalesReport: false,
     hasColorImages: false,
     sections: ["all-selection"],
     cardCover: "",
@@ -410,8 +446,7 @@ export function createEmptyCatalogProduct() {
     },
     colors: ["#111111"],
     colorVariants: [emptyColorVariant("#111111", "Black")],
-    materials: "",
-    size: "",
+    details: [],
     filters: [],
   });
 }

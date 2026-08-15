@@ -15,32 +15,38 @@ export {
 export const categoryPages = {
   "metiers-dart": {
     title: "MÉTIERS D'ART",
-    subtitle: "Exceptional pieces from the 2026 Métiers d'Art collection.",
+    subtitle: "Pièces d'exception de la collection Métiers d'Art 2026.",
     collectionBar: "2026 MÉTIERS D'ART",
     selectionLabel: "MÉTIERS D'ART",
   },
-  "all-selection": {
-    title: "ALL SELECTION",
-    subtitle: "Featured creations from the latest collections.",
+  nouveautes: {
+    title: "NOUVEAUTÉS",
+    subtitle: "Les dernières arrivées de la collection.",
     collectionBar: "2026 MÉTIERS D'ART",
-    selectionLabel: "ALL SELECTION",
+    selectionLabel: "NOUVEAUTÉS",
   },
   "mini-bags": {
-    title: "MINI BAGS",
-    subtitle: "Compact silhouettes from the latest collections.",
+    title: "MINI SACS",
+    subtitle: "Silhouettes compactes des dernières collections.",
     collectionBar: "2026 MÉTIERS D'ART",
-    selectionLabel: "MINI BAGS",
+    selectionLabel: "MINI SACS",
   },
   "racelia-handbag": {
-    title: "THE RACÈLIA HANDBAG",
-    subtitle: "Signature handbags from the house of RACÈLIA.",
+    title: "LE SAC RACÈLIA",
+    subtitle: "Sacs signature de la maison RACÈLIA.",
     collectionBar: "2026 MÉTIERS D'ART",
-    selectionLabel: "THE RACÈLIA HANDBAG",
+    selectionLabel: "LE SAC RACÈLIA",
   },
   "moms-bags": {
-    title: "MOMS BAGS",
-    subtitle: "Spacious designs for everyday elegance.",
+    title: "SACS MOM",
+    subtitle: "Des modèles spacieux pour l'élégance au quotidien.",
     collectionBar: "2026 MÉTIERS D'ART",
-    selectionLabel: "MOMS BAGS",
+    selectionLabel: "SACS MOM",
+  },
+  "catalogue-grossiste": {
+    title: "CATALOGUE GROSSISTE",
+    subtitle: "Catalogue grossiste pour les partenaires professionnels.",
+    collectionBar: "CATALOGUE GROSSISTE",
+    selectionLabel: "CATALOGUE GROSSISTE",
   },
 };

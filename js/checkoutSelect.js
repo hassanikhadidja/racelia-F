@@ -172,7 +172,7 @@ export function initCheckoutGeoSelects(page, { onWilayaChange } = {}) {
     panel: page.querySelector("#checkout-wilaya-panel"),
     searchInput: page.querySelector("#checkout-wilaya-search"),
     listEl: page.querySelector("#checkout-wilaya-list"),
-    placeholder: "Select wilaya",
+    placeholder: "Choisir une wilaya",
     searchable: true,
     getOptions: () =>
       WILAYAS.map((w) => ({
@@ -190,7 +190,7 @@ export function initCheckoutGeoSelects(page, { onWilayaChange } = {}) {
     panel: page.querySelector("#checkout-commune-panel"),
     searchInput: page.querySelector("#checkout-commune-search"),
     listEl: page.querySelector("#checkout-commune-list"),
-    placeholder: "Select wilaya first",
+    placeholder: "Choisir une wilaya d'abord",
     searchable: true,
     getOptions: () => {
       const code = wilayaNative.value;
@@ -205,8 +205,8 @@ export function initCheckoutGeoSelects(page, { onWilayaChange } = {}) {
     const placeholder = document.createElement("option");
     placeholder.value = "";
     placeholder.textContent = wilayaCode
-      ? (COMMUNES_BY_WILAYA[wilayaCode]?.length ? "Select commune (optional)" : "No communes listed")
-      : "Select wilaya first";
+      ? (COMMUNES_BY_WILAYA[wilayaCode]?.length ? "Choisir une commune (facultatif)" : "Aucune commune listée")
+      : "Choisir une wilaya d'abord";
     placeholder.selected = true;
     communeNative.appendChild(placeholder);
 
@@ -223,9 +223,9 @@ export function initCheckoutGeoSelects(page, { onWilayaChange } = {}) {
     communeSelect.setTriggerLabel(
       hasWilaya
         ? COMMUNES_BY_WILAYA[wilayaCode]?.length
-          ? "Select commune (optional)"
-          : "No communes listed"
-        : "Select wilaya first"
+          ? "Choisir une commune (facultatif)"
+          : "Aucune commune listée"
+        : "Choisir une wilaya d'abord"
     );
   };
 

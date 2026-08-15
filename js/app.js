@@ -3,11 +3,10 @@ import { initCtaDock, updateCtaDock } from "./ctaDock.js";
 import { initRaceliaStyle, ensureStyleGrid, closeStyleSheet } from "./raceliaStyle.js";
 import { initAccount } from "./account.js";
 import { initCart } from "./cart.js";
-import { showHome, showCategory, showBlogs, showDashboard, showWishlist, initPages } from "./pages.js";
+import { showHome, showCategory, showBlogs, showDashboard, showClientProfile, showWishlist, initPages } from "./pages.js";
 import { defaultSelection } from "./data.js";
 import { initProductSliders } from "./productSliders.js";
 import { initTopbarSearch, updateTopbar } from "./topbar.js";
-import { initHomeWebPics } from "./homeWebPics.js";
 import { refreshStyleGrid } from "./raceliaStyle.js";
 import { notifyCatalogUpdated } from "./productCatalog.js";
 import { renderHomeNewArrivals } from "./homeNewArrivals.js";
@@ -35,6 +34,12 @@ function initTopbar(root) {
   window.addEventListener("resize", () => updateTopbar(root));
 }
 
+function revealHomeContent(root) {
+  root.querySelectorAll("#pageMain .reveal").forEach((el) => {
+    el.classList.add("in");
+  });
+}
+
 function initReveal(root) {
   const io = new IntersectionObserver(
     (entries) => {
@@ -48,7 +53,10 @@ function initReveal(root) {
     { threshold: 0.1 }
   );
 
-  root.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+  root.querySelectorAll(".reveal:not(.in)").forEach((el) => io.observe(el));
+  revealHomeContent(root);
+
+  root.addEventListener("racelia:reveal", () => revealHomeContent(root));
 }
 
 function initStars(root) {
@@ -212,6 +220,10 @@ function initModal(root) {
     });
   });
 
+  root.querySelector("#modalHeading")?.addEventListener("click", () => {
+    applySelection("TOUTE LA SÉLECTION", { page: "home" });
+  });
+
   root.querySelectorAll("#modalView .tabs button").forEach((button) => {
     button.addEventListener("click", () => {
       root
@@ -284,10 +296,22 @@ function initMenu(root) {
     showStyle();
   });
 
+  root.addEventListener("racelia:open-style", () => {
+    openMenu();
+    showStyle();
+  });
+
   root.querySelectorAll(".js-dashboard-open").forEach((item) => {
     item.addEventListener("click", () => {
       closeMenu();
       showDashboard(root);
+    });
+  });
+
+  root.querySelectorAll(".js-client-profile-open").forEach((item) => {
+    item.addEventListener("click", () => {
+      closeMenu();
+      showClientProfile(root);
     });
   });
 
@@ -299,7 +323,7 @@ function initMenu(root) {
   root.querySelectorAll(".js-menu-new-arrivals").forEach((item) => {
     item.addEventListener("click", () => {
       closeMenu();
-      showHome(root, { selectionLabel: "NEW ARRIVALS", scrollToGrid: true });
+      showCategory(root, "nouveautes");
     });
   });
 
@@ -345,11 +369,10 @@ export function initApp(root) {
   initRaceliaStyle(root);
   initAccount(root);
   initPages(root);
-  initHomeWebPics(root);
   renderHomeNewArrivals(root);
+  root.dispatchEvent(new CustomEvent("racelia:reveal"));
 
   root.addEventListener("racelia:backend-synced", () => {
-    initHomeWebPics(root);
     refreshStyleGrid(root);
     notifyCatalogUpdated(root);
     renderHomeNewArrivals(root);

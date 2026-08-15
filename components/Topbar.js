@@ -14,7 +14,7 @@ export function createTopbar() {
   searchBtn.className = "icon-btn";
   searchBtn.id = "topbarSearchBtn";
   searchBtn.type = "button";
-  searchBtn.setAttribute("aria-label", "Search");
+  searchBtn.setAttribute("aria-label", "Rechercher");
   searchBtn.setAttribute("aria-expanded", "false");
   searchBtn.setAttribute("aria-controls", "topbarSearchPanel");
   searchBtn.innerHTML = searchIcon;
@@ -33,15 +33,15 @@ export function createTopbar() {
   searchInput.type = "search";
   searchInput.id = "topbarSearchInput";
   searchInput.className = "topbar-search__input";
-  searchInput.placeholder = "Search";
-  searchInput.setAttribute("aria-label", "Search");
+  searchInput.placeholder = "Rechercher";
+  searchInput.setAttribute("aria-label", "Rechercher");
   searchInput.autocomplete = "off";
 
   const searchClose = document.createElement("button");
   searchClose.type = "button";
   searchClose.className = "icon-btn topbar-search__close";
   searchClose.id = "topbarSearchClose";
-  searchClose.setAttribute("aria-label", "Close search");
+  searchClose.setAttribute("aria-label", "Fermer la recherche");
   searchClose.innerHTML = closeIcon;
 
   searchForm.append(searchInput, searchClose);
@@ -50,7 +50,7 @@ export function createTopbar() {
   const brand = document.createElement("a");
   brand.className = "brand";
   brand.href = "/";
-  brand.setAttribute("aria-label", "RACÈLIA home");
+  brand.setAttribute("aria-label", "Accueil RACÈLIA");
   brand.textContent = "RACÈLIA";
 
   const actions = document.createElement("div");
@@ -61,7 +61,7 @@ export function createTopbar() {
   cartBtn.id = "topbarCartBtn";
   cartBtn.type = "button";
   cartBtn.hidden = true;
-  cartBtn.setAttribute("aria-label", "Shopping bag");
+  cartBtn.setAttribute("aria-label", "Panier");
   cartBtn.innerHTML = `
     ${cartIcon}
     <span class="topbar-cart-badge" id="topbarCartBadge">0</span>
@@ -71,8 +71,13 @@ export function createTopbar() {
   accountBtn.className = "icon-btn js-account-open topbar-account-btn";
   accountBtn.id = "topbarAccountBtn";
   accountBtn.type = "button";
-  accountBtn.setAttribute("aria-label", "Account");
-  accountBtn.innerHTML = `<span class="account-btn-icon">${accountIcon}</span>`;
+  accountBtn.setAttribute("aria-label", "Compte");
+  accountBtn.innerHTML = `
+    <span class="account-btn-icon">${accountIcon}</span>
+    <span class="topbar-account-avatar avatar-wrap" hidden>
+      <span class="avatar-placeholder"></span>
+    </span>
+  `;
 
   actions.append(cartBtn, accountBtn);
   header.append(menuBtn, searchBtn, brand, actions, searchPanel);

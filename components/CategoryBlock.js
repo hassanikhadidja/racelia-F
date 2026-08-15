@@ -7,7 +7,7 @@ export function createCategoryBlock() {
   eyebrow.innerHTML = "MÉTIERS D'ART 2026<br>COLLECTION";
 
   const heading = document.createElement("h1");
-  heading.textContent = "HANDBAGS";
+  heading.textContent = "SACS";
 
   section.append(eyebrow, heading);
   return section;

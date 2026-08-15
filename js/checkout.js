@@ -6,6 +6,14 @@ import {
   PAYMENT_METHOD_LABELS,
 } from "./checkoutPaymentMethods.js";
 import { submitOrder, getOrderConfig, syncClientData } from "./syncBackend.js";
+import { recordPurchasedEgifts } from "./clientProfileEgifts.js";
+import {
+  getAppliedLoyaltyPromo,
+  setFreeItemSelection,
+  computeLoyaltyDiscount,
+  loyaltyDiscountLabel,
+  markLoyaltyRewardUsed,
+} from "./loyaltyCard.js";
 
 function getDeliveryFee() {
   return getOrderConfig().deliveryFee ?? 20;
@@ -30,10 +38,13 @@ function renderOrderItems(page) {
   if (!list) return;
 
   list.replaceChildren();
+  const promo = getAppliedLoyaltyPromo();
+  const pickFree = promo?.type === "free_item";
 
   checkoutItems.forEach((item) => {
     const li = document.createElement("li");
     li.className = "checkout-item";
+    if (pickFree && promo.freeItemId === item.id) li.classList.add("is-free");
 
     const media = document.createElement("div");
     media.className = "checkout-item__media";
@@ -56,16 +67,44 @@ function renderOrderItems(page) {
     details.innerHTML = `
       <p class="checkout-item__name">${escapeHtml(item.name)}</p>
       ${item.color ? `<p class="checkout-item__meta">${escapeHtml(item.color)}</p>` : ""}
-      <p class="checkout-item__qty">Qty ${item.qty}</p>
+      <p class="checkout-item__qty">Qté ${item.qty}</p>
+      ${
+        pickFree
+          ? `<label class="checkout-item__free">
+              <input type="radio" name="loyalty-free-item" value="${escapeHtml(item.id)}" ${
+                promo.freeItemId === item.id ? "checked" : ""
+              } />
+              Article offert
+            </label>`
+          : ""
+      }
     `;
 
     const price = document.createElement("p");
     price.className = "checkout-item__price";
-    price.textContent = formatPrice(item.lineTotal);
+    if (pickFree && promo.freeItemId === item.id) {
+      const remaining = Math.max(0, item.lineTotal - item.unitPrice);
+      price.innerHTML =
+        remaining > 0
+          ? `<span class="checkout-item__price-was">${formatPrice(item.lineTotal)}</span>${formatPrice(remaining)}`
+          : `<span class="checkout-item__price-was">${formatPrice(item.lineTotal)}</span> OFFERT`;
+    } else {
+      price.textContent = formatPrice(item.lineTotal);
+    }
 
     li.append(media, details, price);
     list.appendChild(li);
   });
+
+  if (pickFree) {
+    list.querySelectorAll('input[name="loyalty-free-item"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        setFreeItemSelection(input.value);
+        renderOrderItems(page);
+        updateTotals(page);
+      });
+    });
+  }
 }
 
 function escapeHtml(text) {
@@ -171,21 +210,32 @@ function updateTotals(page) {
   const subtotal = getSubtotal();
   const delivery = checkoutItems.length > 0 ? getDeliveryFee() : 0;
   const isOnline = getPaymentMode(page) === "online";
-  const beforeDiscount = subtotal + delivery;
-  const discount = isOnline ? beforeDiscount * getOnlineDiscountRate() : 0;
-  const grandTotal = beforeDiscount - discount;
+  const promo = getAppliedLoyaltyPromo();
+  const loyaltyDiscount = computeLoyaltyDiscount(checkoutItems, promo);
+  const afterLoyalty = Math.max(0, subtotal - loyaltyDiscount);
+  const beforeOnline = afterLoyalty + delivery;
+  const onlineDiscount = isOnline ? beforeOnline * getOnlineDiscountRate() : 0;
+  const grandTotal = Math.max(0, beforeOnline - onlineDiscount);
 
   const subtotalEl = page.querySelector("#checkoutSubtotal");
   const deliveryEl = page.querySelector("#checkoutDelivery");
+  const loyaltyRow = page.querySelector("#checkoutLoyaltyRow");
+  const loyaltyLabel = page.querySelector("#checkoutLoyaltyLabel");
+  const loyaltyEl = page.querySelector("#checkoutLoyaltyDiscount");
   const discountRow = page.querySelector("#checkoutDiscountRow");
   const discountEl = page.querySelector("#checkoutDiscount");
   const grandEl = page.querySelector("#checkoutGrandTotal");
 
   if (subtotalEl) subtotalEl.textContent = formatPrice(subtotal);
   if (deliveryEl) deliveryEl.textContent = formatPrice(delivery);
-  if (discountRow) discountRow.hidden = !isOnline || discount <= 0;
-  if (discountEl) discountEl.textContent = `−${formatPrice(discount)}`;
+  if (loyaltyRow) loyaltyRow.hidden = loyaltyDiscount <= 0;
+  if (loyaltyLabel) loyaltyLabel.textContent = loyaltyDiscountLabel(promo);
+  if (loyaltyEl) loyaltyEl.textContent = `−${formatPrice(loyaltyDiscount)}`;
+  if (discountRow) discountRow.hidden = !isOnline || onlineDiscount <= 0;
+  if (discountEl) discountEl.textContent = `−${formatPrice(onlineDiscount)}`;
   if (grandEl) grandEl.textContent = formatPrice(grandTotal);
+
+  return { loyaltyDiscount, onlineDiscount, grandTotal, promo };
 }
 
 let geoSelectApi = null;
@@ -240,9 +290,15 @@ export function initCheckout(root, items) {
       price: item.unitPrice,
       quantity: item.qty,
       imageUrl: item.imageUrl || "",
-      color: String(item.color || "").replace(/^Color:\s*/i, ""),
-      productSlug: String(item.id || "").replace(/^item-pdp-/, ""),
+      color: String(item.color || "").replace(/^(Color|Couleur)\s*:\s*/i, ""),
+      productSlug: String(item.productId || item.id || "").replace(/^item-pdp-/, ""),
     }));
+
+    const totals = updateTotals(page);
+    if (totals.promo?.type === "free_item" && !totals.promo.freeItemId) {
+      window.alert("Choisissez l’article offert avant de passer commande.");
+      return;
+    }
 
     submitBtn.disabled = true;
     try {
@@ -256,21 +312,31 @@ export function initCheckout(root, items) {
         paymentMethod: method,
         items,
         note: data.get("note") || "",
+        promoCode: totals.promo?.code || "",
+        loyaltyDiscount: totals.loyaltyDiscount || 0,
       });
 
       window.alert(
-        `Thank you, ${data.get("name")}!\n\n` +
-          `Your order has been placed.\n` +
-          `Order: ${result.orderNumber || result.orderId || "confirmed"}\n` +
-          `Payment: ${PAYMENT_METHOD_LABELS[method] || method}\n` +
-          `Wilaya: ${wilayaCode} — ${wilayaLabel}` +
-          (data.get("commune") ? `\nCommune: ${data.get("commune")}` : "") +
-          (data.get("email") ? `\nEmail: ${data.get("email")}` : "")
+        `Merci, ${data.get("name")} !\n\n` +
+          `Votre commande a bien été enregistrée.\n` +
+          `Commande : ${result.orderNumber || result.orderId || "confirmée"}\n` +
+          `Paiement : ${PAYMENT_METHOD_LABELS[method] || method}\n` +
+          `Wilaya : ${wilayaCode} — ${wilayaLabel}` +
+          (data.get("commune") ? `\nCommune : ${data.get("commune")}` : "") +
+          (data.get("email") ? `\nE-mail : ${data.get("email")}` : "")
       );
+      if (totals.promo?.code) {
+        markLoyaltyRewardUsed(totals.promo.code, result.orderNumber || result.orderId || "");
+      }
+      recordPurchasedEgifts(checkoutItems, {
+        orderId: result.orderNumber || result.orderId || "",
+        paid: mode === "online",
+        paymentMode: mode,
+      });
       syncClientData(root).catch(() => {});
       leave();
     } catch (error) {
-      window.alert(error.message || "Could not place your order. Please try again.");
+      window.alert(error.message || "Impossible de passer la commande. Veuillez réessayer.");
     } finally {
       submitBtn.disabled = false;
     }

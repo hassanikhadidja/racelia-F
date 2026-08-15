@@ -7,6 +7,14 @@ function getActiveDock(root) {
   const productDetailPage = root.querySelector("#productDetailPage");
   const categoryPage = root.querySelector("#categoryPage");
   const blogsPage = root.querySelector("#blogsPage");
+  const privacyPage = root.querySelector("#privacyPage");
+  const termsPage = root.querySelector("#termsPage");
+  const shippingPage = root.querySelector("#shippingPage");
+  const boutiquesPage = root.querySelector("#boutiquesPage");
+  const faqPage = root.querySelector("#faqPage");
+  const returnsPage = root.querySelector("#returnsPage");
+  const giftCardPage = root.querySelector("#giftCardPage");
+  const contactPage = root.querySelector("#contactPage");
   const pageMain = root.querySelector("#pageMain");
 
   if (productDetailPage && !productDetailPage.hidden) {
@@ -19,6 +27,38 @@ function getActiveDock(root) {
 
   if (blogsPage && !blogsPage.hidden) {
     return root.querySelector("#blogsCtaDock");
+  }
+
+  if (privacyPage && !privacyPage.hidden) {
+    return root.querySelector("#privacyCtaDock");
+  }
+
+  if (termsPage && !termsPage.hidden) {
+    return root.querySelector("#termsCtaDock");
+  }
+
+  if (shippingPage && !shippingPage.hidden) {
+    return root.querySelector("#shippingCtaDock");
+  }
+
+  if (boutiquesPage && !boutiquesPage.hidden) {
+    return root.querySelector("#boutiquesCtaDock");
+  }
+
+  if (faqPage && !faqPage.hidden) {
+    return root.querySelector("#faqCtaDock");
+  }
+
+  if (returnsPage && !returnsPage.hidden) {
+    return root.querySelector("#returnsCtaDock");
+  }
+
+  if (giftCardPage && !giftCardPage.hidden) {
+    return root.querySelector("#giftCardCtaDock");
+  }
+
+  if (contactPage && !contactPage.hidden) {
+    return root.querySelector("#contactCtaDock");
   }
 
   if (pageMain && !pageMain.hidden) {
@@ -39,6 +79,14 @@ export function getActiveDockSlot(root) {
   const productDetailPage = root.querySelector("#productDetailPage");
   const categoryPage = root.querySelector("#categoryPage");
   const blogsPage = root.querySelector("#blogsPage");
+  const privacyPage = root.querySelector("#privacyPage");
+  const termsPage = root.querySelector("#termsPage");
+  const shippingPage = root.querySelector("#shippingPage");
+  const boutiquesPage = root.querySelector("#boutiquesPage");
+  const faqPage = root.querySelector("#faqPage");
+  const returnsPage = root.querySelector("#returnsPage");
+  const giftCardPage = root.querySelector("#giftCardPage");
+  const contactPage = root.querySelector("#contactPage");
   const pageMain = root.querySelector("#pageMain");
 
   if (productDetailPage && !productDetailPage.hidden) {
@@ -51,6 +99,38 @@ export function getActiveDockSlot(root) {
 
   if (blogsPage && !blogsPage.hidden) {
     return root.querySelector("#blogsCtaDockSlot");
+  }
+
+  if (privacyPage && !privacyPage.hidden) {
+    return root.querySelector("#privacyCtaDockSlot");
+  }
+
+  if (termsPage && !termsPage.hidden) {
+    return root.querySelector("#termsCtaDockSlot");
+  }
+
+  if (shippingPage && !shippingPage.hidden) {
+    return root.querySelector("#shippingCtaDockSlot");
+  }
+
+  if (boutiquesPage && !boutiquesPage.hidden) {
+    return root.querySelector("#boutiquesCtaDockSlot");
+  }
+
+  if (faqPage && !faqPage.hidden) {
+    return root.querySelector("#faqCtaDockSlot");
+  }
+
+  if (returnsPage && !returnsPage.hidden) {
+    return root.querySelector("#returnsCtaDockSlot");
+  }
+
+  if (giftCardPage && !giftCardPage.hidden) {
+    return root.querySelector("#giftCardCtaDockSlot");
+  }
+
+  if (contactPage && !contactPage.hidden) {
+    return root.querySelector("#contactCtaDockSlot");
   }
 
   if (pageMain && !pageMain.hidden) {

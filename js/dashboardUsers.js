@@ -11,6 +11,7 @@ import {
 import { api } from "./api.js";
 import { syncAdminData } from "./syncBackend.js";
 import { initProfileCardFlips, renderUserProfileCards } from "./profileCardsMarkup.js";
+import { renderStoreOrderCard } from "./dashboardOrders.js";
 
 function escapeHtml(text) {
   return String(text)
@@ -40,20 +41,6 @@ function renderUserAvatar(user) {
   return `<div class="user-avatar dashboard-user-avatar">${escapeHtml(initials)}</div>`;
 }
 
-function renderOrderCard(order) {
-  return `<article class="dashboard-user-order">
-    <div class="dashboard-user-order__head">
-      <div>
-        <p class="dashboard-user-order__id">${escapeHtml(order.id)}</p>
-        <p class="dashboard-user-order__date">${escapeHtml(order.date)}</p>
-      </div>
-      <span class="dashboard-user-order__status dashboard-user-order__status--${escapeHtml(order.status)}">${escapeHtml(order.statusLabel || order.status)}</span>
-    </div>
-    <p class="dashboard-user-order__product">${escapeHtml(order.product)}</p>
-    <p class="dashboard-user-order__total">${escapeHtml(order.total)}</p>
-  </article>`;
-}
-
 function renderUserRow(user) {
   const orderCount = user.orders?.length || 0;
   return `<div class="users-row dashboard-users-row" data-user-id="${escapeHtml(user.id)}">
@@ -62,12 +49,12 @@ function renderUserRow(user) {
       <button type="button" class="user-name js-dashboard-user-profile-open" data-user-id="${escapeHtml(user.id)}">${escapeHtml(user.name)}</button>
     </div>
     <span class="user-email">${escapeHtml(user.email)}</span>
-    <span class="dashboard-user-points">${Number(user.points || 0).toLocaleString()} pts</span>
+    <span class="dashboard-user-role">${escapeHtml(user.role || "Customer")}</span>
     <span class="dashboard-user-order-count">${orderCount} order${orderCount === 1 ? "" : "s"}</span>
     <div class="dashboard-user-actions">
       <button type="button" class="dashboard-user-action js-dashboard-user-profile-open" data-user-id="${escapeHtml(user.id)}">Profile</button>
+      <button type="button" class="dashboard-user-action js-dashboard-user-access" data-user-id="${escapeHtml(user.id)}">Access</button>
       <button type="button" class="dashboard-user-action js-dashboard-user-orders" data-user-id="${escapeHtml(user.id)}">Orders</button>
-      <button type="button" class="dashboard-user-action js-dashboard-user-points" data-user-id="${escapeHtml(user.id)}">Points</button>
       <button type="button" class="dashboard-user-action dashboard-user-action--danger js-dashboard-user-delete" data-user-id="${escapeHtml(user.id)}">Delete</button>
     </div>
   </div>`;
@@ -117,10 +104,6 @@ function openUserProfile(page, userId) {
   setText("#dashboard-user-profile-since", formatMemberSince(user.createdAt));
   setText("#dashboard-user-profile-status", displayValue(user.status));
   setText(
-    "#dashboard-user-profile-points",
-    `${Number(user.points || 0).toLocaleString()} pts`
-  );
-  setText(
     "#dashboard-user-profile-orders",
     `${user.orders?.length || 0} order${user.orders?.length === 1 ? "" : "s"}`
   );
@@ -161,8 +144,8 @@ export function renderDashboardUsers(page) {
     btn.addEventListener("click", () => openUserOrders(page, btn.dataset.userId));
   });
 
-  rows?.querySelectorAll(".js-dashboard-user-points").forEach((btn) => {
-    btn.addEventListener("click", () => openUserPoints(page, btn.dataset.userId));
+  rows?.querySelectorAll(".js-dashboard-user-access").forEach((btn) => {
+    btn.addEventListener("click", () => openUserAccess(page, btn.dataset.userId));
   });
 }
 
@@ -179,7 +162,7 @@ function openUserOrders(page, userId, { returnToProfile = false } = {}) {
   const orders = user.orders || [];
 
   if (list) {
-    list.innerHTML = orders.map(renderOrderCard).join("");
+    list.innerHTML = orders.map(renderStoreOrderCard).join("");
   }
   if (empty) empty.hidden = orders.length > 0;
 
@@ -191,28 +174,33 @@ function openUserOrders(page, userId, { returnToProfile = false } = {}) {
   openProfileSheet(page, "dashboard-user-orders-overlay");
 }
 
-function openUserPoints(page, userId, { returnToProfile = false } = {}) {
+function openUserAccess(page, userId, { returnToProfile = false } = {}) {
   const user = loadDashboardUsers().find((u) => u.id === userId);
   if (!user) return;
 
-  const idInput = page.querySelector("#dashboard-user-points-id");
-  const nameEl = page.querySelector("#dashboard-user-points-name");
-  const currentEl = page.querySelector("#dashboard-user-points-current");
-  const amountInput = page.querySelector("#dashboard-user-points-amount");
-  const overlay = page.querySelector("#dashboard-user-points-overlay");
+  const idInput = page.querySelector("#dashboard-user-access-id");
+  const nameEl = page.querySelector("#dashboard-user-access-name");
+  const roleSelect = page.querySelector("#dashboard-user-access-role");
+  const passwordInput = page.querySelector("#dashboard-user-access-password");
+  const overlay = page.querySelector("#dashboard-user-access-overlay");
 
   if (idInput) idInput.value = user.id;
   if (nameEl) nameEl.textContent = user.name;
-  if (currentEl) currentEl.textContent = Number(user.points || 0).toLocaleString();
-  if (amountInput) amountInput.value = "";
+  if (roleSelect) {
+    const role = user.role || "Customer";
+    roleSelect.value = ["Admin", "Manager", "Support", "Customer"].includes(role)
+      ? role
+      : "Customer";
+  }
+  if (passwordInput) passwordInput.value = "";
 
   if (overlay) {
     overlay.dataset.userId = user.id;
     overlay.dataset.returnToProfile = returnToProfile ? "true" : "false";
   }
 
-  openProfileSheet(page, "dashboard-user-points-overlay");
-  amountInput?.focus();
+  openProfileSheet(page, "dashboard-user-access-overlay");
+  roleSelect?.focus();
 }
 
 function closeUserSubSheet(page, overlayId) {
@@ -253,7 +241,7 @@ function bindUserSheets(page) {
   };
 
   bindOverlayClose("dashboard-add-user-overlay");
-  bindOverlayClose("dashboard-user-points-overlay", { returnToProfileOnClose: true });
+  bindOverlayClose("dashboard-user-access-overlay", { returnToProfileOnClose: true });
   bindOverlayClose("dashboard-user-orders-overlay", { returnToProfileOnClose: true });
   bindOverlayClose("dashboard-user-profile-overlay");
 
@@ -264,11 +252,11 @@ function bindUserSheets(page) {
     openUserOrders(page, userId, { returnToProfile: true });
   });
 
-  page.querySelector(".js-dashboard-user-profile-points")?.addEventListener("click", () => {
+  page.querySelector(".js-dashboard-user-profile-access")?.addEventListener("click", () => {
     const userId = page.querySelector("#dashboard-user-profile-overlay")?.dataset.userId;
     if (!userId) return;
     closeProfileSheet(page, "dashboard-user-profile-overlay");
-    openUserPoints(page, userId, { returnToProfile: true });
+    openUserAccess(page, userId, { returnToProfile: true });
   });
 
   page.querySelectorAll(".js-dashboard-user-add-open").forEach((btn) => {
@@ -283,6 +271,7 @@ function bindUserSheets(page) {
     const name = page.querySelector("#dash-user-name")?.value.trim();
     const email = page.querySelector("#dash-user-email")?.value.trim();
     const password = page.querySelector("#dash-user-password")?.value;
+    const role = page.querySelector("#dash-user-role")?.value || "Customer";
     if (!name || !email || !password) return;
 
     const users = loadDashboardUsers();
@@ -292,7 +281,11 @@ function bindUserSheets(page) {
     }
 
     try {
-      await api.register({ name, email, password });
+      const created = await api.register({ name, email, password, role });
+      const createdId = created?.user?.id || created?.user?._id;
+      if (createdId && role && role !== "Customer") {
+        await api.updateUser(createdId, { role });
+      }
       await syncAdminData();
     } catch (error) {
       window.alert(error.message || "Could not create user.");
@@ -304,28 +297,35 @@ function bindUserSheets(page) {
     renderDashboardUsers(page);
   });
 
-  page.querySelector("#dashboard-user-points-form")?.addEventListener("submit", async (event) => {
+  page.querySelector("#dashboard-user-access-form")?.addEventListener("submit", async (event) => {
     event.preventDefault();
-    const userId = page.querySelector("#dashboard-user-points-id")?.value;
-    const amount = Number(page.querySelector("#dashboard-user-points-amount")?.value);
-    if (!userId || !amount || amount < 1) return;
+    const userId = page.querySelector("#dashboard-user-access-id")?.value;
+    const role = page.querySelector("#dashboard-user-access-role")?.value || "Customer";
+    const password = page.querySelector("#dashboard-user-access-password")?.value || "";
+    if (!userId) return;
 
-    const user = loadDashboardUsers().find((u) => u.id === userId);
-    if (!user) return;
-    const nextPoints = (user.points || 0) + amount;
-
-    try {
-      await api.updateUser(userId, { points: nextPoints });
-      const users = loadDashboardUsers().map((u) =>
-        u.id === userId ? { ...u, points: nextPoints } : u
-      );
-      saveDashboardUsers(users);
-    } catch (error) {
-      window.alert(error.message || "Could not update points.");
+    if (password && password.length < 6) {
+      window.alert("Password must be at least 6 characters.");
       return;
     }
 
-    closeProfileSheet(page, "dashboard-user-points-overlay");
+    const payload = { role };
+    if (password.trim()) payload.password = password.trim();
+
+    try {
+      const result = await api.updateUser(userId, payload);
+      const nextRole = result?.user?.role || role;
+      const users = loadDashboardUsers().map((u) =>
+        u.id === userId ? { ...u, role: nextRole } : u
+      );
+      saveDashboardUsers(users);
+    } catch (error) {
+      window.alert(error.message || "Could not update user access.");
+      return;
+    }
+
+    page.querySelector("#dashboard-user-access-password").value = "";
+    closeUserSubSheet(page, "dashboard-user-access-overlay");
     renderDashboardUsers(page);
   });
 }
@@ -333,13 +333,13 @@ function bindUserSheets(page) {
 export function closeDashboardUsersOverlay(page) {
   const ids = [
     "dashboard-add-user-overlay",
-    "dashboard-user-points-overlay",
+    "dashboard-user-access-overlay",
     "dashboard-user-orders-overlay",
     "dashboard-user-profile-overlay",
   ];
   for (const id of ids) {
     if (page.querySelector(`#${id}`)?.classList.contains("open")) {
-      if (id === "dashboard-user-points-overlay" || id === "dashboard-user-orders-overlay") {
+      if (id === "dashboard-user-orders-overlay" || id === "dashboard-user-access-overlay") {
         closeUserSubSheet(page, id);
       } else {
         closeProfileSheet(page, id);

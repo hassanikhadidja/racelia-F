@@ -1,33 +1,3 @@
-const chartData = {
-  Weekly: [
-    { dark: 55, light: 75, label: "$75K" },
-    { dark: 40, light: 65, label: "$65K" },
-    { dark: 48, light: 70, label: "$70K" },
-    { dark: 70, light: 88, label: "$88K" },
-    { dark: 52, light: 72, label: "$72K" },
-    { dark: 60, light: 80, label: "$80K" },
-    { dark: 45, light: 62, label: "$62K" },
-  ],
-  Today: [
-    { dark: 30, light: 50, label: "$50K" },
-    { dark: 60, light: 80, label: "$80K" },
-    { dark: 45, light: 65, label: "$65K" },
-    { dark: 70, light: 90, label: "$90K" },
-    { dark: 35, light: 55, label: "$55K" },
-    { dark: 50, light: 70, label: "$70K" },
-    { dark: 40, light: 60, label: "$60K" },
-  ],
-  Monthly: [
-    { dark: 65, light: 85, label: "$85K" },
-    { dark: 55, light: 78, label: "$78K" },
-    { dark: 72, light: 92, label: "$92K" },
-    { dark: 48, light: 68, label: "$68K" },
-    { dark: 60, light: 82, label: "$82K" },
-    { dark: 42, light: 60, label: "$60K" },
-    { dark: 68, light: 88, label: "$88K" },
-  ],
-};
-
 import { getDashboardTabFromHash, writeRoute, shouldIgnoreHashChange } from "./route.js";
 import {
   initDashboardAccount,
@@ -38,10 +8,6 @@ import {
   closeDashboardReviewsOverlay,
 } from "./dashboardReviews.js";
 import {
-  initDashboardWebPics,
-  closeDashboardWebPicsOverlay,
-} from "./dashboardWebPics.js";
-import {
   initDashboardRaceliaStyle,
   closeDashboardRaceliaStyleOverlay,
 } from "./dashboardRaceliaStyle.js";
@@ -50,64 +16,26 @@ import {
   closeDashboardUsersOverlay,
 } from "./dashboardUsers.js";
 import {
+  initDashboardEmails,
+  closeDashboardEmailsOverlay,
+  renderDashboardEmails,
+} from "./dashboardEmails.js";
+import {
   initDashboardBlogs,
   closeDashboardBlogsOverlay,
 } from "./dashboardBlogs.js";
 import { initTargetOrders } from "./dashboardTargetOrders.js";
+import { initDashboardOrders } from "./dashboardOrders.js";
+import { initDashboardOverview, renderDashboardOverview } from "./dashboardOverview.js";
+import { initDashboardAnalytics, renderDashboardAnalytics } from "./dashboardAnalytics.js";
 import {
   initDashboardProducts,
   closeDashboardProductsOverlay,
 } from "./dashboardProducts.js";
 
-const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const TAB_STORAGE_KEY = "racelia-dashboard-tab";
 
 function createTabNav(page) {
-  let currentPeriod = "Weekly";
-
-  const renderChart = () => {
-    const container = page.querySelector("#chart");
-    if (!container) return;
-
-    const data = chartData[currentPeriod];
-    const barsHtml = data
-      .map(
-        (d) => `
-    <div class="bar-group">
-      <div class="bar-tooltip">${d.label}</div>
-      <div class="bar light" style="height:0%"></div>
-      <div class="bar dark" style="height:0%"></div>
-    </div>
-  `
-      )
-      .join("");
-
-    container.innerHTML = `
-    <div class="chart-labels-y"><span>$100k</span><span>$80k</span><span>$60k</span><span>$40k</span><span>$20k</span></div>
-    <div class="bars-area">${barsHtml}</div>
-    <div class="chart-labels-x">${days.map((d) => `<span>${d}</span>`).join("")}</div>
-  `;
-
-    requestAnimationFrame(() => {
-      container.querySelectorAll(".bar-group").forEach((group, i) => {
-        group.querySelector(".bar.light").style.height = `${data[i].light}%`;
-        group.querySelector(".bar.dark").style.height = `${data[i].dark}%`;
-      });
-    });
-  };
-
-  const switchPeriod = (period) => {
-    currentPeriod = period;
-    page.querySelectorAll(".tab").forEach((tab) => {
-      tab.classList.toggle("active", tab.dataset.period === period);
-    });
-    renderChart();
-  };
-
-  page.querySelectorAll(".tab").forEach((tab) => {
-    tab.addEventListener("click", () => switchPeriod(tab.dataset.period));
-  });
-
   const nav = page.querySelector(".bottom-nav");
   const indicator = page.querySelector(".nav-indicator");
   const tabs = [...page.querySelectorAll(".bottom-nav-item[role=tab]")];
@@ -145,8 +73,14 @@ function createTabNav(page) {
     }
     sessionStorage.setItem(TAB_STORAGE_KEY, screenId);
 
-    if (screenId === "overview" && page.querySelector("#chart")) {
-      renderChart();
+    if (screenId === "overview") {
+      renderDashboardOverview(page);
+    }
+    if (screenId === "analytics") {
+      renderDashboardAnalytics(page);
+    }
+    if (screenId === "emails") {
+      renderDashboardEmails(page);
     }
     page.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -199,9 +133,8 @@ function createTabNav(page) {
 
   activate(initial, false);
   requestAnimationFrame(() => moveIndicator());
-  renderChart();
 
-  return { activate, renderChart };
+  return { activate };
 }
 
 export function initDashboard(root) {
@@ -217,11 +150,14 @@ export function initDashboard(root) {
 
   initDashboardAccount(page);
   initDashboardReviews(page);
-  initDashboardWebPics(page);
   initDashboardRaceliaStyle(page, root);
   initDashboardUsers(page);
+  initDashboardEmails(page);
   initDashboardBlogs(page);
+  initDashboardOverview(page);
+  initDashboardAnalytics(page);
   initTargetOrders(page);
+  initDashboardOrders(page);
   initDashboardProducts(page, root);
   createTabNav(page);
 
@@ -229,9 +165,9 @@ export function initDashboard(root) {
     if (event.key === "Escape" && !page.hidden) {
       if (closeDashboardProductsOverlay(page)) return;
       if (closeDashboardBlogsOverlay(page)) return;
+      if (closeDashboardEmailsOverlay(page)) return;
       if (closeDashboardUsersOverlay(page)) return;
       if (closeDashboardRaceliaStyleOverlay(page)) return;
-      if (closeDashboardWebPicsOverlay(page)) return;
       if (closeDashboardReviewsOverlay(page)) return;
       if (closeDashboardAccountOverlay(page)) return;
       root.dispatchEvent(new CustomEvent("racelia:leave-dashboard"));

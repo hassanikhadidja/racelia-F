@@ -1,7 +1,14 @@
-import { closeAccount, showAccount } from "./pages.js";
+import {
+  closeAccount,
+  showAccount,
+  showClientProfile,
+  leaveClientProfile,
+  getCurrentPage,
+} from "./pages.js";
 import { getAuthToken } from "./api.js";
-import { loginUser, registerUser } from "./syncBackend.js";
+import { loginUser, registerUser, syncCollectedEmail } from "./syncBackend.js";
 import { updateAccountButtons } from "./accountUi.js";
+import { upsertCollectedEmail } from "./dashboardEmailsData.js";
 
 export function initAccount(root) {
   const accountPage = root.querySelector("#accountPage");
@@ -13,7 +20,10 @@ export function initAccount(root) {
 
   const isLoggedIn = () => Boolean(getAuthToken());
 
-  const isOpen = () => !accountPage.hidden;
+  const isOpen = () => {
+    if (isLoggedIn()) return getCurrentPage() === "client-profile";
+    return !accountPage.hidden;
+  };
 
   const closeMenu = () => {
     root.querySelector("#menuPanel")?.classList.remove("open");
@@ -24,11 +34,19 @@ export function initAccount(root) {
 
   const openAccount = () => {
     closeMenu();
-    if (!isLoggedIn()) showAccount(root);
+    if (isLoggedIn()) showClientProfile(root);
+    else showAccount(root);
+  };
+
+  root.addEventListener("racelia:open-account", () => openAccount());
+
+  const closeAccountOrProfile = () => {
+    if (isLoggedIn()) leaveClientProfile(root);
+    else closeAccount(root);
   };
 
   const toggleAccount = () => {
-    if (isOpen()) closeAccount(root);
+    if (isOpen()) closeAccountOrProfile();
     else openAccount();
   };
 
@@ -41,7 +59,7 @@ export function initAccount(root) {
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && isOpen()) {
-      closeAccount(root);
+      closeAccountOrProfile();
     }
   });
 
@@ -84,6 +102,18 @@ export function initAccount(root) {
     });
   });
 
+  accountPage.querySelector(".js-account-privacy")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    closeAccount(root);
+    root.dispatchEvent(new CustomEvent("racelia:open-privacy"));
+  });
+
+  accountPage.querySelector(".js-account-terms")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    closeAccount(root);
+    root.dispatchEvent(new CustomEvent("racelia:open-terms"));
+  });
+
   root.querySelector("#accountSigninForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const email = root.querySelector("#accountSiEmail")?.value.trim();
@@ -96,7 +126,7 @@ export function initAccount(root) {
     try {
       await loginUser(email, password, root);
       updateAccountButtons(root);
-      closeAccount(root);
+      showClientProfile(root);
     } catch (error) {
       window.alert(error.message || "Sign in failed.");
     } finally {
@@ -117,6 +147,14 @@ export function initAccount(root) {
     submitBtn.disabled = true;
     try {
       await registerUser({ name, email, phone, password });
+      const payload = {
+        email,
+        name,
+        newsletter: true,
+        source: "account",
+      };
+      upsertCollectedEmail(payload);
+      await syncCollectedEmail(payload);
       window.alert("Account created. You can sign in now.");
       closeAccount(root);
     } catch (error) {

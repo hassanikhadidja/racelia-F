@@ -56,6 +56,16 @@ export function formatDzdPrice(dzd) {
   return `${amount.toLocaleString("fr-FR")} DZD`;
 }
 
+/** Format an order/catalog total for the dashboard (always DZD). */
+export function formatDashboardTotal(totalTextOrNumber) {
+  const raw = String(totalTextOrNumber ?? "");
+  const numeric = parseFloat(raw.replace(/[^\d.]/g, "")) || 0;
+  if (/dzd/i.test(raw)) return formatDzdPrice(numeric);
+  if (/\$/.test(raw)) return formatDzdPrice(numeric * USD_TO_DZD);
+  // € label or bare EUR amount from the API
+  return formatDzdPrice(eurToDzd(numeric));
+}
+
 /** @deprecated use parseCatalogPriceEur */
 export function parsePriceFromCatalog(text) {
   return parseFloat(String(text).replace(/[^\d.]/g, "")) || 0;

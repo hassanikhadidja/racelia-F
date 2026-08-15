@@ -5,15 +5,27 @@ import {
   createCategoryBlock,
   createIntro,
   createProductGrid,
+  createEditorialProductGrid,
   createEditorial,
+  createSecondaryEditorial,
   createCtaDock,
   createFooter,
   createSelectionWidget,
   createAccountPanel,
   createCategoryPage,
   createBlogsPage,
+  createPrivacyPage,
+  createTermsPage,
+  createShippingPage,
+  createBoutiquesPage,
+  createFaqPage,
+  createReturnsPage,
+  createGiftCardPage,
+  createContactPage,
   createProductDetailPage,
+  createPdpAddedOverlay,
   createDashboardPage,
+  createClientProfilePage,
   createShoppingBagPage,
   createWishlistPage,
   createCheckoutPage,
@@ -38,6 +50,8 @@ export function mountRaceliaApp(container) {
     createIntro(),
     createProductGrid(),
     createEditorial(),
+    createEditorialProductGrid(),
+    createSecondaryEditorial(),
     dock
   );
 
@@ -47,9 +61,19 @@ export function mountRaceliaApp(container) {
     pageMain,
     createCategoryPage(),
     createBlogsPage(),
+    createPrivacyPage(),
+    createTermsPage(),
+    createShippingPage(),
+    createBoutiquesPage(),
+    createFaqPage(),
+    createReturnsPage(),
+    createGiftCardPage(),
+    createContactPage(),
     createProductDetailPage(),
+    createPdpAddedOverlay(),
     createAccountPanel(),
     createDashboardPage(),
+    createClientProfilePage(),
     createShoppingBagPage(),
     createWishlistPage(),
     createCheckoutPage(),
@@ -64,13 +88,14 @@ export function mountRaceliaApp(container) {
     slot.appendChild(widget);
   }
 
-  initBackendSync(container)
-    .catch((error) => {
-      console.warn("RACÈLIA backend sync failed:", error?.message || error);
-    })
-    .finally(() => {
-      initApp(container);
-    });
+  // Show home content immediately — never leave .reveal at opacity 0 while syncing.
+  container.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
+
+  initApp(container);
+
+  initBackendSync(container).catch((error) => {
+    console.warn("RACÈLIA backend sync failed:", error?.message || error);
+  });
 }
 
 export { initApp } from "./app.js";

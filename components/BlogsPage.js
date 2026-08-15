@@ -9,12 +9,12 @@ export function createBlogsPage() {
   page.innerHTML = `
     <div class="blogs-page__list-view" id="blogsListView">
       <h1 class="blogs-page__title">Métiers d'Art</h1>
-      <p class="blogs-page__sub">Stories, craft, and collections from RACÈLIA.</p>
+      <p class="blogs-page__sub">Récits, savoir-faire et collections de RACÈLIA.</p>
       <div class="blogs-page__grid" id="blogsGrid"></div>
-      <p class="blogs-page__empty" id="blogsEmpty" hidden>No stories published yet. Check back soon.</p>
+      <p class="blogs-page__empty" id="blogsEmpty" hidden>Aucune histoire publiée pour le moment. Revenez bientôt.</p>
     </div>
     <div class="blogs-page__article-view" id="blogsArticleView" hidden>
-      <button type="button" class="blogs-page__back" id="blogsBackBtn">← All stories</button>
+      <button type="button" class="blogs-page__back" id="blogsBackBtn">← Toutes les histoires</button>
       <div class="blogs-page__article" id="blogsArticle"></div>
     </div>
   `;

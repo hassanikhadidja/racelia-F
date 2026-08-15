@@ -9,90 +9,90 @@ export function createAccountPanel() {
   page.innerHTML = `
     <div class="account-page__inner" role="dialog" aria-modal="true" aria-labelledby="accountTitle">
       <main class="account-main">
-        <h1 class="account-title" id="accountTitle">ACCOUNT</h1>
+        <h1 class="account-title" id="accountTitle">COMPTE</h1>
 
         <div class="account-tabs" role="tablist">
-          <button class="account-tab active" type="button" data-tab="signin" role="tab">SIGN IN</button>
-          <button class="account-tab" type="button" data-tab="register" role="tab">REGISTER</button>
+          <button class="account-tab active" type="button" data-tab="signin" role="tab">CONNEXION</button>
+          <button class="account-tab" type="button" data-tab="register" role="tab">INSCRIPTION</button>
         </div>
 
         <section class="account-panel-section active" id="accountSignin">
           <div class="account-welcome">
-            <h2>WELCOME BACK.</h2>
-            <p>Sign in with your email and password.</p>
+            <h2>BON RETOUR.</h2>
+            <p>Connectez-vous avec votre e-mail et votre mot de passe.</p>
           </div>
           <form id="accountSigninForm">
             <div class="account-field">
               <input type="email" id="accountSiEmail" placeholder=" " required />
-              <label for="accountSiEmail">Email</label>
+              <label for="accountSiEmail">E-mail</label>
             </div>
             <div class="account-field account-field--password">
               <input type="password" id="accountSiPass" placeholder=" " required />
-              <label for="accountSiPass">Password</label>
-              <button type="button" class="account-password-toggle" aria-label="Show password" aria-pressed="false">
+              <label for="accountSiPass">Mot de passe</label>
+              <button type="button" class="account-password-toggle" aria-label="Afficher le mot de passe" aria-pressed="false">
                 <span class="account-password-toggle__icon account-password-toggle__icon--show" aria-hidden="true">${eyeShowIcon}</span>
                 <span class="account-password-toggle__icon account-password-toggle__icon--hide" aria-hidden="true">${eyeHideIcon}</span>
               </button>
             </div>
-            <a href="#" class="account-forgot">Forgot password</a>
+            <a href="#" class="account-forgot">Mot de passe oublié</a>
 
             <div class="account-checkbox-row">
               <input type="checkbox" id="accountRemember" class="account-chanel-check" />
-              <label for="accountRemember">Remember me (optional)</label>
+              <label for="accountRemember">Se souvenir de moi (facultatif)</label>
             </div>
-            <p class="account-legal">By signing in, I agree to RACÈLIA's <a href="#">Privacy Policy</a> and <a href="#">Legal Statement</a>.</p>
+            <p class="account-legal">En me connectant, j'accepte la <a href="#confidentialite" class="js-account-privacy">Politique de confidentialité</a> et les <a href="#conditions" class="js-account-terms">Conditions d'utilisation</a> de RACÈLIA.</p>
 
-            <button type="submit" class="account-btn">SIGN IN</button>
+            <button type="submit" class="account-btn">SE CONNECTER</button>
           </form>
         </section>
 
         <section class="account-panel-section" id="accountRegister">
-          <p class="account-intro">Creating an international account will allow you to manage your personal information, personalise your experience online and across our selected boutiques around the world, and enjoy faster online checkout.</p>
-          <p class="account-intro">If you do not wish to create an account, you will benefit from the RACÈLIA experience as a guest (subject to local regulations).</p>
-          <p class="account-mandatory">All fields are mandatory.</p>
+          <p class="account-intro">La création d'un compte international vous permettra de gérer vos informations personnelles, de personnaliser votre expérience en ligne et dans nos boutiques sélectionnées à travers le monde, et de profiter d'un paiement en ligne plus rapide.</p>
+          <p class="account-intro">Si vous ne souhaitez pas créer de compte, vous bénéficierez de l'expérience RACÈLIA en tant qu'invité (sous réserve des réglementations locales).</p>
+          <p class="account-mandatory">Tous les champs sont obligatoires.</p>
 
           <form id="accountRegisterForm">
             <div class="account-field">
               <input type="text" id="accountName" placeholder=" " required autocomplete="name" />
-              <label for="accountName">Name</label>
+              <label for="accountName">Nom</label>
             </div>
             <div class="account-field">
               <input type="email" id="accountEmail" placeholder=" " required />
-              <label for="accountEmail">Email</label>
+              <label for="accountEmail">E-mail</label>
             </div>
             <div class="account-field">
               <input type="tel" id="accountPhone" placeholder=" " />
-              <label for="accountPhone">Phone number (optional)</label>
+              <label for="accountPhone">Numéro de téléphone (facultatif)</label>
             </div>
             <div class="account-field account-field--password">
               <input type="password" id="accountPass" placeholder=" " required />
-              <label for="accountPass">Password</label>
-              <button type="button" class="account-password-toggle" aria-label="Show password" aria-pressed="false">
+              <label for="accountPass">Mot de passe</label>
+              <button type="button" class="account-password-toggle" aria-label="Afficher le mot de passe" aria-pressed="false">
                 <span class="account-password-toggle__icon account-password-toggle__icon--show" aria-hidden="true">${eyeShowIcon}</span>
                 <span class="account-password-toggle__icon account-password-toggle__icon--hide" aria-hidden="true">${eyeHideIcon}</span>
               </button>
             </div>
-            <h3 class="account-section-title">BRAND COMMUNICATIONS</h3>
+            <h3 class="account-section-title">COMMUNICATIONS DE LA MARQUE</h3>
 
             <div class="account-consent-row">
               <input type="checkbox" class="account-chanel-check" id="accountConsent" checked />
-              <label for="accountConsent">I consent to RACÈLIA to send me brand communications about new collections, products, services and events through email, phone, SMS and instant messaging.</label>
+              <label for="accountConsent">J'accepte que RACÈLIA m'envoie des communications de la marque concernant les nouvelles collections, produits, services et événements par e-mail, téléphone, SMS et messagerie instantanée.</label>
             </div>
 
             <div class="account-channels">
-              <label><input type="checkbox" class="account-chanel-check" checked /> Email</label>
-              <label><input type="checkbox" class="account-chanel-check" /> Phone</label>
+              <label><input type="checkbox" class="account-chanel-check" checked /> E-mail</label>
+              <label><input type="checkbox" class="account-chanel-check" /> Téléphone</label>
               <label><input type="checkbox" class="account-chanel-check" checked /> SMS</label>
-              <label><input type="checkbox" class="account-chanel-check" checked /> Instant Messaging</label>
+              <label><input type="checkbox" class="account-chanel-check" checked /> Messagerie instantanée</label>
             </div>
 
-            <p class="account-fine">I consent to receive marketing texts (including SMS and MMS) from an automated system from RACÈLIA's corporate offices, at the phone number(s) provided. Standard messaging and data rates may apply.</p>
+            <p class="account-fine">J'accepte de recevoir des messages marketing (y compris SMS et MMS) issus d'un système automatisé des bureaux de RACÈLIA, aux numéros de téléphone fournis. Des frais de messagerie et de données standard peuvent s'appliquer.</p>
 
-            <p class="account-ack">By creating a RACÈLIA account you acknowledge that RACÈLIA will collect, process, transfer and store your personal data as described in the <a href="#">Privacy Policy</a>.</p>
-            <p class="account-ack">You can withdraw your consents at anytime. For any questions about your rights of access, deletion, objection etc. please contact us at <a href="#">privacy@racelia.com</a>.</p>
-            <p class="account-ack">By proceeding, you confirm that you are at or above the age to create an account with RACÈLIA.</p>
+            <p class="account-ack">En créant un compte RACÈLIA, vous reconnaissez que RACÈLIA collectera, traitera, transférera et stockera vos données personnelles comme décrit dans la <a href="#">Politique de confidentialité</a>.</p>
+            <p class="account-ack">Vous pouvez retirer vos consentements à tout moment. Pour toute question concernant vos droits d'accès, de suppression, d'opposition, etc., veuillez nous contacter à <a href="mailto:privacy@racelia.com">privacy@racelia.com</a>.</p>
+            <p class="account-ack">En continuant, vous confirmez avoir l'âge requis pour créer un compte auprès de RACÈLIA.</p>
 
-            <button type="submit" class="account-btn">CONTINUE</button>
+            <button type="submit" class="account-btn">CONTINUER</button>
           </form>
         </section>
       </main>

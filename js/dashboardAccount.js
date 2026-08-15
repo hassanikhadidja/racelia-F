@@ -8,8 +8,10 @@ import {
   loadDashboardOrders,
   DASHBOARD_SITUATION_OPTIONS,
   SITUATIONS_STORAGE_KEY,
+  updateDashboardOrderStatus,
 } from "./dashboardOrdersData.js";
 import { syncOrderStatus } from "./syncBackend.js";
+import { formatDashboardTotal } from "./currency.js";
 
 const PROFILE_STORAGE_KEY = "raceliaDashboardProfile";
 
@@ -61,7 +63,11 @@ function saveSituations(map) {
 
 function getOrdersNeedingSituation() {
   const situations = loadSituations();
-  return loadDashboardOrders().filter((order) => !situations[order.id]);
+  return loadDashboardOrders().filter((order) => {
+    const status = String(order.status || "pending").toLowerCase();
+    const needsStatus = status === "pending" || status === "processing";
+    return needsStatus && !situations[order.id];
+  });
 }
 
 function applyAvatarToElements(page, profile) {
@@ -134,11 +140,16 @@ function renderNotificationsList(page) {
         <span class="dashboard-notification-card__badge">New</span>
       </div>
       <p class="dashboard-notification-card__product">${escapeHtml(order.product)}</p>
-      <p class="dashboard-notification-card__total">${escapeHtml(order.total)}</p>
+      <p class="dashboard-notification-card__total">${escapeHtml(formatDashboardTotal(order.total))}</p>
       <div class="dashboard-notification-card__action">
         <span class="dashboard-notification-card__label" id="situation-label-${escapeHtml(order.id)}">Situation</span>
         <div class="dashboard-situation-picker" role="group" aria-labelledby="situation-label-${escapeHtml(order.id)}">
           ${optionsHtml}
+        </div>
+        <div class="dashboard-order-issue-form" hidden>
+          <label class="dashboard-notification-card__label">Issue comment</label>
+          <textarea class="dashboard-order-issue-comment js-dashboard-order-issue-comment" rows="3" placeholder="Describe the issue (required)"></textarea>
+          <p class="dashboard-order-issue-error js-dashboard-order-issue-error" hidden>A comment is required for Order Issue.</p>
         </div>
         <button type="button" class="dashboard-situation-apply js-dashboard-apply-situation" data-order-id="${escapeHtml(order.id)}">Apply</button>
       </div>
@@ -154,6 +165,8 @@ function renderNotificationsList(page) {
       card.querySelectorAll(".dashboard-situation-opt").forEach((b) => b.classList.remove("is-selected"));
       btn.classList.add("is-selected");
       card.dataset.selectedSituation = btn.dataset.value || "";
+      const issueForm = card.querySelector(".dashboard-order-issue-form");
+      if (issueForm) issueForm.hidden = btn.dataset.value !== "order_issue";
     });
   });
 
@@ -166,11 +179,21 @@ function renderNotificationsList(page) {
         card?.querySelector(".dashboard-situation-opt")?.focus();
         return;
       }
+      const comment = card.querySelector(".js-dashboard-order-issue-comment")?.value.trim() || "";
+      const error = card.querySelector(".js-dashboard-order-issue-error");
+      if (value === "order_issue" && !comment) {
+        if (error) error.hidden = false;
+        card.querySelector(".js-dashboard-order-issue-comment")?.focus();
+        return;
+      }
+      if (error) error.hidden = true;
       const situations = loadSituations();
       situations[orderId] = value;
       saveSituations(situations);
-      syncOrderStatus(orderId, value).catch(() => {});
+      updateDashboardOrderStatus(orderId, value, comment);
+      syncOrderStatus(orderId, value, comment).catch(() => {});
       renderNotificationsList(page);
+      page.dispatchEvent(new CustomEvent("racelia:backend-synced"));
     });
   });
 }

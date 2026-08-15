@@ -6,7 +6,7 @@
 #shoppingBagPage {
   background: #fff;
   color: #000;
-  font-family: var(--font-inter), "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 14px;
   line-height: 1.5;
 }
@@ -202,6 +202,17 @@
   background: #fafafa;
 }
 
+#shoppingBagPage .promo-applied {
+  margin: 0;
+  padding: 0 16px 14px;
+  font-size: 12px;
+  color: #1a7f4b;
+}
+
+#shoppingBagPage .promo-applied[hidden] {
+  display: none !important;
+}
+
 #shoppingBagPage .promo-chevron {
   display: flex;
   align-items: center;
@@ -284,6 +295,11 @@
 #shoppingBagPage .summary-row span:last-child {
   color: #000;
   font-weight: 500;
+}
+
+#shoppingBagPage #bagDiscountRow span:last-child {
+  color: #1a7f4b;
+  font-weight: 600;
 }
 
 #shoppingBagPage .summary-divider {

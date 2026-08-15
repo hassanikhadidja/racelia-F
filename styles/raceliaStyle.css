@@ -25,6 +25,11 @@
   stroke: #fff;
 }
 
+.menu-panel--style .menu-account-btn .avatar-placeholder {
+  background: #fff;
+  color: #000;
+}
+
 .style-view {
   padding-bottom: 24px;
   -webkit-overflow-scrolling: touch;

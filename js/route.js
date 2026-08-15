@@ -8,13 +8,23 @@ export const DASHBOARD_SCREENS = new Set([
   "analytics",
   "blogs",
   "users",
+  "emails",
   "raceliastyle",
-  "webpics",
   "reviews",
   "account",
 ]);
 
 let suppressHashRestore = false;
+let navIndex = 0;
+let restoringRoute = false;
+
+export function beginRouteRestore() {
+  restoringRoute = true;
+}
+
+export function endRouteRestore() {
+  restoringRoute = false;
+}
 
 export function parseRoute(hash = window.location.hash) {
   const raw = hash.replace(/^#/, "").trim();
@@ -27,6 +37,9 @@ export function parseRoute(hash = window.location.hash) {
   if (parts[0] === "category" && parts[1]) {
     if (parts[1] === "metiers-dart") {
       return { view: "blogs" };
+    }
+    if (parts[1] === "all-selection") {
+      return { view: "category", categoryKey: "nouveautes" };
     }
     if (categoryPages[parts[1]]) {
       return { view: "category", categoryKey: parts[1] };
@@ -46,6 +59,10 @@ export function parseRoute(hash = window.location.hash) {
     return { view: "account" };
   }
 
+  if (parts[0] === "client-profile") {
+    return { view: "client-profile" };
+  }
+
   if (parts[0] === "shopping-bag" || parts[0] === "bag") {
     return { view: "shopping-bag" };
   }
@@ -63,6 +80,38 @@ export function parseRoute(hash = window.location.hash) {
       return { view: "blog", blogId: decodeURIComponent(parts[1]) };
     }
     return { view: "blogs" };
+  }
+
+  if (parts[0] === "confidentialite" || parts[0] === "privacy") {
+    return { view: "privacy" };
+  }
+
+  if (parts[0] === "conditions" || parts[0] === "terms") {
+    return { view: "terms" };
+  }
+
+  if (parts[0] === "livraison" || parts[0] === "shipping") {
+    return { view: "shipping" };
+  }
+
+  if (parts[0] === "boutiques" || parts[0] === "stores") {
+    return { view: "boutiques" };
+  }
+
+  if (parts[0] === "faq") {
+    return { view: "faq" };
+  }
+
+  if (parts[0] === "retours" || parts[0] === "returns") {
+    return { view: "returns" };
+  }
+
+  if (parts[0] === "carte-cadeau" || parts[0] === "gift-card") {
+    return { view: "gift-card" };
+  }
+
+  if (parts[0] === "contact") {
+    return { view: "contact" };
   }
 
   if (DASHBOARD_SCREENS.has(parts[0]) && parts.length === 1) {
@@ -88,6 +137,8 @@ export function buildHash(route) {
       return `#dashboard/${route.dashboardTab || "overview"}`;
     case "account":
       return "#account";
+    case "client-profile":
+      return "#client-profile";
     case "shopping-bag":
       return "#shopping-bag";
     case "wishlist":
@@ -98,20 +149,55 @@ export function buildHash(route) {
       return "#blogs";
     case "blog":
       return `#blogs/${encodeURIComponent(route.blogId)}`;
+    case "privacy":
+      return "#confidentialite";
+    case "terms":
+      return "#conditions";
+    case "shipping":
+      return "#livraison";
+    case "boutiques":
+      return "#boutiques";
+    case "faq":
+      return "#faq";
+    case "returns":
+      return "#retours";
+    case "gift-card":
+      return "#carte-cadeau";
+    case "contact":
+      return "#contact";
     default:
       return "#home";
   }
 }
 
-export function writeRoute(route) {
+export function writeRoute(route, { replace = false } = {}) {
   const hash = buildHash(route);
-  if (window.location.hash === hash) return;
+  const current = window.location.hash || "#home";
+  if (current === hash) return;
+
+  const previous = parseRoute(window.location.hash);
+  const replaceTab = previous.view === "dashboard" && route.view === "dashboard";
+  const useReplace =
+    replace || restoringRoute || replaceTab || !window.location.hash;
 
   suppressHashRestore = true;
-  history.replaceState(null, "", hash);
+  if (useReplace) {
+    history.replaceState({ raceliaNav: navIndex }, "", hash);
+  } else {
+    navIndex += 1;
+    history.pushState({ raceliaNav: navIndex }, "", hash);
+  }
   queueMicrotask(() => {
     suppressHashRestore = false;
   });
+}
+
+export function goBackInApp() {
+  if ((history.state?.raceliaNav || 0) > 0) {
+    history.back();
+    return true;
+  }
+  return false;
 }
 
 export function shouldIgnoreHashChange() {

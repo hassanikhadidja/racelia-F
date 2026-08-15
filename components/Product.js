@@ -35,7 +35,7 @@ export function createProduct(product, index) {
   const wishlist = document.createElement("button");
   wishlist.className = "wishlist-btn";
   wishlist.type = "button";
-  wishlist.setAttribute("aria-label", "Add to wishlist");
+  wishlist.setAttribute("aria-label", "Ajouter à la liste d'envies");
   wishlist.dataset.i = String(index);
   wishlist.innerHTML = wishlistIcon;
 
