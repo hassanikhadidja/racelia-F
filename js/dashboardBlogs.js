@@ -320,7 +320,7 @@ function openPreview(page, blog, device = previewDevice) {
       const productId = btn.dataset.productId || ids[0];
       if (productId) {
         const name = getCategoryProductById(productId)?.name || productId;
-        window.alert(`Preview: would open product page for ${name}`);
+        btn.setAttribute("aria-label", `Preview: ${name}`);
       }
     });
   });
@@ -348,7 +348,8 @@ function publishFromEditor(page) {
   if (!blog) return;
   const errors = validateBlogForPublish(blog);
   if (errors.length) {
-    window.alert(errors.join("\n"));
+    const status = page.querySelector("#dashboard-blog-editor-status");
+    if (status) status.textContent = errors.join(" · ");
     return;
   }
   blog.status = "published";
@@ -367,7 +368,8 @@ function publishBlogById(page, id) {
   if (!blog) return;
   const errors = validateBlogForPublish(blog);
   if (errors.length) {
-    window.alert(`Cannot publish:\n${errors.join("\n")}\n\nOpen Edit to fix.`);
+    const status = page.querySelector("#dashboard-blog-editor-status");
+    if (status) status.textContent = `Cannot publish: ${errors.join(" · ")}`;
     return;
   }
   blog.status = "published";

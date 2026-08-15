@@ -11,6 +11,7 @@ import {
 import { syncWishlistHeartStates } from "./clientCartWishlist.js";
 import { queueClientReviewForModeration } from "./dashboardReviewsData.js";
 import { openPdpAddedOverlay } from "./cartAddedOverlay.js";
+import { setFormStatus } from "./formStatus.js";
 
 function starsHtml(count) {
   const n = Math.max(0, Math.min(5, Math.round(Number(count) || 0)));
@@ -214,7 +215,7 @@ function bindPdpReviewOverlay(root) {
     };
 
     queueClientReviewForModeration(review);
-    window.alert("Merci ! Votre avis a été envoyé à notre équipe pour validation.");
+    setFormStatus(event.target, "Merci. Votre avis a été envoyé pour validation.", "ok");
     event.target.reset();
     close();
   });
@@ -611,7 +612,7 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
     }
 
     if (event.target.closest(".pdp-view-all")) {
-      window.alert("Voir tous les avis (démo)");
+      return;
     }
   });
 }

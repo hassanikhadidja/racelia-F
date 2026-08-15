@@ -477,10 +477,12 @@ button {
 }
 
 .product .meta > span,
+.product .meta .product__name,
 .product .meta .category-product__name-row,
 .product .meta .category-product__copy {
   min-width: 0;
   flex: 1;
+  text-align: left;
 }
 
 .wishlist-btn {
@@ -595,6 +597,7 @@ button {
   min-width: 0;
   text-align: left;
   color: #000;
+  text-transform: uppercase;
 }
 
 .bottom-cta__view {
@@ -678,14 +681,17 @@ button {
 
 .modal-animated-container {
   position: fixed;
-  left: 50%;
+  left: 0;
+  right: 0;
   bottom: 16px;
-  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
   z-index: 61;
-  pointer-events: auto;
+  pointer-events: none;
+  transform: none;
   transition:
     bottom 0.42s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.42s cubic-bezier(0.4, 0, 0.2, 1),
     visibility 0.2s ease;
 }
 
@@ -696,9 +702,10 @@ button {
 
 .modal-animated-container--docked {
   position: absolute;
+  left: 0;
+  right: 0;
   bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
+  transform: none;
 }
 
 .modal-animated-container--instant-dock:not(.modal-animated-container--open) {
@@ -752,6 +759,8 @@ button {
   position: relative;
   bottom: auto;
   left: auto;
+  right: auto;
+  width: 100%;
   transform: none;
 }
 
@@ -763,18 +772,22 @@ button {
 
 .modal-animated-container--open {
   position: fixed;
-  bottom: 50%;
-  transform: translate(-50%, 50%);
+  left: 0;
+  right: 0;
+  bottom: max(16px, calc((100vh - min(78vh, 520px)) / 2));
+  transform: none;
 }
 
 .modal-animated-container__panel {
   position: relative;
+  flex: 0 0 auto;
   width: 205.35px;
   height: 55px;
   background: #000;
   color: #fff;
   border-radius: 1px;
   overflow: hidden;
+  pointer-events: auto;
   transform-origin: center bottom;
   transition:
     width 0.42s cubic-bezier(0.4, 0, 0.2, 1),
@@ -1296,4 +1309,24 @@ body.menu-open {
   #styleTab {
     font-size: 11px;
   }
+}
+
+.form-status {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: left;
+  font-family: inherit;
+}
+
+.form-status[hidden] {
+  display: none;
+}
+
+.form-status--error {
+  color: #b00020;
+}
+
+.form-status--ok {
+  color: #1a7f37;
 }

@@ -1,5 +1,4 @@
 import { formatPrice } from "./bagHelpers.js";
-import { getWilayaName } from "./checkoutWilayas.js";
 import { closeCheckoutGeoPanels, initCheckoutGeoSelects } from "./checkoutSelect.js";
 import {
   ONLINE_PAYMENT_METHOD_IDS,
@@ -14,6 +13,7 @@ import {
   loyaltyDiscountLabel,
   markLoyaltyRewardUsed,
 } from "./loyaltyCard.js";
+import { setFormStatus } from "./formStatus.js";
 
 function getDeliveryFee() {
   return getOrderConfig().deliveryFee ?? 20;
@@ -282,7 +282,6 @@ export function initCheckout(root, items) {
     const mode = data.get("paymentMode");
     const method = mode === "online" ? data.get("paymentMethod") : "cod";
     const wilayaCode = data.get("wilaya");
-    const wilayaLabel = getWilayaName(wilayaCode);
     const submitBtn = form.querySelector('button[type="submit"]');
 
     const items = checkoutItems.map((item) => ({
@@ -296,10 +295,11 @@ export function initCheckout(root, items) {
 
     const totals = updateTotals(page);
     if (totals.promo?.type === "free_item" && !totals.promo.freeItemId) {
-      window.alert("Choisissez l’article offert avant de passer commande.");
+      setFormStatus(form, "Choisissez l’article offert avant de passer commande.");
       return;
     }
 
+    setFormStatus(form, "");
     submitBtn.disabled = true;
     try {
       const result = await submitOrder({
@@ -316,15 +316,6 @@ export function initCheckout(root, items) {
         loyaltyDiscount: totals.loyaltyDiscount || 0,
       });
 
-      window.alert(
-        `Merci, ${data.get("name")} !\n\n` +
-          `Votre commande a bien été enregistrée.\n` +
-          `Commande : ${result.orderNumber || result.orderId || "confirmée"}\n` +
-          `Paiement : ${PAYMENT_METHOD_LABELS[method] || method}\n` +
-          `Wilaya : ${wilayaCode} — ${wilayaLabel}` +
-          (data.get("commune") ? `\nCommune : ${data.get("commune")}` : "") +
-          (data.get("email") ? `\nE-mail : ${data.get("email")}` : "")
-      );
       if (totals.promo?.code) {
         markLoyaltyRewardUsed(totals.promo.code, result.orderNumber || result.orderId || "");
       }
@@ -336,7 +327,7 @@ export function initCheckout(root, items) {
       syncClientData(root).catch(() => {});
       leave();
     } catch (error) {
-      window.alert(error.message || "Impossible de passer la commande. Veuillez réessayer.");
+      setFormStatus(form, error.message || "Impossible de passer la commande. Veuillez réessayer.");
     } finally {
       submitBtn.disabled = false;
     }

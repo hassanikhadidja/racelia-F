@@ -789,7 +789,6 @@ export function leaveWishlist(root) {
 export function showCheckout(root) {
   const items = collectBagItems(root);
   if (items.length === 0) {
-    window.alert("Your bag is empty.");
     return;
   }
 

@@ -42,10 +42,17 @@ export function createStyleSheet() {
           <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
         <div class="style-sheet-hero"><img id="styleHeroImg" alt="Look" /></div>
+        <span class="style-sheet-look-tag" id="styleSheetTag">Demo</span>
       </div>
       <div class="style-sheet-head">
-        <h2 id="styleSheetTitle">OBTENEZ VOTRE RACÈLIASTYLE</h2>
-        <span class="style-sheet-count" id="styleSheetCount">2 PRODUITS</span>
+        <p class="style-sheet-eyebrow" id="styleSheetEyebrow">#RACÈLIASTYLE</p>
+        <div class="style-sheet-head-row">
+          <h2 id="styleSheetTitle">Obtenez votre RACÈLIASTYLE</h2>
+          <span class="style-sheet-count" id="styleSheetCount">
+            <strong id="styleSheetCountNum">2</strong>
+            <span id="styleSheetCountLabel">produits</span>
+          </span>
+        </div>
       </div>
       <div class="style-sheet-products" id="styleSheetProducts"></div>
     </div>

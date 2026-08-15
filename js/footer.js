@@ -1,6 +1,7 @@
 import { initCurrencyControls, refreshDisplayedPrices } from "./currency.js";
 import { upsertCollectedEmail } from "./dashboardEmailsData.js";
 import { syncCollectedEmail } from "./syncBackend.js";
+import { setFormStatus } from "./formStatus.js";
 
 export function initFooter(root) {
   const subscribeModal = root.querySelector("#subscribeModal");
@@ -161,7 +162,7 @@ export function initFooter(root) {
     const email = form.querySelector("#email")?.value.trim() ?? "";
 
     if (!lastName || !email) {
-      window.alert("All fields are mandatory.");
+      setFormStatus(form, "Tous les champs sont obligatoires.");
       return;
     }
 
@@ -173,8 +174,7 @@ export function initFooter(root) {
     };
     upsertCollectedEmail(payload);
     await syncCollectedEmail(payload);
-    window.alert("Thank you for subscribing!");
+    setFormStatus(form, "Merci pour votre inscription.", "ok");
     form.reset();
-    closeSubscribeModal();
   });
 }

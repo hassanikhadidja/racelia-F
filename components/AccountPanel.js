@@ -88,7 +88,7 @@ export function createAccountPanel() {
 
             <p class="account-fine">J'accepte de recevoir des messages marketing (y compris SMS et MMS) issus d'un système automatisé des bureaux de RACÈLIA, aux numéros de téléphone fournis. Des frais de messagerie et de données standard peuvent s'appliquer.</p>
 
-            <p class="account-ack">En créant un compte RACÈLIA, vous reconnaissez que RACÈLIA collectera, traitera, transférera et stockera vos données personnelles comme décrit dans la <a href="#">Politique de confidentialité</a>.</p>
+            <p class="account-ack">En créant un compte RACÈLIA, vous reconnaissez que RACÈLIA collectera, traitera, transférera et stockera vos données personnelles comme décrit dans la <a href="#confidentialite" class="js-account-privacy">Politique de confidentialité</a> et les <a href="#conditions" class="js-account-terms">Conditions d'utilisation</a>.</p>
             <p class="account-ack">Vous pouvez retirer vos consentements à tout moment. Pour toute question concernant vos droits d'accès, de suppression, d'opposition, etc., veuillez nous contacter à <a href="mailto:privacy@racelia.com">privacy@racelia.com</a>.</p>
             <p class="account-ack">En continuant, vous confirmez avoir l'âge requis pour créer un compte auprès de RACÈLIA.</p>
 

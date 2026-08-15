@@ -13,9 +13,15 @@ function renderStyleProducts(look) {
   return look.products
     .map((product) => {
       const meta = getCategoryProductById(product.id);
-      const label = meta?.name || "Product";
-      return `<button type="button" class="style-product" data-product-id="${escapeHtml(product.id)}" aria-label="View ${escapeHtml(label)}">
-        <img src="${escapeHtml(product.image)}" alt="" loading="lazy" />
+      const label = meta?.name || "Produit";
+      const image = meta?.images?.[0] || product.image || "";
+      return `<button type="button" class="style-product" data-product-id="${escapeHtml(product.id)}" aria-label="Voir ${escapeHtml(label)}">
+        <span class="style-product__media">
+          <img src="${escapeHtml(image)}" alt="" loading="lazy" />
+        </span>
+        <span class="style-product__meta">
+          <span class="style-product__name">${escapeHtml(label)}</span>
+        </span>
       </button>`;
     })
     .join("");
@@ -53,18 +59,32 @@ export function ensureStyleGrid(root) {
   const sheet = root.querySelector("#styleSheet");
   const heroImg = root.querySelector("#styleHeroImg");
   const productsEl = root.querySelector("#styleSheetProducts");
-  const countEl = root.querySelector("#styleSheetCount");
+  const countNum = root.querySelector("#styleSheetCountNum");
+  const countLabel = root.querySelector("#styleSheetCountLabel");
+  const tagEl = root.querySelector("#styleSheetTag");
+  const eyebrowEl = root.querySelector("#styleSheetEyebrow");
   const closeBtn = root.querySelector("#styleSheetClose");
   const searchForm = root.querySelector("#styleSearchForm");
 
-  if (!overlay || !sheet || !heroImg || !productsEl || !countEl) return;
+  if (!overlay || !sheet || !heroImg || !productsEl) return;
 
   const openSheet = (index) => {
     const look = raceliaLooks[index];
+    const count = look.products.length;
     heroImg.src = look.img;
-    heroImg.alt = `RACÈLIASTYLE look ${index + 1}`;
+    heroImg.alt = look.title || `RACÈLIASTYLE look ${index + 1}`;
     productsEl.innerHTML = renderStyleProducts(look);
-    countEl.textContent = `${look.products.length} PRODUCT${look.products.length > 1 ? "S" : ""}`;
+    if (countNum) countNum.textContent = String(count);
+    if (countLabel) countLabel.textContent = count > 1 ? "produits" : "produit";
+    if (tagEl) {
+      tagEl.textContent = look.tag || "Demo";
+      tagEl.hidden = !look.tag && !look.title;
+    }
+    if (eyebrowEl) {
+      eyebrowEl.textContent = look.title
+        ? `#RACÈLIASTYLE · ${look.title}`
+        : "#RACÈLIASTYLE";
+    }
     overlay.classList.add("open");
     overlay.setAttribute("aria-hidden", "false");
     sheet.classList.add("open");
@@ -110,7 +130,7 @@ export function ensureStyleGrid(root) {
   searchForm?.addEventListener("submit", (event) => {
     event.preventDefault();
     const query = root.querySelector("#styleSearchInput")?.value.trim();
-    if (query) window.alert(`Search: ${query}`);
+    if (query) closeStyleSheet(root);
   });
 
   grid.dataset.ready = "true";

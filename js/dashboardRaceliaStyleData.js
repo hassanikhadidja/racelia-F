@@ -4,7 +4,7 @@ import { getCategoryProductById } from "./categoryData.js";
 
 export const STYLE_LOOKS_STORAGE_KEY = "raceliaDashboardStyleLooks";
 
-function seedFromLegacy() {
+export function getDemoStyleLooks() {
   return raceliaLooks.map((look, i) => ({
     id: `style-seed-${i}`,
     title: i === 0 ? "Featured creator look" : `Creator look ${i + 1}`,
@@ -31,8 +31,8 @@ function readStorage() {
 
 export function loadStyleLooks() {
   const stored = readStorage();
-  if (stored === null) {
-    const seeded = seedFromLegacy();
+  if (!Array.isArray(stored) || stored.length === 0) {
+    const seeded = getDemoStyleLooks();
     localStorage.setItem(STYLE_LOOKS_STORAGE_KEY, JSON.stringify(seeded));
     return seeded;
   }
@@ -51,6 +51,8 @@ export function saveStyleLooks(looks) {
 export function getStorefrontStyleLooks() {
   return loadStyleLooks().map((look) => ({
     img: look.image,
+    title: look.title || "",
+    tag: look.tag || "Demo",
     products: (look.products || []).map((p) => ({
       id: p.productId,
       image: p.image,

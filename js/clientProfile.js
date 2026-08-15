@@ -13,6 +13,7 @@ import { clearAuthSession, getStoredUser, setStoredUser } from "./api.js";
 import { syncClientData, updateClientProfile, syncCollectedEmail } from "./syncBackend.js";
 import { upsertCollectedEmail } from "./dashboardEmailsData.js";
 import { confirmLoyaltyBirthday, formatLoyaltyDate, refreshLoyaltyCard } from "./loyaltyCard.js";
+import { setFormStatus } from "./formStatus.js";
 import { updateAccountButtons } from "./accountUi.js";
 import {
   applyProfilePageAvatar,
@@ -93,17 +94,18 @@ function initLoyaltyBirthday(page, root) {
     const value = page.querySelector("#loyalty-birthday-input")?.value;
     const result = confirmLoyaltyBirthday(value);
     if (!result.ok) {
-      window.alert(result.error);
+      setFormStatus(form, result.error);
       return;
     }
 
+    setFormStatus(form, "");
     applyProfileToPage(page, result.profile);
     refreshLoyaltyCard(page, loadClientOrders(), result.profile);
 
     try {
       await updateClientProfile({ birthday: result.profile.birthday }, root);
     } catch (error) {
-      window.alert(error.message || "Impossible d’enregistrer la date de naissance.");
+      setFormStatus(form, error.message || "Impossible d’enregistrer la date de naissance.");
     }
   });
 }
@@ -271,7 +273,7 @@ function initProfileEdit(page, root) {
 
     applyProfileToPage(page, updated);
     saveClientProfileLocal(updated);
-    closeEditor(overlay);
+    setFormStatus(form, "");
 
     try {
       await updateClientProfile(
@@ -282,8 +284,9 @@ function initProfileEdit(page, root) {
         },
         root
       );
+      closeEditor(overlay);
     } catch (error) {
-      window.alert(error.message || "Could not save profile to server.");
+      setFormStatus(form, error.message || "Impossible d’enregistrer le profil.");
     }
   });
 }

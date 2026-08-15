@@ -358,6 +358,14 @@ export function getEditorialGridProducts() {
   return getHomeProductPool(8).slice(4, 8);
 }
 
+/** Large home editorial photos (name + link under each campaign image). */
+export function getEditorialSpotlightProducts() {
+  const pool = getHomeProductPool(10);
+  if (pool.length >= 10) return pool.slice(8, 10);
+  if (pool.length >= 2) return pool.slice(-2);
+  return pool;
+}
+
 export function getProductDetail(id) {
   const product = getCatalogProductById(id);
   return product ? buildProductDetail(product) : null;

@@ -16,6 +16,7 @@ import {
 } from "./dashboardEmailsData.js";
 import { loadDashboardUsers, saveDashboardUsers } from "./dashboardUsersData.js";
 import { getDashboardEmailsOverlaysMarkup } from "./dashboardEmailsMarkup.js";
+import { setFormStatus } from "./formStatus.js";
 import { api } from "./api.js";
 import {
   syncCollectedEmail,
@@ -347,7 +348,7 @@ function bindEmailSheets(page) {
     const email = page.querySelector("#dash-email-address")?.value.trim() || "";
     const newsletter = page.querySelector("#dash-email-newsletter")?.value !== "no";
     if (!isValidCollectedEmail(email)) {
-      window.alert("Enter a valid email address.");
+      setFormStatus(event.target, "Enter a valid email address.");
       return;
     }
     const payload = {

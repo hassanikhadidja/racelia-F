@@ -7,7 +7,7 @@ import {
   loadCatalogProducts,
 } from "./productCatalog.js";
 import { saveBlogs, normalizeBlog } from "./dashboardBlogsData.js";
-import { saveStyleLooks } from "./dashboardRaceliaStyleData.js";
+import { saveStyleLooks, getDemoStyleLooks } from "./dashboardRaceliaStyleData.js";
 import { savePublishedReviews, savePendingReviews } from "./dashboardReviewsData.js";
 import { saveDashboardUsers } from "./dashboardUsersData.js";
 import { saveDashboardOrders } from "./dashboardOrdersData.js";
@@ -151,8 +151,10 @@ async function syncPublicData() {
     saveBlogs(blogs.map(normalizeBlog).filter(Boolean));
   }
 
-  if (Array.isArray(styleLooks)) {
+  if (Array.isArray(styleLooks) && styleLooks.length) {
     saveStyleLooks(mapStyleLooksFromStorefront(styleLooks));
+  } else if (Array.isArray(styleLooks) && !styleLooks.length) {
+    saveStyleLooks(getDemoStyleLooks());
   }
 
   if (Array.isArray(reviews)) {
@@ -208,7 +210,7 @@ export async function syncAdminData() {
   if (Array.isArray(pendingReviews)) {
     savePendingReviews(pendingReviews);
   }
-  if (Array.isArray(styleLooks)) {
+  if (Array.isArray(styleLooks) && styleLooks.length) {
     saveStyleLooks(mapStorefrontStyleLooks(styleLooks));
   }
 }

@@ -2,6 +2,7 @@ import { refreshShoppingBagTotals } from "./bagHelpers.js";
 import { syncBagCountFromDom } from "./cart.js";
 import { applyLoyaltyCode } from "./loyaltyCard.js";
 import { getAuthToken } from "./api.js";
+import { setFormStatus } from "./formStatus.js";
 
 export function initShoppingBag(root, { onBack } = {}) {
   const page = root.querySelector("#shoppingBagPage");
@@ -74,25 +75,28 @@ export function initShoppingBag(root, { onBack } = {}) {
 
     if (target.closest(".js-promo-apply")) {
       event.preventDefault();
+      const promoPanel = page.querySelector("#promoModal .modal-panel") || page;
       const code = promoInput?.value.trim() || "";
       if (!code) {
-        window.alert("Veuillez saisir un code promo.");
+        setFormStatus(promoPanel, "Veuillez saisir un code promo.");
         return;
       }
       if (!getAuthToken()) {
-        window.alert("Connectez-vous pour utiliser un code de fidélité.");
+        setFormStatus(promoPanel, "Connectez-vous pour utiliser un code de fidélité.");
         return;
       }
       const result = applyLoyaltyCode(code);
       if (!result.ok) {
-        window.alert(result.error);
+        setFormStatus(promoPanel, result.error);
         return;
       }
-      if (result.reward.type === "free_item") {
-        window.alert("Code appliqué. Choisissez l’article offert lors du paiement.");
-      } else {
-        window.alert(`Code promo « ${result.reward.code} » appliqué !`);
-      }
+      setFormStatus(
+        promoPanel,
+        result.reward.type === "free_item"
+          ? "Code appliqué. Choisissez l’article offert lors du paiement."
+          : `Code promo « ${result.reward.code} » appliqué.`,
+        "ok"
+      );
       closePromo();
       updateTotal();
       return;
@@ -106,7 +110,7 @@ export function initShoppingBag(root, { onBack } = {}) {
 
     if (target.closest(".js-shopping-bag-signin")) {
       event.preventDefault();
-      window.alert("Connexion — démo");
+      root.dispatchEvent(new CustomEvent("racelia:open-account"));
       return;
     }
 
@@ -126,7 +130,6 @@ export function initShoppingBag(root, { onBack } = {}) {
       event.preventDefault();
       const hasItems = page.querySelectorAll(".bag-item").length > 0;
       if (!hasItems) {
-        window.alert("Votre panier est vide.");
         return;
       }
       root.dispatchEvent(new CustomEvent("racelia:open-checkout"));

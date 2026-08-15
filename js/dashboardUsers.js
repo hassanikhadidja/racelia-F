@@ -12,6 +12,7 @@ import { api } from "./api.js";
 import { syncAdminData } from "./syncBackend.js";
 import { initProfileCardFlips, renderUserProfileCards } from "./profileCardsMarkup.js";
 import { renderStoreOrderCard } from "./dashboardOrders.js";
+import { setFormStatus } from "./formStatus.js";
 
 function escapeHtml(text) {
   return String(text)
@@ -276,7 +277,7 @@ function bindUserSheets(page) {
 
     const users = loadDashboardUsers();
     if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
-      window.alert("A user with this email already exists.");
+      setFormStatus(event.target, "A user with this email already exists.");
       return;
     }
 
@@ -288,7 +289,7 @@ function bindUserSheets(page) {
       }
       await syncAdminData();
     } catch (error) {
-      window.alert(error.message || "Could not create user.");
+      setFormStatus(event.target, error.message || "Could not create user.");
       return;
     }
 
@@ -305,7 +306,7 @@ function bindUserSheets(page) {
     if (!userId) return;
 
     if (password && password.length < 6) {
-      window.alert("Password must be at least 6 characters.");
+      setFormStatus(event.target, "Password must be at least 6 characters.");
       return;
     }
 
@@ -320,7 +321,7 @@ function bindUserSheets(page) {
       );
       saveDashboardUsers(users);
     } catch (error) {
-      window.alert(error.message || "Could not update user access.");
+      setFormStatus(event.target, error.message || "Could not update user access.");
       return;
     }
 

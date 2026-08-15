@@ -1,6 +1,7 @@
 import { addGiftPointsEntry, getDeliveredProductsForReview } from "./clientProfileGiftPoints.js";
 import { queueClientReviewForModeration } from "./dashboardReviewsData.js";
 import { loadCatalogProducts } from "./productCatalog.js";
+import { setFormStatus } from "./formStatus.js";
 
 const REVIEWS_STORAGE_KEY = "raceliaProfileReviews";
 const REVIEW_POINTS = 150;
@@ -226,6 +227,6 @@ export function initProfileReviewForm(page, { onSubmitted } = {}) {
     if (otherWrap) otherWrap.hidden = true;
 
     onSubmitted?.(review);
-    window.alert(`Merci ! Vous avez gagné ${REVIEW_POINTS} points cadeau pour votre avis.`);
+    setFormStatus(form, `Merci. Vous avez gagné ${REVIEW_POINTS} points cadeau.`, "ok");
   });
 }

@@ -30,6 +30,7 @@ export function createProduct(product, index) {
   meta.className = "meta";
 
   const name = document.createElement("span");
+  name.className = "product__name";
   name.textContent = product.name;
 
   const wishlist = document.createElement("button");

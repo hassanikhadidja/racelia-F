@@ -9,6 +9,7 @@ import { getAuthToken } from "./api.js";
 import { loginUser, registerUser, syncCollectedEmail } from "./syncBackend.js";
 import { updateAccountButtons } from "./accountUi.js";
 import { upsertCollectedEmail } from "./dashboardEmailsData.js";
+import { setFormStatus } from "./formStatus.js";
 
 export function initAccount(root) {
   const accountPage = root.querySelector("#accountPage");
@@ -63,20 +64,23 @@ export function initAccount(root) {
     }
   });
 
+  const showAccountTab = (tabName) => {
+    accountPage.querySelectorAll(".account-tab").forEach((item) => {
+      item.classList.toggle("active", item.dataset.tab === tabName);
+    });
+    accountPage.querySelectorAll(".account-panel-section").forEach((panel) => {
+      panel.classList.remove("active");
+    });
+    const panel = accountPage.querySelector(
+      `#account${tabName === "signin" ? "Signin" : "Register"}`
+    );
+    panel?.classList.add("active");
+    accountMain?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   accountPage.querySelectorAll(".account-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
-      accountPage.querySelectorAll(".account-tab").forEach((item) => {
-        item.classList.remove("active");
-      });
-      accountPage.querySelectorAll(".account-panel-section").forEach((panel) => {
-        panel.classList.remove("active");
-      });
-      tab.classList.add("active");
-      const panel = accountPage.querySelector(
-        `#account${tab.dataset.tab === "signin" ? "Signin" : "Register"}`
-      );
-      panel?.classList.add("active");
-      accountMain?.scrollTo({ top: 0, behavior: "smooth" });
+      showAccountTab(tab.dataset.tab);
     });
   });
 
@@ -102,33 +106,38 @@ export function initAccount(root) {
     });
   });
 
-  accountPage.querySelector(".js-account-privacy")?.addEventListener("click", (event) => {
-    event.preventDefault();
-    closeAccount(root);
-    root.dispatchEvent(new CustomEvent("racelia:open-privacy"));
-  });
+  accountPage.addEventListener("click", (event) => {
+    const privacyLink = event.target.closest(".js-account-privacy");
+    if (privacyLink && accountPage.contains(privacyLink)) {
+      event.preventDefault();
+      root.dispatchEvent(new CustomEvent("racelia:open-privacy"));
+      return;
+    }
 
-  accountPage.querySelector(".js-account-terms")?.addEventListener("click", (event) => {
-    event.preventDefault();
-    closeAccount(root);
-    root.dispatchEvent(new CustomEvent("racelia:open-terms"));
+    const termsLink = event.target.closest(".js-account-terms");
+    if (termsLink && accountPage.contains(termsLink)) {
+      event.preventDefault();
+      root.dispatchEvent(new CustomEvent("racelia:open-terms"));
+    }
   });
 
   root.querySelector("#accountSigninForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const form = event.target;
     const email = root.querySelector("#accountSiEmail")?.value.trim();
     const password = root.querySelector("#accountSiPass")?.value;
-    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const submitBtn = form.querySelector('button[type="submit"]');
 
     if (!email || !password) return;
 
+    setFormStatus(form, "");
     submitBtn.disabled = true;
     try {
       await loginUser(email, password, root);
       updateAccountButtons(root);
       showClientProfile(root);
     } catch (error) {
-      window.alert(error.message || "Sign in failed.");
+      setFormStatus(form, error.message || "Connexion impossible.");
     } finally {
       submitBtn.disabled = false;
     }
@@ -136,14 +145,17 @@ export function initAccount(root) {
 
   root.querySelector("#accountRegisterForm")?.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const form = event.target;
     const name = root.querySelector("#accountName")?.value.trim();
     const email = root.querySelector("#accountEmail")?.value.trim();
     const phone = root.querySelector("#accountPhone")?.value.trim();
     const password = root.querySelector("#accountPass")?.value;
-    const submitBtn = event.target.querySelector('button[type="submit"]');
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const signinForm = root.querySelector("#accountSigninForm");
 
     if (!name || !email || !password) return;
 
+    setFormStatus(form, "");
     submitBtn.disabled = true;
     try {
       await registerUser({ name, email, phone, password });
@@ -155,10 +167,12 @@ export function initAccount(root) {
       };
       upsertCollectedEmail(payload);
       await syncCollectedEmail(payload);
-      window.alert("Account created. You can sign in now.");
-      closeAccount(root);
+      const emailInput = root.querySelector("#accountSiEmail");
+      if (emailInput) emailInput.value = email;
+      showAccountTab("signin");
+      setFormStatus(signinForm, "Compte créé. Vous pouvez vous connecter.", "ok");
     } catch (error) {
-      window.alert(error.message || "Registration failed.");
+      setFormStatus(form, error.message || "Inscription impossible.");
     } finally {
       submitBtn.disabled = false;
     }

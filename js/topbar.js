@@ -37,7 +37,6 @@ export function initTopbarSearch(root) {
     event.preventDefault();
     const query = input.value.trim();
     if (!query) return;
-    window.alert(`Search: ${query}`);
     closeSearch();
   });
 

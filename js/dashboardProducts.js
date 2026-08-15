@@ -12,6 +12,7 @@ import {
 import { formatDzdPrice, formatProductPrice, parseDzdInput } from "./currency.js";
 import { emptyColorVariant } from "./productImages.js";
 import { getDashboardProductsOverlaysMarkup } from "./dashboardProductsMarkup.js";
+import { setFormStatus } from "./formStatus.js";
 
 function escapeHtml(text) {
   return String(text)
@@ -567,21 +568,23 @@ function bindProductEditor(page, root) {
 
   page.querySelector(".js-dashboard-product-save")?.addEventListener("click", async () => {
     const data = collectProductFromEditor(page);
+    const editor = page.querySelector("#dashboard-product-editor") || page;
     if (!data.id || !/^[a-z0-9-]+$/.test(data.id)) {
-      window.alert("Product ID must use lowercase letters, numbers, and hyphens.");
+      setFormStatus(editor, "Product ID must use lowercase letters, numbers, and hyphens.");
       return;
     }
     if (!data.name || !data.priceAmountDzd) {
-      window.alert("Name and price (DZD) are required.");
+      setFormStatus(editor, "Name and price (DZD) are required.");
       return;
     }
     if (!data.cardCover && !data.cardScroll.length && !data.pdpCover) {
-      window.alert("Add at least a card cover or PDP cover image on the first (default) color.");
+      setFormStatus(editor, "Add at least a card cover or PDP cover image on the first (default) color.");
       return;
     }
 
     const saveBtn = page.querySelector(".js-dashboard-product-save");
     const saveLabel = saveBtn?.textContent || "Save";
+    setFormStatus(editor, "");
     if (saveBtn) {
       saveBtn.disabled = true;
       saveBtn.textContent = "Saving…";
@@ -593,7 +596,7 @@ function bindProductEditor(page, root) {
       renderDashboardProducts(page);
       notifyCatalogUpdated(root);
     } catch (error) {
-      window.alert(error?.message || "Could not save product.");
+      setFormStatus(editor, error?.message || "Could not save product.");
     } finally {
       if (saveBtn) {
         saveBtn.disabled = false;
@@ -609,7 +612,10 @@ function bindProductEditor(page, root) {
       await upsertCatalogProduct(data);
       previewProduct(page, data.id);
     } catch (error) {
-      window.alert(error?.message || "Could not save product.");
+      setFormStatus(
+        page.querySelector("#dashboard-product-editor") || page,
+        error?.message || "Could not save product."
+      );
     }
   });
 

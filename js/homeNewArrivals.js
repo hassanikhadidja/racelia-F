@@ -1,6 +1,7 @@
 import { createProduct } from "../components/Product.js";
 import {
   getEditorialGridProducts,
+  getEditorialSpotlightProducts,
   getNewArrivalProducts,
 } from "./productCatalog.js";
 import { initProductSliders } from "./productSliders.js";
@@ -63,6 +64,21 @@ function renderHomeProductSection(
   initProductSliders(root, grid);
 }
 
+function bindHomeEditorials(root) {
+  const spotlights = getEditorialSpotlightProducts();
+  root.querySelectorAll("#pageMain .editorial").forEach((el) => {
+    const offset = Number(el.dataset.productOffset || 0);
+    const product = spotlights[offset] || spotlights[0];
+    if (!product) return;
+
+    el.dataset.productId = product.id;
+    el.setAttribute("aria-label", product.name);
+
+    const nameEl = el.querySelector(".editorial__name");
+    if (nameEl) nameEl.textContent = product.name;
+  });
+}
+
 export function renderHomeNewArrivals(root) {
   renderHomeProductSection(root, "newArrivalsSection", getNewArrivalProducts(), {
     withRowCaption: true,
@@ -73,5 +89,6 @@ export function renderHomeNewArrivals(root) {
     getEditorialGridProducts(),
     { withEndCaption: true }
   );
+  bindHomeEditorials(root);
   syncWishlistHeartStates(root);
 }
