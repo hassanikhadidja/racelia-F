@@ -6,11 +6,13 @@ export function updateDashboardMenuVisibility(root) {
   const showDashboard = isAdminUser();
   root.querySelectorAll(".js-dashboard-menu-item").forEach((item) => {
     item.hidden = !showDashboard;
+    item.setAttribute("aria-hidden", showDashboard ? "false" : "true");
   });
 
   const showProfile = Boolean(getAuthToken());
   root.querySelectorAll(".js-client-profile-menu-item").forEach((item) => {
     item.hidden = !showProfile;
+    item.setAttribute("aria-hidden", showProfile ? "false" : "true");
   });
 }
 

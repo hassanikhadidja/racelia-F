@@ -57,6 +57,7 @@
   justify-content: center;
   gap: 0;
   margin-bottom: 32px;
+  scroll-margin-top: 80px;
 }
 
 .gift-card-step {
@@ -77,17 +78,27 @@
   border-color: #111;
   color: #111;
   font-weight: 700;
+  background: #fff;
 }
 
 .gift-card-step.is-done {
+  background: #111;
   border-color: #111;
-  color: #111;
+  color: #fff;
 }
 
 .gift-card-step-line {
   width: 56px;
   height: 1px;
   background: #d4d4d4;
+}
+
+.gift-card-step.is-done + .gift-card-step-line {
+  background: #111;
+}
+
+.gift-card-panel.is-active {
+  min-height: 42vh;
 }
 
 .gift-card-heading {

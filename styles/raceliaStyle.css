@@ -123,42 +123,55 @@
 .style-sheet-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
+  background: rgba(0, 0, 0, 0.45);
+  display: none;
   z-index: 1300;
+  align-items: flex-end;
+  justify-content: flex-start;
+  overscroll-behavior: none;
 }
 
 .style-sheet-overlay.open {
-  opacity: 1;
-  pointer-events: auto;
+  display: flex;
 }
 
 .style-sheet {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 80vh;
+  height: 80dvh;
+  max-height: 80vh;
+  max-height: 80dvh;
   background: #fff;
   color: #000;
   border-radius: 2px 2px 0 0;
-  max-height: 92vh;
-  transform: translateY(100%);
-  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 1310;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  overscroll-behavior: contain;
+  animation: styleSheetSlideUp 0.3s ease;
 }
 
-.style-sheet.open {
-  transform: translateY(0);
+@keyframes styleSheetSlideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .style-sheet-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .style-sheet-handle {
@@ -181,8 +194,8 @@
 .style-sheet-hero img {
   width: 100%;
   display: block;
-  max-height: 52vh;
-  min-height: 220px;
+  max-height: 38vh;
+  min-height: 180px;
   object-fit: cover;
 }
 
@@ -331,14 +344,9 @@
   overflow-wrap: anywhere;
 }
 
+html.style-sheet-locked,
 body.style-sheet-locked {
   overflow: hidden;
-}
-
-body.style-sheet-locked .menu-panel,
-body.style-sheet-locked .menu-backdrop {
-  visibility: hidden;
-  pointer-events: none;
 }
 
 @media (max-width: 600px) {

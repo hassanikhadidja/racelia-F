@@ -3,7 +3,7 @@ import { initCtaDock, updateCtaDock } from "./ctaDock.js";
 import { initRaceliaStyle, ensureStyleGrid, closeStyleSheet } from "./raceliaStyle.js";
 import { initAccount } from "./account.js";
 import { initCart } from "./cart.js";
-import { showHome, showCategory, showBlogs, showDashboard, showClientProfile, showWishlist, initPages } from "./pages.js";
+import { showHome, showCategory, showBlogs, showBoutiques, showDashboard, showClientProfile, showWishlist, initPages } from "./pages.js";
 import { defaultSelection } from "./data.js";
 import { initProductSliders } from "./productSliders.js";
 import { initTopbarSearch, updateTopbar } from "./topbar.js";
@@ -331,6 +331,13 @@ function initMenu(root) {
     item.addEventListener("click", () => {
       closeMenu();
       showBlogs(root);
+    });
+  });
+
+  root.querySelectorAll(".js-menu-boutiques-open").forEach((item) => {
+    item.addEventListener("click", () => {
+      closeMenu();
+      showBoutiques(root);
     });
   });
 

@@ -84,6 +84,7 @@ export function createMenuPanel() {
       li.hidden = true;
     }
     if (item.action === "blogs") li.classList.add("js-menu-blogs-open");
+    if (item.action === "boutiques") li.classList.add("js-menu-boutiques-open");
     if (item.page) {
       li.classList.add("js-menu-category");
       li.dataset.page = item.page;

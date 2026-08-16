@@ -5,10 +5,36 @@ import { setFormStatus } from "./formStatus.js";
 
 export function initFooter(root) {
   const subscribeModal = root.querySelector("#subscribeModal");
+  const thanksModal = root.querySelector("#subscribeThanks");
+
+  const lockPage = () => {
+    document.body.classList.add("no-scroll");
+  };
+
+  const unlockPage = () => {
+    if (subscribeModal?.classList.contains("show") || thanksModal?.classList.contains("show")) {
+      return;
+    }
+    document.body.classList.remove("no-scroll");
+    document.documentElement.classList.remove("no-scroll");
+  };
 
   const closeSubscribeModal = () => {
     if (!subscribeModal) return;
     subscribeModal.classList.remove("show");
+    unlockPage();
+  };
+
+  const closeThanksModal = () => {
+    if (!thanksModal) return;
+    thanksModal.classList.remove("show");
+    unlockPage();
+  };
+
+  const closeAllSubscribeDrawers = () => {
+    subscribeModal?.classList.remove("show");
+    thanksModal?.classList.remove("show");
+    document.documentElement.classList.remove("no-scroll");
     document.body.classList.remove("no-scroll");
   };
 
@@ -22,7 +48,7 @@ export function initFooter(root) {
   root.querySelectorAll(".js-footer-privacy").forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
-      closeSubscribeModal();
+      closeAllSubscribeDrawers();
       root.dispatchEvent(new CustomEvent("racelia:open-privacy"));
     });
   });
@@ -30,7 +56,7 @@ export function initFooter(root) {
   root.querySelectorAll(".js-footer-terms").forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
-      closeSubscribeModal();
+      closeAllSubscribeDrawers();
       root.dispatchEvent(new CustomEvent("racelia:open-terms"));
     });
   });
@@ -136,12 +162,22 @@ export function initFooter(root) {
   const openBtn = root.querySelector("#openSubscribe");
   const closeBtn = root.querySelector("#closeSubscribe");
   const form = root.querySelector("#subscribeForm");
+  const closeThanksBtn = root.querySelector("#closeSubscribeThanks");
 
   if (!modal || !openBtn || !closeBtn || !form) return;
 
   const openModal = () => {
+    thanksModal?.classList.remove("show");
     modal.classList.add("show");
-    document.body.classList.add("no-scroll");
+    modal.querySelector(".subscribe-modal-scroll")?.scrollTo(0, 0);
+    lockPage();
+  };
+
+  const openThanksModal = () => {
+    subscribeModal?.classList.remove("show");
+    if (!thanksModal) return;
+    thanksModal.classList.add("show");
+    lockPage();
   };
 
   openBtn.addEventListener("click", openModal);
@@ -149,17 +185,25 @@ export function initFooter(root) {
   modal.addEventListener("click", (event) => {
     if (event.target === modal) closeSubscribeModal();
   });
+  closeThanksBtn?.addEventListener("click", closeThanksModal);
+  thanksModal?.addEventListener("click", (event) => {
+    if (event.target === thanksModal) closeThanksModal();
+  });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && modal.classList.contains("show")) {
-      closeSubscribeModal();
+    if (event.key !== "Escape") return;
+    if (thanksModal?.classList.contains("show")) {
+      closeThanksModal();
+      return;
     }
+    if (modal.classList.contains("show")) closeSubscribeModal();
   });
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     const lastName = form.querySelector("#lastName")?.value.trim() ?? "";
     const email = form.querySelector("#email")?.value.trim() ?? "";
+    const submitBtn = form.querySelector('button[type="submit"]');
 
     if (!lastName || !email) {
       setFormStatus(form, "Tous les champs sont obligatoires.");
@@ -172,9 +216,17 @@ export function initFooter(root) {
       newsletter: true,
       source: "newsletter",
     };
-    upsertCollectedEmail(payload);
-    await syncCollectedEmail(payload);
-    setFormStatus(form, "Merci pour votre inscription.", "ok");
-    form.reset();
+    setFormStatus(form, "");
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      upsertCollectedEmail(payload);
+      await syncCollectedEmail(payload);
+      form.reset();
+      openThanksModal();
+    } catch (error) {
+      setFormStatus(form, error.message || "Inscription impossible.");
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
   });
 }

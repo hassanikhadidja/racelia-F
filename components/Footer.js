@@ -135,32 +135,48 @@ export function createFooter() {
   subscribeOverlay.innerHTML = `
     <div class="subscribe-modal">
       <button class="subscribe-modal-close" id="closeSubscribe" type="button" aria-label="Fermer"></button>
-      <h2 id="subTitle">S'ABONNER POUR RECEVOIR<br/>LES ACTUALITÉS DE RACÈLIA</h2>
-      <p class="subscribe-modal-intro">
-        Vos informations peuvent être utilisées par RACÈLIA pour personnaliser votre expérience en ligne et dans certaines boutiques RACÈLIA. Vous pouvez vous désabonner à tout moment via le lien de désinscription en bas de chaque e-mail.<br/>
-        Tous les champs sont obligatoires.
-      </p>
-
-      <form id="subscribeForm" novalidate>
-        <div class="field">
-          <label for="lastName">Nom</label>
-          <input type="text" id="lastName" name="lastName" required />
-        </div>
-        <div class="field">
-          <label for="email">E-mail</label>
-          <input type="email" id="email" name="email" required />
-        </div>
-
-        <p class="legal">
-          En cliquant sur « s'abonner », vous acceptez la <a href="#confidentialite" class="js-footer-privacy">Politique de confidentialité</a> et les <a href="#conditions" class="js-footer-terms">Conditions d'utilisation</a> de RACÈLIA. Vous confirmez également avoir l'âge légal pour vous abonner.
+      <div class="subscribe-modal-scroll">
+        <h2 id="subTitle">S'ABONNER POUR RECEVOIR<br/>LES ACTUALITÉS DE RACÈLIA</h2>
+        <p class="subscribe-modal-intro">
+          Vos informations peuvent être utilisées par RACÈLIA pour personnaliser votre expérience en ligne et dans certaines boutiques RACÈLIA. Vous pouvez vous désabonner à tout moment via le lien de désinscription en bas de chaque e-mail.<br/>
+          Tous les champs sont obligatoires.
         </p>
 
-        <button type="submit" class="submit-btn">S'ABONNER</button>
-      </form>
+        <form id="subscribeForm" novalidate>
+          <div class="field">
+            <label for="lastName">Nom</label>
+            <input type="text" id="lastName" name="lastName" required />
+          </div>
+          <div class="field">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" required />
+          </div>
+
+          <p class="legal">
+            En cliquant sur « s'abonner », vous acceptez la <a href="#confidentialite" class="js-footer-privacy">Politique de confidentialité</a> et les <a href="#conditions" class="js-footer-terms">Conditions d'utilisation</a> de RACÈLIA. Vous confirmez également avoir l'âge légal pour vous abonner.
+          </p>
+
+          <button type="submit" class="submit-btn">S'ABONNER</button>
+        </form>
+      </div>
+    </div>
+  `;
+
+  const thanksOverlay = document.createElement("div");
+  thanksOverlay.className = "subscribe-overlay subscribe-thanks-overlay";
+  thanksOverlay.id = "subscribeThanks";
+  thanksOverlay.setAttribute("role", "dialog");
+  thanksOverlay.setAttribute("aria-modal", "true");
+  thanksOverlay.setAttribute("aria-labelledby", "subscribeThanksTitle");
+  thanksOverlay.innerHTML = `
+    <div class="subscribe-thanks">
+      <button class="subscribe-modal-close" id="closeSubscribeThanks" type="button" aria-label="Fermer"></button>
+      <h2 id="subscribeThanksTitle">MERCI</h2>
+      <p>Merci pour votre inscription. Vous recevrez les actualités RACÈLIA.</p>
     </div>
   `;
 
   const fragment = document.createDocumentFragment();
-  fragment.append(footer, subscribeOverlay);
+  fragment.append(footer, subscribeOverlay, thanksOverlay);
   return fragment;
 }

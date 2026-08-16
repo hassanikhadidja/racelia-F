@@ -14,7 +14,9 @@ body {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior-x: none;
+  overscroll-behavior-y: auto;
 }
 
 body {
@@ -1189,6 +1191,10 @@ body.menu-open {
   min-width: 0;
   max-width: 100%;
   box-sizing: border-box;
+}
+
+.menu-list li[hidden] {
+  display: none;
 }
 
 .menu-list li > span:first-child,

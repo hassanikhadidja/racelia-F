@@ -323,6 +323,10 @@ function closeOverlays(root) {
   closeStyleSheet(root);
   closePdpAddedOverlay(root);
   closePdpVirtualTryOn(root);
+  root.querySelector("#subscribeModal")?.classList.remove("show");
+  root.querySelector("#subscribeThanks")?.classList.remove("show");
+  document.documentElement.classList.remove("no-scroll", "style-sheet-locked");
+  document.body.classList.remove("no-scroll", "style-sheet-locked");
 
   const widget = root.querySelector("#selectionWidget");
   if (widget?.classList.contains("modal-animated-container--open")) {

@@ -62,7 +62,7 @@ export const menuItems = [
   { label: "MÉTIERS D'ART", tag: "NOUVEAU", action: "blogs" },
   { label: "SACS", chevron: true, gap: true, submenu: menuHandbagItems },
   { label: "CATALOGUE GROSSISTE", page: "catalogue-grossiste" },
-  { label: "BOUTIQUES", sale: true },
+  { label: "BOUTIQUES", sale: true, action: "boutiques" },
   { label: "TABLEAU DE BORD", muted: true, action: "dashboard" },
 ];
 

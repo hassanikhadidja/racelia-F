@@ -27,6 +27,23 @@ function renderStyleProducts(look) {
     .join("");
 }
 
+function lockStyleSheetPage(root) {
+  const styleView = root.querySelector("#styleView");
+  if (styleView) {
+    styleView.dataset.lockedScrollTop = String(styleView.scrollTop);
+  }
+  document.body.classList.add("style-sheet-locked");
+}
+
+function unlockStyleSheetPage(root) {
+  document.body.classList.remove("style-sheet-locked");
+  document.documentElement.classList.remove("style-sheet-locked");
+  const styleView = root.querySelector("#styleView");
+  if (styleView) {
+    styleView.scrollTop = Number(styleView.dataset.lockedScrollTop || 0);
+  }
+}
+
 function closeStyleSheet(root) {
   const overlay = root.querySelector("#styleSheetOverlay");
   const sheet = root.querySelector("#styleSheet");
@@ -36,7 +53,7 @@ function closeStyleSheet(root) {
   overlay.setAttribute("aria-hidden", "true");
   sheet.classList.remove("open");
   sheet.setAttribute("aria-hidden", "true");
-  document.body.classList.remove("style-sheet-locked");
+  unlockStyleSheetPage(root);
 }
 
 export function refreshStyleGrid(root) {
@@ -89,7 +106,8 @@ export function ensureStyleGrid(root) {
     overlay.setAttribute("aria-hidden", "false");
     sheet.classList.add("open");
     sheet.setAttribute("aria-hidden", "false");
-    document.body.classList.add("style-sheet-locked");
+    sheet.querySelector(".style-sheet-scroll")?.scrollTo(0, 0);
+    lockStyleSheetPage(root);
   };
 
   raceliaLooks.forEach((look, index) => {
@@ -101,7 +119,9 @@ export function ensureStyleGrid(root) {
   });
 
   closeBtn?.addEventListener("click", () => closeStyleSheet(root));
-  overlay.addEventListener("click", () => closeStyleSheet(root));
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) closeStyleSheet(root);
+  });
 
   if (!sheet.dataset.productNavBound) {
     sheet.dataset.productNavBound = "true";

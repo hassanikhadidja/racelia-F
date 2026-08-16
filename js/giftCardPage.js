@@ -3,6 +3,7 @@ import { upsertBagLineItem, refreshShoppingBagTotals } from "./bagHelpers.js";
 import { syncBagCountFromDom } from "./cart.js";
 import { openPdpAddedOverlay } from "./cartAddedOverlay.js";
 import { GIFT_CARD_HERO } from "../components/GiftCardPage.js";
+import { scrollToHeading } from "./scrollToHeading.js";
 
 const PRESETS = {
   DZD: [15000, 30000, 50000, 100000, 250000],
@@ -84,6 +85,10 @@ export function initGiftCardPage(root) {
       btn.classList.toggle("is-done", n < step);
       if (n === step) btn.setAttribute("aria-current", "step");
       else btn.removeAttribute("aria-current");
+    });
+    const stepper = page.querySelector(".gift-card-stepper");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => scrollToHeading(stepper));
     });
   };
 
