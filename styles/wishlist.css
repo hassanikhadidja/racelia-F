@@ -172,6 +172,14 @@ body.wishlist-active #racelia-app .cta-dock {
   opacity: 0.65;
 }
 
+#wishlistPage .wishlist-unavailable {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #888;
+  align-self: center;
+}
+
 #wishlistPage .wishlist-empty {
   text-align: center;
   padding: 64px 24px 32px;

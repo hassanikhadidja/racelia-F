@@ -346,7 +346,7 @@ body.no-scroll {
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   display: none;
-  z-index: 1000;
+  z-index: 1250;
   align-items: flex-end;
   justify-content: center;
   overscroll-behavior: none;
@@ -411,11 +411,13 @@ body.no-scroll {
   background: none;
   border: none;
   cursor: pointer;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
+  pointer-events: auto;
 }
 
 .subscribe-modal-close::before,
@@ -425,6 +427,7 @@ body.no-scroll {
   width: 22px;
   height: 1.5px;
   background: #000;
+  pointer-events: none;
 }
 
 .subscribe-modal-close::before {
@@ -514,7 +517,7 @@ body.no-scroll {
 }
 
 .subscribe-thanks-overlay {
-  z-index: 1001;
+  z-index: 1251;
 }
 
 .subscribe-thanks {

@@ -1,3 +1,12 @@
+import { setDrawerScrollLock, trapOverlayScroll } from "./overlayScroll.js";
+
+function syncProfileSheetScrollLock(page) {
+  if (!page) return;
+  const open = Boolean(getOpenProfileOverlay(page));
+  page.classList.toggle("profile-sheet-open", open);
+  setDrawerScrollLock(open, "profile-sheet-open");
+}
+
 export function closeProfileSheet(page, overlayId, toggleSelector) {
   const overlay = page.querySelector(`#${overlayId}`);
   if (!overlay) return;
@@ -6,6 +15,7 @@ export function closeProfileSheet(page, overlayId, toggleSelector) {
   if (toggleSelector) {
     page.querySelector(toggleSelector)?.setAttribute("aria-expanded", "false");
   }
+  syncProfileSheetScrollLock(page);
 }
 
 export function openProfileSheet(page, overlayId, toggleSelector) {
@@ -16,6 +26,9 @@ export function openProfileSheet(page, overlayId, toggleSelector) {
   if (toggleSelector) {
     page.querySelector(toggleSelector)?.setAttribute("aria-expanded", "true");
   }
+  trapOverlayScroll(overlay);
+  overlay.querySelector(".profile-sheet-scroll")?.scrollTo(0, 0);
+  syncProfileSheetScrollLock(page);
 }
 
 export function bindProfileSheet(page, { overlayId, toggleSelector, focusSelector, onOpen }) {
@@ -55,6 +68,8 @@ export function bindProfileSheet(page, { overlayId, toggleSelector, focusSelecto
     event.stopPropagation();
   });
 
+  trapOverlayScroll(overlay);
+
   return { open, close, overlay };
 }
 
@@ -89,6 +104,7 @@ export function closeTopProfileOverlay(page) {
   if (edit?.classList.contains("open")) {
     edit.classList.remove("open");
     edit.setAttribute("aria-hidden", "true");
+    syncProfileSheetScrollLock(page);
     return true;
   }
   return false;

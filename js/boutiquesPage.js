@@ -1,4 +1,4 @@
-import { RACELIA_STORES, storeTypeLabel } from "./boutiquesData.js";
+import { loadStores, storeTypeLabel, storeMapUrl, storeMatchesType, storeMatchesQuery, STORE_TYPES } from "./boutiquesData.js";
 
 const LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
 const LEAFLET_JS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
@@ -18,6 +18,30 @@ function escapeHtml(text) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function websiteHref(url) {
+  const value = String(url || "").trim();
+  if (!value) return "";
+  return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+}
+
+function websiteLabel(url) {
+  const href = websiteHref(url);
+  if (!href) return "";
+  try {
+    return new URL(href).hostname.replace(/^www\./, "");
+  } catch {
+    return href.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+  }
+}
+
+function storeHasCoords(store) {
+  return (
+    !store.isOnlineStore &&
+    Number.isFinite(Number(store.lat)) &&
+    Number.isFinite(Number(store.lng))
+  );
 }
 
 function ensureLeaflet() {
@@ -51,37 +75,49 @@ function ensureLeaflet() {
   return window.__raceliaLeafletPromise;
 }
 
-function mapsUrl(store) {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-    `${store.lat},${store.lng}`
-  )}`;
-}
-
 function renderStoreCard(store) {
-  const note = store.note
-    ? `<p class="boutiques-note">${escapeHtml(store.note)}</p>`
+  const location = store.location
+    ? `<div class="boutiques-meta">${PIN_SVG}<span>${escapeHtml(store.location)}</span></div>`
     : "";
+  const phone = store.phone
+    ? `<div class="boutiques-meta">${PHONE_SVG}<a href="tel:${escapeHtml(store.phone.replace(/\s/g, ""))}">${escapeHtml(store.phone)}</a></div>`
+    : "";
+  const typeLabel = storeTypeLabel(store.type);
+  const hoursParts = [store.hours, typeLabel].filter(Boolean);
+  const hours = hoursParts.length
+    ? `<div class="boutiques-meta">${CLOCK_SVG}<span>${escapeHtml(hoursParts.join(" · "))}</span></div>`
+    : "";
+  const siteHref = websiteHref(store.website);
+  const website = siteHref
+    ? `<div class="boutiques-meta">${LINK_SVG}<a class="website-link" href="${escapeHtml(siteHref)}" target="_blank" rel="noopener noreferrer">${escapeHtml(websiteLabel(store.website))}</a></div>`
+    : "";
+  const note = store.note ? `<p class="boutiques-note">${escapeHtml(store.note)}</p>` : "";
+  const mapHref = storeMapUrl(store);
+  const mapBtn =
+    !store.isOnlineStore && mapHref
+      ? `<a class="boutiques-btn-map" href="${escapeHtml(mapHref)}" target="_blank" rel="noopener noreferrer">Voir sur la carte</a>`
+      : "";
+
   return `<article class="boutiques-store-card" data-store-id="${escapeHtml(store.id)}">
     <h2>${escapeHtml(store.name)}</h2>
-    <div class="boutiques-meta">${PIN_SVG}<span>${escapeHtml(store.address)} · ${escapeHtml(store.city)} ${escapeHtml(store.postal)}</span></div>
-    <div class="boutiques-meta">${PHONE_SVG}<a href="tel:${escapeHtml(store.phone.replace(/\s/g, ""))}">${escapeHtml(store.phone)}</a></div>
-    <div class="boutiques-meta">${CLOCK_SVG}<span>${escapeHtml(store.hours)} · ${escapeHtml(storeTypeLabel(store.type))}</span></div>
-    <div class="boutiques-meta">${LINK_SVG}<a class="website-link" href="${escapeHtml(store.website)}" target="_blank" rel="noopener noreferrer">racelia.com</a></div>
+    ${location}
+    ${phone}
+    ${hours}
+    ${website}
     ${note}
-    <a class="boutiques-btn-map" href="${mapsUrl(store)}" target="_blank" rel="noopener noreferrer">Voir sur la carte</a>
+    ${mapBtn}
   </article>`;
 }
 
 function filterStores(query, type) {
-  const q = String(query || "")
-    .trim()
-    .toLowerCase();
-  return RACELIA_STORES.filter((store) => {
-    if (type && store.type !== type) return false;
-    if (!q) return true;
-    const hay = `${store.name} ${store.city} ${store.postal} ${store.address}`.toLowerCase();
-    return hay.includes(q);
-  });
+  return loadStores().filter((store) => storeMatchesType(store, type) && storeMatchesQuery(store, query));
+}
+
+function typeOptionsHtml() {
+  return [
+    `<option value="">Type de magasin</option>`,
+    ...STORE_TYPES.map((t) => `<option value="${t.value}">${t.label}</option>`),
+  ].join("");
 }
 
 export function initBoutiquesPage(root) {
@@ -93,6 +129,14 @@ export function initBoutiquesPage(root) {
   const typeSelect = page.querySelector("#boutiquesTypeSelect");
   const searchBtn = page.querySelector("#boutiquesSearchBtn");
   const mapEl = page.querySelector("#boutiquesMap");
+
+  if (typeSelect) {
+    const current = typeSelect.value;
+    typeSelect.innerHTML = typeOptionsHtml();
+    if ([...typeSelect.options].some((option) => option.value === current)) {
+      typeSelect.value = current;
+    }
+  }
 
   const state = page.__boutiquesState || {
     map: null,
@@ -117,14 +161,15 @@ export function initBoutiquesPage(root) {
   };
 
   const focusStore = (storeId) => {
-    const store = RACELIA_STORES.find((s) => s.id === storeId);
-    if (!store || !state.map) return;
-    state.map.setView([store.lat, store.lng], 14, { animate: true });
-    const marker = state.markerById.get(storeId);
-    marker?.openPopup();
+    const store = loadStores().find((s) => s.id === storeId);
+    if (!store) return;
     listEl?.querySelectorAll(".boutiques-store-card").forEach((card) => {
       card.classList.toggle("is-active", card.dataset.storeId === storeId);
     });
+    if (!state.map || !storeHasCoords(store)) return;
+    state.map.setView([store.lat, store.lng], 14, { animate: true });
+    const marker = state.markerById.get(storeId);
+    marker?.openPopup();
   };
 
   const updateMarkers = (stores) => {
@@ -144,16 +189,17 @@ export function initBoutiquesPage(root) {
       popupAnchor: [0, -32],
     });
 
-    stores.forEach((store) => {
+    const mapped = stores.filter(storeHasCoords);
+    mapped.forEach((store) => {
       const marker = window.L.marker([store.lat, store.lng], { icon: pinIcon })
-        .bindPopup(`<strong>${escapeHtml(store.name)}</strong><br/>${escapeHtml(store.city)}`)
+        .bindPopup(`<strong>${escapeHtml(store.name)}</strong><br/>${escapeHtml(store.location || store.city || "")}`)
         .addTo(state.markersLayer);
       marker.on("click", () => focusStore(store.id));
       state.markerById.set(store.id, marker);
     });
 
-    if (stores.length) {
-      const bounds = window.L.latLngBounds(stores.map((s) => [s.lat, s.lng]));
+    if (mapped.length) {
+      const bounds = window.L.latLngBounds(mapped.map((s) => [s.lat, s.lng]));
       state.map.fitBounds(bounds.pad(0.2));
     }
   };
@@ -174,7 +220,7 @@ export function initBoutiquesPage(root) {
       requestAnimationFrame(() => state.map.invalidateSize());
     } catch {
       if (listEl) {
-        listEl.innerHTML = `<p class="boutiques-empty">Carte indisponible. Voici la liste des boutiques.</p>${RACELIA_STORES.map(renderStoreCard).join("")}`;
+        listEl.innerHTML = `<p class="boutiques-empty">Carte indisponible. Voici la liste des boutiques.</p>${loadStores().map(renderStoreCard).join("")}`;
       }
     }
   };
@@ -183,6 +229,7 @@ export function initBoutiquesPage(root) {
     page.dataset.bound = "true";
 
     searchBtn?.addEventListener("click", runSearch);
+    zipInput?.addEventListener("input", runSearch);
     zipInput?.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         event.preventDefault();

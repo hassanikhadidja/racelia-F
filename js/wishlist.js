@@ -60,9 +60,10 @@ export function initWishlist(root, { onMoveToBag, onOpenBag } = {}) {
       event.preventDefault();
       const item = target.closest(".wishlist-item");
       const productId = item?.dataset.productId;
-      if (productId) moveWishlistItemToBag(root, productId);
-      removeItem(item);
-      onMoveToBag?.();
+      if (productId && moveWishlistItemToBag(root, productId)) {
+        removeItem(item);
+        onMoveToBag?.();
+      }
       return;
     }
 

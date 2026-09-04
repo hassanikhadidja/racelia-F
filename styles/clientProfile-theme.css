@@ -14,13 +14,16 @@
 #clientProfilePage .client-profile-phone-frame {
   width: 100%;
   max-width: 480px;
-  min-height: 100vh;
+  min-height: 100%;
   margin: 0 auto;
   background: #fff;
 }
 
 /* Top bar */
 #clientProfilePage .top-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   background: #fff;
   border-bottom: 1px solid #f0f0f0;
   padding: 16px 20px 12px;
@@ -512,6 +515,7 @@
   align-items: flex-end;
   justify-content: center;
   padding: 0;
+  overscroll-behavior: none;
 }
 
 #clientProfilePage .profile-orders-overlay.open,
@@ -533,6 +537,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  overscroll-behavior: contain;
 }
 
 #clientProfilePage .profile-sheet-header {
@@ -564,15 +569,24 @@
 }
 
 #clientProfilePage .profile-orders-list,
-#clientProfilePage .profile-points-body {
+#clientProfilePage .profile-points-body,
+#clientProfilePage .profile-sheet-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 /* Review form */
 #clientProfilePage .profile-review-form {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   display: flex;
   flex-direction: column;
   gap: 18px;

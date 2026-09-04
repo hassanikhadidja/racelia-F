@@ -1,6 +1,6 @@
 import { getProductDetail } from "../js/productDetailData.js";
 import { getCategoryProductById } from "../js/categoryData.js";
-import { getCatalogProductById } from "../js/productCatalog.js";
+import { getCatalogProductById, isProductUnavailableToBuy, sanitizeColorLabel } from "../js/productCatalog.js";
 import { getPdpImages, getCloserLookForColor } from "../js/productImages.js";
 import { initPdpActionBar, updatePdpActionBar, resetPdpActionBar } from "./pdpActionBar.js";
 import { syncBagCountFromDom } from "./cart.js";
@@ -8,10 +8,19 @@ import {
   refreshShoppingBagTotals,
   upsertBagLineItem,
 } from "./bagHelpers.js";
-import { syncWishlistHeartStates } from "./clientCartWishlist.js";
+import { syncWishlistHeartStates, toggleWishlistProduct, isProductInWishlist } from "./clientCartWishlist.js";
 import { queueClientReviewForModeration } from "./dashboardReviewsData.js";
 import { openPdpAddedOverlay } from "./cartAddedOverlay.js";
 import { setFormStatus } from "./formStatus.js";
+import { setDrawerScrollLock, trapOverlayScroll } from "./overlayScroll.js";
+
+function escapeHtml(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
 
 function starsHtml(count) {
   const n = Math.max(0, Math.min(5, Math.round(Number(count) || 0)));
@@ -106,6 +115,7 @@ function applyPdpColorImages(root, colorIndex = 0) {
   });
 
   initProductDetailSlider(root);
+  updatePdpSelectedColorName(page);
 }
 
 function getPdpReviewOverlayHtml(productName) {
@@ -128,7 +138,7 @@ function getPdpReviewOverlayHtml(productName) {
               ${[1, 2, 3, 4, 5]
                 .map(
                   (n) =>
-                    `<button type="button" class="pdp-review-star" data-star="${n}" aria-label="${n} étoile${n > 1 ? "s" : ""}">★</button>`
+                    `<button type="button" class="pdp-review-star is-active${n === 5 ? " is-selected" : ""}" data-star="${n}" aria-label="${n} étoile${n > 1 ? "s" : ""}" aria-pressed="${n === 5 ? "true" : "false"}">★</button>`
                 )
                 .join("")}
             </div>
@@ -154,18 +164,35 @@ function bindPdpReviewOverlay(root) {
     overlay = page.querySelector("#pdpReviewOverlay");
   }
 
+  const starsWrap = page.querySelector("#pdp-review-stars");
+  let selectedStars = 5;
+
+  const setStars = (value) => {
+    selectedStars = Number(value) || 5;
+    starsWrap?.querySelectorAll(".pdp-review-star").forEach((star) => {
+      const n = Number(star.dataset.star);
+      star.classList.toggle("is-active", n <= selectedStars);
+      star.classList.toggle("is-selected", n === selectedStars);
+      star.setAttribute("aria-pressed", String(n === selectedStars));
+    });
+  };
+
   const open = () => {
     const productId = page.dataset.activeProductId;
     const product = productId ? getProductDetail(productId) : null;
     const nameInput = page.querySelector("#pdp-review-product-name");
     if (nameInput && product) nameInput.value = product.name;
+    setStars(5);
     overlay?.classList.add("open");
     overlay?.setAttribute("aria-hidden", "false");
+    overlay?.querySelector(".pdp-review-sheet")?.scrollTo(0, 0);
+    setDrawerScrollLock(true, "pdp-review-open");
   };
 
   const close = () => {
     overlay?.classList.remove("open");
     overlay?.setAttribute("aria-hidden", "true");
+    setDrawerScrollLock(false, "pdp-review-open");
   };
 
   page.addEventListener("click", (event) => {
@@ -179,17 +206,11 @@ function bindPdpReviewOverlay(root) {
     }
   });
 
-  const starsWrap = page.querySelector("#pdp-review-stars");
-  let selectedStars = 5;
   starsWrap?.querySelectorAll(".pdp-review-star").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      selectedStars = Number(btn.dataset.star) || 5;
-      starsWrap.querySelectorAll(".pdp-review-star").forEach((star) => {
-        star.classList.toggle("is-active", Number(star.dataset.star) <= selectedStars);
-      });
-    });
+    btn.addEventListener("click", () => setStars(Number(btn.dataset.star) || 5));
   });
-  starsWrap?.querySelector('[data-star="5"]')?.classList.add("is-active");
+  setStars(5);
+  trapOverlayScroll(overlay);
 
   page.querySelector("#pdpReviewForm")?.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -217,10 +238,18 @@ function bindPdpReviewOverlay(root) {
     queueClientReviewForModeration(review);
     setFormStatus(event.target, "Merci. Votre avis a été envoyé pour validation.", "ok");
     event.target.reset();
+    setStars(5);
     close();
   });
 
   page.dataset.reviewBound = "true";
+}
+
+export function closePdpReviewOverlay(root) {
+  const overlay = root.querySelector("#pdpReviewOverlay");
+  overlay?.classList.remove("open");
+  overlay?.setAttribute("aria-hidden", "true");
+  setDrawerScrollLock(false, "pdp-review-open");
 }
 
 function renderCloserLookExtras(extras, productName) {
@@ -246,7 +275,10 @@ export function openPdpVirtualTryOn(root) {
   const heroImg = page.querySelector("#pdpSlides img");
   const productTitle = page.querySelector(".pdp-title")?.textContent?.trim() || "Sac RACÈLIA";
   const activeSwatch = page.querySelector(".pdp-swatch.is-active");
-  const colorLabel = activeSwatch?.getAttribute("aria-label") || activeSwatch?.dataset.color || "Couleur sélectionnée";
+  const colorLabel =
+    sanitizeColorLabel(activeSwatch?.dataset.color) ||
+    sanitizeColorLabel(activeSwatch?.getAttribute("aria-label")) ||
+    "Couleur sélectionnée";
 
   img.src = heroImg?.getAttribute("src") || "";
   img.alt = `${productTitle} — aperçu essayage virtuel`;
@@ -417,11 +449,15 @@ function renderCommentsSection(product) {
 
 export function renderProductDetail(product) {
   const swatches = product.swatches
-    .map(
-      (swatch, index) =>
-        `<button type="button" class="pdp-swatch${swatch.active || index === 0 ? " is-active" : ""}" style="background:${swatch.style}" data-color="${swatch.label}" data-color-index="${swatch.index ?? index}" aria-label="${swatch.label}"></button>`
-    )
+    .map((swatch, index) => {
+      const name = sanitizeColorLabel(swatch.label);
+      const aria = name || "Option de couleur";
+      return `<button type="button" class="pdp-swatch${swatch.active || index === 0 ? " is-active" : ""}" style="background:${swatch.style}" data-color="${escapeHtml(name)}" data-color-index="${swatch.index ?? index}" aria-label="${escapeHtml(aria)}"></button>`;
+    })
     .join("");
+  const initialColorName = sanitizeColorLabel(
+    product.swatches.find((swatch) => swatch.active)?.label || product.swatches[0]?.label || ""
+  );
 
   const images = product.images
     .map((src) => `<img src="${src}" alt="${product.name}" loading="lazy" onerror="this.style.visibility='hidden'" />`)
@@ -451,6 +487,7 @@ export function renderProductDetail(product) {
     : "";
 
   const reviewScore = product.reviews?.score || "0";
+  const unavailable = isProductUnavailableToBuy(product);
 
   return `
     <section class="pdp-hero" id="pdpHero">
@@ -466,16 +503,25 @@ export function renderProductDetail(product) {
         <h1 class="pdp-title">${product.name}</h1>
         <div class="pdp-price" data-price-eur="${product.priceEur ?? ""}">${product.price}</div>
         <div class="pdp-swatches">${swatches}</div>
+        <p class="pdp-color-name" id="pdpColorName"${initialColorName ? "" : " hidden"}>${escapeHtml(initialColorName)}</p>
       </div>
 
       <div class="pdp-action-bar-wrap" id="pdpActionBarWrap">
         <div class="pdp-action-bar" id="pdpActionBar">
-          <div class="pdp-qty" id="pdpQtyBtn">
+          ${
+            unavailable
+              ? ""
+              : `<div class="pdp-qty" id="pdpQtyBtn">
             <button type="button" class="pdp-qty__btn" id="pdpQtyMinus" aria-label="Diminuer la quantité">−</button>
             <span id="pdpQtyNum">1</span>
             <button type="button" class="pdp-qty__btn" id="pdpQtyPlus" aria-label="Augmenter la quantité">+</button>
-          </div>
-          <button class="pdp-add-btn" id="pdpAddBtn" type="button">AJOUTER LE PRODUIT</button>
+          </div>`
+          }
+          ${
+            unavailable
+              ? `<button class="pdp-add-btn pdp-add-btn--wishlist" id="pdpWishlistBtn" type="button">AJOUTER À LA LISTE D'ENVIES</button>`
+              : `<button class="pdp-add-btn" id="pdpAddBtn" type="button">AJOUTER LE PRODUIT</button>`
+          }
           <button type="button" class="pdp-comments-btn" id="pdpCommentsBtn" aria-label="Voir la note et les avis">
             ${rateStarIcon()}
             <span class="pdp-comments-btn__score">${reviewScore}</span>
@@ -526,6 +572,7 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
     if (swatch) {
       page.querySelectorAll(".pdp-swatch").forEach((item) => item.classList.remove("is-active"));
       swatch.classList.add("is-active");
+      updatePdpSelectedColorName(page);
       applyPdpColorImages(root, Number(swatch.dataset.colorIndex || 0));
       return;
     }
@@ -602,9 +649,20 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
       return;
     }
 
+    if (event.target.closest("#pdpWishlistBtn")) {
+      toggleWishlistProduct(root, event.target.closest("#pdpWishlistBtn"));
+      const btn = page.querySelector("#pdpWishlistBtn");
+      if (btn) {
+        btn.textContent = btn.classList.contains("active")
+          ? "DANS LA LISTE D'ENVIES"
+          : "AJOUTER À LA LISTE D'ENVIES";
+      }
+      return;
+    }
+
     if (event.target.closest("#pdpAddBtn")) {
       const quantity = getPdpQuantity(root);
-      syncPdpToBag(root, quantity, "add");
+      if (!syncPdpToBag(root, quantity, "add")) return;
       syncBagCountFromDom(root);
       refreshShoppingBagTotals(root);
       openPdpAddedOverlay(root, quantity);
@@ -664,12 +722,17 @@ function createAlsoLikeCard(product) {
   card.className = "pdp-like-card js-product-open";
   card.dataset.productId = product.id;
   const image = product.images?.[0] || "";
+  const unavailable = isProductUnavailableToBuy(product);
   card.innerHTML = `
     <div class="pdp-like-card__media">
       <img src="${image}" alt="${product.name}" loading="lazy" onerror="this.style.visibility='hidden'" />
-      <button type="button" class="pdp-like-card__add" aria-label="Ajouter ${product.name} au panier">
+      ${
+        unavailable
+          ? ""
+          : `<button type="button" class="pdp-like-card__add" aria-label="Ajouter ${product.name} au panier">
         ${bagPlusIcon()}
-      </button>
+      </button>`
+      }
     </div>
     <h3 class="pdp-like-card__name">${product.name}</h3>
     <p class="pdp-like-card__price" data-price-eur="${product.priceEur ?? ""}">${product.price}</p>
@@ -694,7 +757,7 @@ function mountRelatedProducts(root, product) {
       const card = btn.closest(".pdp-like-card");
       const productId = card?.dataset.productId;
       const detail = productId ? getProductDetail(productId) : null;
-      if (!detail) return;
+      if (!detail || isProductUnavailableToBuy(detail)) return;
       upsertBagLineItem(root, {
         productId: detail.id,
         name: detail.name,
@@ -711,10 +774,26 @@ function mountRelatedProducts(root, product) {
   });
 }
 
+function updatePdpSelectedColorName(page) {
+  const nameEl = page?.querySelector("#pdpColorName");
+  const activeSwatch = page?.querySelector(".pdp-swatch.is-active");
+  const label =
+    sanitizeColorLabel(activeSwatch?.dataset.color) ||
+    sanitizeColorLabel(activeSwatch?.getAttribute("aria-label"));
+  if (!nameEl) return;
+  nameEl.textContent = label;
+  nameEl.hidden = !label;
+}
+
 function getPdpColorLabel(root) {
   const page = root.querySelector("#productDetailPage");
+  const fromName = sanitizeColorLabel(page?.querySelector("#pdpColorName")?.textContent);
+  if (fromName) return fromName;
   const activeSwatch = page?.querySelector(".pdp-swatch.is-active");
-  return activeSwatch?.getAttribute("aria-label") || activeSwatch?.dataset.color || "";
+  return (
+    sanitizeColorLabel(activeSwatch?.dataset.color) ||
+    sanitizeColorLabel(activeSwatch?.getAttribute("aria-label"))
+  );
 }
 
 function getPdpQuantity(root) {
@@ -760,5 +839,10 @@ export function mountProductDetail(root, productId) {
   mountRelatedProducts(root, product);
   updatePdpActionBar(root);
   syncWishlistHeartStates(root);
+  const wishlistBtn = root.querySelector("#pdpWishlistBtn");
+  if (wishlistBtn && isProductInWishlist(product.id)) {
+    wishlistBtn.classList.add("active");
+    wishlistBtn.textContent = "DANS LA LISTE D'ENVIES";
+  }
   return true;
 }

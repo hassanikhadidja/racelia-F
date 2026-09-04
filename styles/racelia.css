@@ -265,6 +265,7 @@ button {
   color: inherit;
   text-decoration: none;
   cursor: pointer;
+  transform: translateX(-20px);
 }
 
 .brand img {
@@ -674,11 +675,14 @@ button {
   border-right: 1.5px solid #fff;
   border-bottom: 1.5px solid #fff;
   transform: translateY(-50%) rotate(45deg);
-  transition: transform 0.3s ease;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
 }
 
 .modal-animated-container--open .bottom-cta__view .chev {
-  transform: translateY(-50%) rotate(-135deg);
+  opacity: 0;
+  visibility: hidden;
 }
 
 .modal-animated-container {
@@ -1242,7 +1246,7 @@ body.menu-open {
 }
 
 .menu-list__group.is-open .chev {
-  transform: rotate(135deg);
+  transform: rotate(90deg);
 }
 
 .menu-list__sub li {
@@ -1286,12 +1290,21 @@ body.menu-open {
 }
 
 .menu-list .chev {
-  width: 8px;
-  height: 8px;
-  border-right: 1.5px solid #000;
-  border-top: 1.5px solid #000;
-  transform: rotate(45deg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
   flex-shrink: 0;
+  color: #000;
+  transform: none;
+  transition: transform 0.25s ease;
+}
+
+.menu-list .chev svg {
+  display: block;
+  width: 14px;
+  height: 14px;
 }
 
 @media (max-width: 380px) {

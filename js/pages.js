@@ -1,4 +1,5 @@
 import { categoryPages, getCategoryProductsForSection } from "./categoryData.js";
+import { getSelectedFilterEntries, productMatchesFilters } from "./categoryFilters.js";
 import { getCatalogProductById } from "./productCatalog.js";
 import { getCardImages } from "./productImages.js";
 import { defaultSelection } from "./data.js";
@@ -9,7 +10,8 @@ import { initProductSliders } from "./productSliders.js";
 import { updateTopbar } from "./topbar.js";
 import { getAuthToken, isAdminUser } from "./api.js";
 import { updateAccountButtons } from "./accountUi.js";
-import { initProductDetailPage, mountProductDetail, closePdpVirtualTryOn } from "./productDetail.js";
+import { initProductDetailPage, mountProductDetail, closePdpVirtualTryOn, closePdpReviewOverlay } from "./productDetail.js";
+import { closeTopProfileOverlay } from "./clientProfileSheets.js";
 import { initCartAddedOverlay, closePdpAddedOverlay } from "./cartAddedOverlay.js";
 import { initDashboard } from "./dashboard.js";
 import { initClientProfile } from "./clientProfile.js";
@@ -19,6 +21,7 @@ import { initCheckout } from "./checkout.js";
 import { collectBagItems } from "./bagHelpers.js";
 import { syncWishlistHeartStates } from "./clientCartWishlist.js";
 import { parseRoute, writeRoute, isValidProductRoute, shouldIgnoreHashChange, goBackInApp, beginRouteRestore, endRouteRestore } from "./route.js";
+import { refreshDisplayedPrices } from "./currency.js";
 import { renderHomeNewArrivals } from "./homeNewArrivals.js";
 import {
   initBlogsPage,
@@ -30,7 +33,7 @@ import { initPrivacyPage } from "./privacyPage.js";
 import { initTermsPage } from "./termsPage.js";
 import { scrollToHeading } from "./scrollToHeading.js";
 import { initBoutiquesPage } from "./boutiquesPage.js";
-import { initFaqPage } from "./faqPage.js";
+import { initFaqPage, faqStateToRoute } from "./faqPage.js";
 import { initReturnsPage } from "./returnsPage.js";
 import { initGiftCardPage } from "./giftCardPage.js";
 import { initContactPage } from "./contactPage.js";
@@ -123,7 +126,7 @@ function syncRoute() {
   }
 
   if (currentPage === "faq") {
-    writeRoute({ view: "faq" });
+    writeRoute(faqStateToRoute(document.querySelector("#faqPage")?.__faqState));
     return;
   }
 
@@ -234,7 +237,7 @@ export function restoreRouteFromUrl(root) {
     }
 
     if (route.view === "faq") {
-      showFaq(root);
+      showFaq(root, route);
       return;
     }
 
@@ -323,10 +326,22 @@ function closeOverlays(root) {
   closeStyleSheet(root);
   closePdpAddedOverlay(root);
   closePdpVirtualTryOn(root);
+  closePdpReviewOverlay(root);
   root.querySelector("#subscribeModal")?.classList.remove("show");
   root.querySelector("#subscribeThanks")?.classList.remove("show");
-  document.documentElement.classList.remove("no-scroll", "style-sheet-locked");
-  document.body.classList.remove("no-scroll", "style-sheet-locked");
+  document.documentElement.classList.remove(
+    "no-scroll",
+    "style-sheet-locked",
+    "pdp-review-open",
+    "profile-sheet-open"
+  );
+  document.body.classList.remove(
+    "no-scroll",
+    "style-sheet-locked",
+    "pdp-review-open",
+    "profile-sheet-open"
+  );
+  root.querySelector("#clientProfilePage")?.classList.remove("profile-sheet-open");
 
   const widget = root.querySelector("#selectionWidget");
   if (widget?.classList.contains("modal-animated-container--open")) {
@@ -359,16 +374,7 @@ function setSelectionLabel(root, label) {
 }
 
 function getSelectedFilterLabels(filter) {
-  return [...filter.querySelectorAll('input[type="checkbox"]:checked')].map((input) => {
-    const row = input.closest(".category-page__check-row");
-    return row?.querySelector("span:last-child")?.textContent?.trim() || "";
-  }).filter(Boolean);
-}
-
-function productMatchesFilters(product, selectedFilters) {
-  if (!selectedFilters.length) return true;
-  if (!product.filters?.length) return false;
-  return selectedFilters.some((label) => product.filters.includes(label));
+  return getSelectedFilterEntries(filter);
 }
 
 function renderCategoryProducts(root, pageKey, selectedFilters = activeCategoryFilters) {
@@ -697,9 +703,15 @@ export function leaveClientProfile(root) {
 
   const page = root.querySelector("#clientProfilePage");
   if (page) {
+    while (closeTopProfileOverlay(page)) {
+      /* close stacked profile drawers */
+    }
+    page.classList.remove("profile-sheet-open");
     page.hidden = true;
     page.setAttribute("hidden", "");
   }
+  document.documentElement.classList.remove("profile-sheet-open");
+  document.body.classList.remove("profile-sheet-open");
 
   if (currentPage === "home" || !currentPage) {
     showHome(root);
@@ -833,8 +845,8 @@ export function leaveCheckout(root) {
 const HOME_GRID_SECTION_ID = "newArrivalsSection";
 const TOPBAR_SCROLL_OFFSET = 56;
 
-export function scrollToHomeProductGrid(root) {
-  const section = root.querySelector(`#${HOME_GRID_SECTION_ID}`);
+export function scrollToHomeSection(root, sectionId) {
+  const section = root.querySelector(`#${sectionId}`);
   if (!section) return;
 
   const top = section.getBoundingClientRect().top + window.scrollY - TOPBAR_SCROLL_OFFSET;
@@ -844,7 +856,11 @@ export function scrollToHomeProductGrid(root) {
   });
 }
 
-export function showHome(root, { selectionLabel = defaultSelection, scrollToGrid = false } = {}) {
+export function scrollToHomeProductGrid(root) {
+  scrollToHomeSection(root, HOME_GRID_SECTION_ID);
+}
+
+export function showHome(root, { selectionLabel = defaultSelection, scrollToGrid = false, scrollToSection = null } = {}) {
   setOverlayShellActive(false);
   currentPage = "home";
   currentProductId = null;
@@ -863,8 +879,9 @@ export function showHome(root, { selectionLabel = defaultSelection, scrollToGrid
     root.dispatchEvent(new CustomEvent("racelia:reveal"));
   });
 
-  if (scrollToGrid) {
-    requestAnimationFrame(() => scrollToHomeProductGrid(root));
+  const sectionId = scrollToSection || (scrollToGrid ? HOME_GRID_SECTION_ID : null);
+  if (sectionId) {
+    requestAnimationFrame(() => scrollToHomeSection(root, sectionId));
   } else {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -1015,21 +1032,26 @@ export function showBoutiques(root, { query = "" } = {}) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-export function showFaq(root) {
-  setOverlayShellActive(false);
-  currentPage = "faq";
-  currentProductId = null;
-  currentBlogId = null;
-
-  hideAllPages(root);
+export function showFaq(root, route = { faqView: "home" }) {
   const faqPage = root.querySelector("#faqPage");
-  if (faqPage) faqPage.hidden = false;
+  const alreadyOnFaq = currentPage === "faq" && faqPage && !faqPage.hidden;
 
-  closeOverlays(root);
-  attachSelectionWidget(root);
-  updateCtaDock(root);
-  updateTopbar(root);
-  initFaqPage(root);
+  if (!alreadyOnFaq) {
+    setOverlayShellActive(false);
+    currentPage = "faq";
+    currentProductId = null;
+    currentBlogId = null;
+
+    hideAllPages(root);
+    if (faqPage) faqPage.hidden = false;
+
+    closeOverlays(root);
+    attachSelectionWidget(root);
+    updateCtaDock(root);
+    updateTopbar(root);
+  }
+
+  initFaqPage(root, route);
   syncRoute();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1214,6 +1236,11 @@ export function restoreView(root) {
     return;
   }
 
+  if (currentPage === "faq") {
+    showFaq(root, faqStateToRoute(root.querySelector("#faqPage")?.__faqState));
+    return;
+  }
+
   if (currentPage === "home") {
     showHome(root);
     return;
@@ -1268,6 +1295,13 @@ export function initPages(root) {
     if (productId) showProductDetail(root, productId);
   });
   root.addEventListener("racelia:open-blogs", () => showBlogs(root));
+  root.addEventListener("racelia:open-home-section", (event) => {
+    showHome(root, { scrollToSection: event.detail?.sectionId || null });
+  });
+  root.addEventListener("racelia:open-category", (event) => {
+    const categoryKey = event.detail?.categoryKey;
+    if (categoryKey) showCategory(root, categoryKey);
+  });
   root.addEventListener("racelia:open-privacy", () => showPrivacy(root));
   root.addEventListener("racelia:open-terms", (event) => {
     showTerms(root, { headingId: event.detail?.headingId });
@@ -1283,6 +1317,9 @@ export function initPages(root) {
   root.addEventListener("racelia:open-blog", (event) => {
     const blogId = event.detail?.blogId;
     if (blogId) showBlogArticle(root, blogId);
+  });
+  root.addEventListener("racelia:boutiques-updated", () => {
+    if (currentPage === "boutiques") initBoutiquesPage(root);
   });
   root.addEventListener("racelia:catalog-updated", () => {
     renderHomeNewArrivals(root);
@@ -1310,6 +1347,7 @@ export function initPages(root) {
     if (currentPage === "product" && currentProductId) {
       mountProductDetail(root, currentProductId);
     }
+    refreshDisplayedPrices(root);
   });
 
   window.addEventListener("hashchange", () => {

@@ -12,7 +12,7 @@ function searchWrapHtml(inputId) {
 }
 
 function breadcrumbHomeHtml() {
-  return `<button type="button" class="faq-breadcrumb__home js-faq-home" aria-label="Accueil FAQ">${HOME_ICON}</button>`;
+  return `<button type="button" class="faq-breadcrumb__home js-faq-home" aria-label="Retour">${HOME_ICON}</button>`;
 }
 
 export function createFaqPage() {

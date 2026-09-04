@@ -1,4 +1,4 @@
-import { wishlistIcon, accountIcon, closeIcon, searchIcon } from "./icons.js";
+import { wishlistIcon, accountIcon, closeIcon, searchIcon, chevronIcon } from "./icons.js";
 import { menuItems } from "../js/data.js";
 import { createRaceliaStyleView } from "./RaceliaStyleView.js";
 
@@ -103,6 +103,7 @@ export function createMenuPanel() {
       const chev = document.createElement("span");
       chev.className = "chev";
       chev.setAttribute("aria-hidden", "true");
+      chev.innerHTML = chevronIcon;
       row.appendChild(chev);
 
       const sub = document.createElement("ul");
@@ -130,6 +131,8 @@ export function createMenuPanel() {
       } else if (item.chevron) {
         const chev = document.createElement("span");
         chev.className = "chev";
+        chev.setAttribute("aria-hidden", "true");
+        chev.innerHTML = chevronIcon;
         li.appendChild(chev);
       }
     }

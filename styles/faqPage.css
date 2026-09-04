@@ -3,8 +3,13 @@
   color: #111;
   font-family: Georgia, "Times New Roman", serif;
   -webkit-font-smoothing: antialiased;
-  min-height: calc(100vh - 120px);
-  min-height: calc(100dvh - 120px);
+}
+
+@media (min-width: 1024px) {
+  .faq-page {
+    min-height: calc(100vh - 120px);
+    min-height: calc(100dvh - 120px);
+  }
 }
 
 .faq-page__inner {
@@ -320,6 +325,13 @@
   text-align: center;
   color: #aaa;
   font-size: 15px;
+}
+
+@media (max-width: 1023px) {
+  .faq-page .cta-dock {
+    min-height: 0;
+    padding: 8px 0 12px;
+  }
 }
 
 @media (min-width: 1024px) {

@@ -3,7 +3,7 @@ import {
   parsePrice,
   parsePriceFromCatalog,
 } from "./currency.js";
-import { getCatalogProductById } from "./productCatalog.js";
+import { getCatalogProductById, isProductUnavailableToBuy, sanitizeColorLabel, colorVariantDisplayName } from "./productCatalog.js";
 import {
   getAppliedLoyaltyPromo,
   computeLoyaltyDiscount,
@@ -42,13 +42,16 @@ export function upsertBagLineItem(root, { productId, name, price, priceEur, colo
   const bagPage = root.querySelector("#shoppingBagPage");
   const bagItems = bagPage?.querySelector(".bag-items");
   if (!bagItems || !productId) return false;
+  if (!isEgiftProduct(productId) && isProductUnavailableToBuy(getCatalogProductById(productId))) {
+    return false;
+  }
 
   const itemId = `item-pdp-${productId}`;
   const safeId = itemId.replace(/[^\w-]/g, "-");
   const amount =
     priceEur != null ? Number(priceEur) : parsePriceFromCatalog(price);
   const priceText = formatPrice(amount);
-  const colorLabel = String(color || "").trim();
+  const colorLabel = sanitizeColorLabel(color);
   const colorText = colorLabel
     ? isEgiftProduct(productId)
       ? /^Pour\s*:/i.test(colorLabel)
@@ -128,11 +131,12 @@ export function addCategoryCardToBag(root, card, { qty = 1, mode = "add" } = {})
   const images = (card.dataset.images || "").split("|").filter(Boolean);
   const selectedSwatch = card.querySelector(".category-product__swatch.is-selected");
   const colorIndex = Number(selectedSwatch?.dataset.colorIndex ?? 0);
-  const swatchLabel = selectedSwatch?.getAttribute("aria-label") || "";
   const color =
-    swatchLabel && swatchLabel !== "Color option"
-      ? swatchLabel
-      : catalog?.swatches?.[colorIndex]?.label || "";
+    sanitizeColorLabel(selectedSwatch?.getAttribute("aria-label")) ||
+    colorVariantDisplayName(
+      catalog?.colorVariants?.[colorIndex] || { hex: catalog?.colors?.[colorIndex] },
+      colorIndex
+    );
   const imageUrl = images[colorIndex] || images[0] || catalog?.images?.[0] || "";
 
   return upsertBagLineItem(root, {
@@ -176,6 +180,7 @@ export function collectBagItems(root) {
       giftSender: el.dataset.giftSender || "",
       giftRecipient: el.dataset.giftRecipient || "",
       giftEmail: el.dataset.giftEmail || "",
+      giftPhone: el.dataset.giftPhone || "",
       giftMessage: el.dataset.giftMessage || "",
     };
   });

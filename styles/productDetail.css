@@ -147,6 +147,14 @@
   box-shadow: none;
 }
 
+.pdp-color-name {
+  margin: 8px 0 0;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: #444;
+  min-height: 1.2em;
+}
+
 .pdp-sheet {
   position: relative;
   z-index: 3;
@@ -1013,11 +1021,12 @@ body.pdp-vto-open .pdp-action-bar.is-docked {
 .pdp-review-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1200;
+  z-index: 1280;
   display: none;
   align-items: flex-end;
   justify-content: center;
   background: rgba(0, 0, 0, 0.45);
+  overscroll-behavior: none;
 }
 
 .pdp-review-overlay.open {
@@ -1028,9 +1037,25 @@ body.pdp-vto-open .pdp-action-bar.is-docked {
   width: min(100%, 480px);
   max-height: 90vh;
   overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   background: #fff;
   border-radius: 16px 16px 0 0;
   padding: 20px;
+}
+
+html.pdp-review-open,
+body.pdp-review-open {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body.pdp-review-open .modal-animated-container,
+body.pdp-review-open .pdp-action-bar.is-fixed,
+body.pdp-review-open .pdp-action-bar.is-docked {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .pdp-review-sheet__head {
@@ -1203,6 +1228,10 @@ body.pdp-vto-open .pdp-action-bar.is-docked {
   padding: 6px 2px;
 }
 
+.pdp-color-name {
+  text-align: left;
+}
+
 .pdp-action-bar-wrap {
   padding: 18px 16px 8px;
 }
@@ -1369,8 +1398,15 @@ body.pdp-vto-open .pdp-action-bar.is-docked {
   opacity: 1 !important;
 }
 
-.pdp-add-btn svg {
-  display: none !important;
+.pdp-add-btn--wishlist {
+  background: #fff !important;
+  color: #111 !important;
+  border-color: #111 !important;
+}
+
+.pdp-add-btn--wishlist.active {
+  background: #111 !important;
+  color: #fff !important;
 }
 
 .pdp-buy-btn {

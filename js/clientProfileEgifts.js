@@ -62,6 +62,7 @@ export function recordPurchasedEgifts(items = [], meta = {}) {
       recipient,
       sender: item.giftSender || "",
       email: item.giftEmail || "",
+      phone: item.giftPhone || "",
       amountEur: Number(item.unitPrice || item.price || 0),
       paid: Boolean(meta.paid),
       paymentMode: meta.paymentMode || "",
@@ -86,6 +87,7 @@ function egiftsFromOrders(orders = loadClientOrders()) {
         recipient,
         sender: item.giftSender || "",
         email: item.giftEmail || "",
+        phone: item.giftPhone || "",
         amountEur: Number(item.price || item.unitPrice || 0),
         paid: isPaidOrder(order),
         paymentMode: order.paymentMode || "",
@@ -154,7 +156,7 @@ export function getProfileEgiftsOverlayMarkup() {
       <h3 id="profile-egifts-title">Mes cartes cadeaux</h3>
       <button type="button" class="profile-sheet-close" data-close="profile-egifts-overlay">Fermer</button>
     </div>
-    <div class="profile-orders-list" id="profile-egifts-list">
+    <div class="profile-orders-list profile-sheet-scroll" id="profile-egifts-list">
       ${renderPurchasedEgiftsList()}
     </div>
   </div>

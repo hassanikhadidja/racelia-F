@@ -1,5 +1,5 @@
 import { getAuthToken, getStoredUser } from "./api.js";
-import { getCatalogProductById } from "./productCatalog.js";
+import { getCatalogProductById, isProductUnavailableToBuy, sanitizeColorLabel, colorVariantDisplayName } from "./productCatalog.js";
 import { getProductDetail } from "./productDetailData.js";
 import { formatPrice, parsePriceFromCatalog, upsertBagLineItem, refreshShoppingBagTotals } from "./bagHelpers.js";
 import { syncBagCountFromDom } from "./cart.js";
@@ -76,11 +76,13 @@ function extractProductFromCard(card) {
   const images = (card.dataset.images || "").split("|").filter(Boolean);
   const selectedSwatch = card.querySelector(".category-product__swatch.is-selected");
   const colorIndex = Number(selectedSwatch?.dataset.colorIndex ?? 0);
-  const swatchLabel = selectedSwatch?.getAttribute("aria-label") || "";
+  const swatchLabel = sanitizeColorLabel(selectedSwatch?.getAttribute("aria-label"));
   const color =
-    swatchLabel && swatchLabel !== "Color option"
-      ? swatchLabel
-      : catalog?.swatches?.[colorIndex]?.label || "";
+    swatchLabel ||
+    colorVariantDisplayName(
+      catalog?.colorVariants?.[colorIndex] || { hex: catalog?.colors?.[colorIndex] },
+      colorIndex
+    );
 
   const editorialImg = card.classList.contains("editorial")
     ? card.querySelector(".editorial__media img, img")?.getAttribute("src")
@@ -113,16 +115,16 @@ function extractProductFromPdp(root) {
 
   const activeSwatch = page.querySelector(".pdp-swatch.is-active");
   const color =
-    activeSwatch?.getAttribute("aria-label") ||
-    activeSwatch?.dataset.color ||
-    "";
+    sanitizeColorLabel(page.querySelector("#pdpColorName")?.textContent) ||
+    sanitizeColorLabel(activeSwatch?.dataset.color) ||
+    sanitizeColorLabel(activeSwatch?.getAttribute("aria-label"));
   const heroImg = page.querySelector("#pdpSlides img");
 
   return {
     productId,
     name: product?.name || catalog?.name || "Product",
     priceEur: product?.priceEur || catalog?.priceEur || 0,
-    color: color && color !== "Color option" ? color : "",
+    color,
     imageUrl: heroImg?.getAttribute("src") || product?.images?.[0] || catalog?.images?.[0] || "",
   };
 }
@@ -164,6 +166,7 @@ function serializeBagFromDom(root) {
       giftSender: el.dataset.giftSender || "",
       giftRecipient: el.dataset.giftRecipient || "",
       giftEmail: el.dataset.giftEmail || "",
+      giftPhone: el.dataset.giftPhone || "",
       giftMessage: el.dataset.giftMessage || "",
     });
   });
@@ -214,6 +217,7 @@ function restoreBagFromStorage(root, items = []) {
         if (item.giftSender) el.dataset.giftSender = item.giftSender;
         if (item.giftRecipient) el.dataset.giftRecipient = item.giftRecipient;
         if (item.giftEmail) el.dataset.giftEmail = item.giftEmail;
+        if (item.giftPhone) el.dataset.giftPhone = item.giftPhone;
         if (item.giftMessage) el.dataset.giftMessage = item.giftMessage;
       }
     }
@@ -225,7 +229,7 @@ function restoreBagFromStorage(root, items = []) {
 
 function renderWishlistItem(item) {
   const isEgift = String(item.productId || "").startsWith("egift-card");
-  const colorLabel = String(item.color || "").trim();
+  const colorLabel = sanitizeColorLabel(item.color);
   const colorHtml = colorLabel
     ? `<p class="wishlist-color">${escapeHtml(
         isEgift
@@ -247,9 +251,13 @@ function renderWishlistItem(item) {
     <div class="wishlist-details">
       <p class="wishlist-name">${escapeHtml(item.name)}</p>
       ${colorHtml}
-      <p class="wishlist-price">${escapeHtml(formatPrice(item.priceEur))}</p>
+      <p class="wishlist-price" data-price-eur="${Number(item.priceEur) || 0}">${escapeHtml(formatPrice(item.priceEur))}</p>
       <div class="wishlist-actions">
-        <a href="#" class="js-wishlist-move-to-bag">Ajouter au panier</a>
+        ${
+          isProductUnavailableToBuy(getCatalogProductById(item.productId))
+            ? `<span class="wishlist-unavailable">Épuisé</span>`
+            : `<a href="#" class="js-wishlist-move-to-bag">Ajouter au panier</a>`
+        }
         <a href="#" class="js-wishlist-remove">Retirer</a>
       </div>
     </div>
@@ -323,6 +331,7 @@ export function toggleWishlistProduct(root, btn) {
 export function moveWishlistItemToBag(root, productId) {
   const item = wishlistItems.find((entry) => entry.productId === productId);
   if (!item) return false;
+  if (isProductUnavailableToBuy(getCatalogProductById(productId))) return false;
 
   upsertBagLineItem(root, {
     productId: item.productId,

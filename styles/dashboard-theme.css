@@ -2819,6 +2819,65 @@
   padding: 24px;
 }
 
+#dashboardPage .dashboard-boutique-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+#dashboardPage .dashboard-boutique-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+#dashboardPage .dashboard-boutique-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+#dashboardPage .dashboard-boutique-card__title {
+  margin: 0;
+  font-size: 16px;
+}
+
+#dashboardPage .dashboard-boutique-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+#dashboardPage .dashboard-boutique-card__badge--online {
+  background: #111;
+  color: #fff;
+}
+
+#dashboardPage .dashboard-boutique-card__meta {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+#dashboardPage .dashboard-boutique-card .dashboard-product-card__actions {
+  margin-top: 12px;
+}
+
+#dashboardPage .dashboard-boutique-empty {
+  text-align: center;
+  color: #94a3b8;
+  padding: 24px;
+}
+
 #dashboardPage .dashboard-product-editor-overlay {
   display: none;
   position: fixed;
@@ -3030,7 +3089,7 @@ body.dashboard-product-editor-open {
 
 #dashboardPage .dashboard-color-variant__head {
   display: grid;
-  grid-template-columns: auto 1fr 1fr auto;
+  grid-template-columns: auto auto 1fr auto;
   gap: 10px;
   align-items: end;
 }
@@ -3055,6 +3114,20 @@ body.dashboard-product-editor-open {
 #dashboardPage .dashboard-color-badge--default {
   background: #111;
   color: #fff;
+}
+
+#dashboardPage .dashboard-color-variant__fill input[type="color"] {
+  width: 48px;
+  height: 40px;
+  padding: 2px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+#dashboardPage .dashboard-color-variant__name {
+  margin-top: 10px;
 }
 
 #dashboardPage .dashboard-color-variant__note {

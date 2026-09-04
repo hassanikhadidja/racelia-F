@@ -139,7 +139,7 @@ export function getDashboardProductsOverlaysMarkup() {
 
         <div class="dashboard-product-field">
           <label for="dashboard-product-filters">Filter tags (comma-separated)</label>
-          <input type="text" id="dashboard-product-filters" placeholder="Leather, Black, Gold-Tone" />
+          <input type="text" id="dashboard-product-filters" placeholder="Métiers d'art 2026, Cuir, Noir, Doré, RACÈLIA" />
         </div>
 
         <fieldset class="dashboard-product-fieldset">

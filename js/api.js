@@ -3,7 +3,7 @@ function normalizeApiBase(url) {
 }
 
 export const API_BASE_URL = normalizeApiBase(
-  process.env.NEXT_PUBLIC_API_URL || "https://rac-lia-backend-gebj.vercel.app"
+  process.env.NEXT_PUBLIC_API_URL || "https://rac-lia-backend-6ibo.vercel.app"
 );
 
 const TOKEN_KEY = "raceliaAuthToken";
@@ -188,4 +188,10 @@ export const api = {
   updateReturn: (id, body) =>
     apiJson(`/return/${encodeURIComponent(id)}`, { method: "PATCH", body }),
   deleteReturn: (id) => apiJson(`/return/${encodeURIComponent(id)}`, { method: "DELETE" }),
+
+  getBoutiques: () => apiJson("/boutique"),
+  createBoutique: (body) => apiJson("/boutique", { method: "POST", body }),
+  updateBoutique: (id, body) =>
+    apiJson(`/boutique/${encodeURIComponent(id)}`, { method: "PATCH", body }),
+  deleteBoutique: (id) => apiJson(`/boutique/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };

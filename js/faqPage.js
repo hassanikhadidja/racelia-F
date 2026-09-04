@@ -5,6 +5,7 @@ import {
   getArticlesByCategory,
   searchFaqArticles,
 } from "./faqData.js";
+import { writeRoute, goBackInApp } from "./route.js";
 
 function escapeHtml(text) {
   return String(text)
@@ -30,7 +31,27 @@ function articleCardHtml(article) {
   </button>`;
 }
 
-export function initFaqPage(root) {
+export function faqStateToRoute(state) {
+  const view = state?.view || "home";
+  if (view === "all") return { view: "faq", faqView: "all" };
+  if (view === "search") {
+    return { view: "faq", faqView: "search", faqQuery: state.query || "" };
+  }
+  if (view === "article" && state.articleId) {
+    return {
+      view: "faq",
+      faqView: "article",
+      faqCategoryId: state.categoryId,
+      faqArticleId: state.articleId,
+    };
+  }
+  if (view === "category" && state.categoryId) {
+    return { view: "faq", faqView: "category", faqCategoryId: state.categoryId };
+  }
+  return { view: "faq", faqView: "home" };
+}
+
+export function initFaqPage(root, route = null) {
   const page = root.querySelector("#faqPage");
   if (!page) return;
 
@@ -38,6 +59,7 @@ export function initFaqPage(root) {
     view: "home",
     categoryId: null,
     articleId: null,
+    query: "",
     layout: "grid",
   };
   page.__faqState = state;
@@ -60,6 +82,10 @@ export function initFaqPage(root) {
     });
   };
 
+  const syncFaqRoute = ({ replace = false } = {}) => {
+    writeRoute(faqStateToRoute(state), { replace });
+  };
+
   const renderHomeCategories = () => {
     const list = page.querySelector("#faq-cat-list-home");
     if (!list) return;
@@ -74,24 +100,31 @@ export function initFaqPage(root) {
     list.innerHTML = FAQ_CATEGORIES.map(categoryCardHtml).join("");
   };
 
-  const openHome = () => {
+  const openHome = ({ replace = false } = {}) => {
     state.categoryId = null;
     state.articleId = null;
+    state.query = "";
     renderHomeCategories();
     showView("home");
     const input = page.querySelector("#faq-search-home");
     if (input) input.value = "";
+    page.querySelectorAll(".faq-search input").forEach((other) => {
+      other.value = "";
+    });
+    syncFaqRoute({ replace });
   };
 
-  const openAll = () => {
+  const openAll = ({ replace = false } = {}) => {
     state.articleId = null;
+    state.query = "";
     renderAllCategories();
     showView("all");
+    syncFaqRoute({ replace });
   };
 
-  const openCategory = (categoryId) => {
+  const openCategory = (categoryId, { replace = false } = {}) => {
     const cat = getCategoryById(categoryId);
-    if (!cat) return;
+    if (!cat) return false;
     state.categoryId = categoryId;
     state.articleId = null;
     const title = page.querySelector("#faq-cat-title");
@@ -108,11 +141,13 @@ export function initFaqPage(root) {
         : `<p class="faq-empty">Aucun article dans cette catégorie.</p>`;
     }
     showView("category");
+    syncFaqRoute({ replace });
+    return true;
   };
 
-  const openArticle = (articleId) => {
+  const openArticle = (articleId, { replace = false } = {}) => {
     const article = getArticleById(articleId);
-    if (!article) return;
+    if (!article) return false;
     const cat = getCategoryById(article.categoryId);
     state.articleId = articleId;
     state.categoryId = article.categoryId;
@@ -128,19 +163,23 @@ export function initFaqPage(root) {
       crumbCat.dataset.faqCat = article.categoryId;
     }
     showView("article");
+    syncFaqRoute({ replace });
+    return true;
   };
 
-  const openSearch = (query) => {
+  const openSearch = (query, { replace = false } = {}) => {
     const q = String(query || "").trim();
     const container = page.querySelector("#faq-search-results");
     const searchInput = page.querySelector("#faq-view-search input");
     if (searchInput && searchInput.value !== q) searchInput.value = q;
 
     if (!q) {
-      openHome();
+      openHome({ replace: true });
       return;
     }
 
+    const wasSearch = state.view === "search";
+    state.query = q;
     const hits = searchFaqArticles(q);
     if (container) {
       if (!hits.length) {
@@ -150,6 +189,7 @@ export function initFaqPage(root) {
       }
     }
     showView("search");
+    syncFaqRoute({ replace: replace || wasSearch });
   };
 
   const setLayout = (layout) => {
@@ -163,6 +203,38 @@ export function initFaqPage(root) {
     renderHomeCategories();
   };
 
+  const stepBackFaq = () => {
+    if (state.view === "home") return;
+    if (goBackInApp()) return;
+    if (state.view === "article" && state.categoryId) {
+      openCategory(state.categoryId, { replace: true });
+      return;
+    }
+    openHome({ replace: true });
+  };
+
+  const applyRoute = (nextRoute) => {
+    const view = nextRoute?.faqView || "home";
+    if (view === "article" && nextRoute.faqArticleId) {
+      if (openArticle(nextRoute.faqArticleId)) return;
+    }
+    if (view === "category" && nextRoute.faqCategoryId) {
+      if (openCategory(nextRoute.faqCategoryId)) return;
+    }
+    if (view === "all") {
+      openAll();
+      return;
+    }
+    if (view === "search") {
+      const q = nextRoute.faqQuery || "";
+      if (q.trim()) {
+        openSearch(q);
+        return;
+      }
+    }
+    openHome();
+  };
+
   if (page.dataset.bound !== "true") {
     page.dataset.bound = "true";
 
@@ -171,7 +243,7 @@ export function initFaqPage(root) {
       if (!(target instanceof Element)) return;
 
       if (target.closest(".js-faq-home")) {
-        openHome();
+        stepBackFaq();
         return;
       }
       if (target.closest(".js-faq-all")) {
@@ -191,21 +263,25 @@ export function initFaqPage(root) {
         return;
       }
 
+      const crumbCat = target.closest("#faq-breadcrumb-cat-art");
+      if (crumbCat?.dataset.faqCat) {
+        if (goBackInApp()) return;
+        openCategory(crumbCat.dataset.faqCat, { replace: true });
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+
       const catBtn = target.closest("[data-faq-cat]");
       if (catBtn && page.contains(catBtn)) {
         openCategory(catBtn.dataset.faqCat);
+        window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
 
       const artBtn = target.closest("[data-faq-article]");
       if (artBtn && page.contains(artBtn)) {
         openArticle(artBtn.dataset.faqArticle);
-        return;
-      }
-
-      const crumbCat = target.closest("#faq-breadcrumb-cat-art");
-      if (crumbCat?.dataset.faqCat) {
-        openCategory(crumbCat.dataset.faqCat);
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     });
 
@@ -216,17 +292,22 @@ export function initFaqPage(root) {
           if (other !== input) other.value = value;
         });
         if (value.trim()) openSearch(value);
-        else if (state.view === "search") openHome();
+        else if (state.view === "search") openHome({ replace: true });
       });
     });
   }
 
-  if (state.view === "article" && state.articleId) openArticle(state.articleId);
-  else if (state.view === "category" && state.categoryId) openCategory(state.categoryId);
-  else if (state.view === "all") openAll();
+  if (route) {
+    applyRoute(route);
+    return;
+  }
+
+  if (state.view === "article" && state.articleId) openArticle(state.articleId, { replace: true });
+  else if (state.view === "category" && state.categoryId) openCategory(state.categoryId, { replace: true });
+  else if (state.view === "all") openAll({ replace: true });
   else if (state.view === "search") {
-    const q = page.querySelector("#faq-view-search input")?.value || "";
-    if (q.trim()) openSearch(q);
-    else openHome();
-  } else openHome();
+    const q = state.query || page.querySelector("#faq-view-search input")?.value || "";
+    if (q.trim()) openSearch(q, { replace: true });
+    else openHome({ replace: true });
+  } else openHome({ replace: true });
 }

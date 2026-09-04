@@ -9,6 +9,7 @@ export const DASHBOARD_SCREENS = new Set([
   "blogs",
   "users",
   "emails",
+  "boutiques",
   "raceliastyle",
   "reviews",
   "account",
@@ -26,6 +27,56 @@ export function endRouteRestore() {
   restoringRoute = false;
 }
 
+function decodeRoutePart(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
+function parseFaqRoute(parts) {
+  if (!parts[1]) {
+    return { view: "faq", faqView: "home" };
+  }
+
+  if (parts[1] === "all") {
+    return { view: "faq", faqView: "all" };
+  }
+
+  if (parts[1] === "search") {
+    const queryParts = parts.slice(2).map(decodeRoutePart);
+    return { view: "faq", faqView: "search", faqQuery: queryParts.join("/") };
+  }
+
+  const faqCategoryId = decodeRoutePart(parts[1]);
+  if (parts[2]) {
+    return {
+      view: "faq",
+      faqView: "article",
+      faqCategoryId,
+      faqArticleId: decodeRoutePart(parts[2]),
+    };
+  }
+
+  return { view: "faq", faqView: "category", faqCategoryId };
+}
+
+function buildFaqHash(route) {
+  if (route.faqView === "all") return "#faq/all";
+  if (route.faqView === "search") {
+    const query = String(route.faqQuery || "").trim();
+    return query ? `#faq/search/${encodeURIComponent(query)}` : "#faq/search";
+  }
+  if (route.faqView === "article" && route.faqCategoryId && route.faqArticleId) {
+    return `#faq/${encodeURIComponent(route.faqCategoryId)}/${encodeURIComponent(route.faqArticleId)}`;
+  }
+  if (route.faqView === "category" && route.faqCategoryId) {
+    return `#faq/${encodeURIComponent(route.faqCategoryId)}`;
+  }
+  return "#faq";
+}
+
 export function parseRoute(hash = window.location.hash) {
   const raw = hash.replace(/^#/, "").trim();
   if (!raw || raw === "home") {
@@ -37,9 +88,6 @@ export function parseRoute(hash = window.location.hash) {
   if (parts[0] === "category" && parts[1]) {
     if (parts[1] === "metiers-dart") {
       return { view: "blogs" };
-    }
-    if (parts[1] === "all-selection") {
-      return { view: "category", categoryKey: "nouveautes" };
     }
     if (categoryPages[parts[1]]) {
       return { view: "category", categoryKey: parts[1] };
@@ -99,7 +147,7 @@ export function parseRoute(hash = window.location.hash) {
   }
 
   if (parts[0] === "faq") {
-    return { view: "faq" };
+    return parseFaqRoute(parts);
   }
 
   if (parts[0] === "retours" || parts[0] === "returns") {
@@ -158,7 +206,7 @@ export function buildHash(route) {
     case "boutiques":
       return "#boutiques";
     case "faq":
-      return "#faq";
+      return buildFaqHash(route);
     case "returns":
       return "#retours";
     case "gift-card":

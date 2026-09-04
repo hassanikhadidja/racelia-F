@@ -63,11 +63,17 @@ export function createGiftCardPage() {
         </section>
 
         <section class="gift-card-panel" data-panel="3" hidden>
-          <h2 class="gift-card-heading">ENVOYER PAR E-MAIL</h2>
-          <p class="gift-card-lead">Saisissez l'e-mail du destinataire ci-dessous.</p>
+          <h2 class="gift-card-heading">Envoyer par e-mail ou par numéro de téléphone</h2>
+          <p class="gift-card-lead">Saisissez l'e-mail ou le numéro de téléphone du destinataire.</p>
           <div class="gift-card-underline-field">
             <label class="gift-card-float-label" for="giftCardEmail">E-mail du destinataire</label>
             <input type="email" id="giftCardEmail" name="email" autocomplete="email" />
+            <p class="gift-card-field-error" id="giftCardEmailError" hidden>Saisissez un e-mail valide.</p>
+          </div>
+          <div class="gift-card-underline-field">
+            <label class="gift-card-float-label" for="giftCardPhone">Numéro de téléphone du destinataire</label>
+            <input type="tel" id="giftCardPhone" name="phone" autocomplete="tel" inputmode="tel" />
+            <p class="gift-card-field-error" id="giftCardPhoneError" hidden>Saisissez un numéro de téléphone valide.</p>
           </div>
           <button type="submit" class="gift-card-btn" id="giftCardAddToBag" disabled>AJOUTER AU PANIER</button>
         </section>

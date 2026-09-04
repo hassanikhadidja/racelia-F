@@ -1,6 +1,7 @@
 const CURRENCY_KEY = "raceliaDisplayCurrency";
 
-export const EUR_TO_DZD = 280;
+/** Display conversion: 1€ = 270 DZD, 1$ = 260 DZD. */
+export const EUR_TO_DZD = 270;
 export const USD_TO_DZD = 260;
 
 export const CURRENCY_OPTIONS = [
@@ -117,11 +118,6 @@ export function parsePrice(text) {
 }
 
 export function formatProductPrice(priceTextOrEurOrProduct) {
-  if (priceTextOrEurOrProduct && typeof priceTextOrEurOrProduct === "object") {
-    const dzd = Number(priceTextOrEurOrProduct.priceAmountDzd);
-    if (dzd > 0) return formatDzdPrice(dzd);
-    return formatPrice(parseCatalogPriceEur(priceTextOrEurOrProduct));
-  }
   const eur =
     typeof priceTextOrEurOrProduct === "number"
       ? priceTextOrEurOrProduct

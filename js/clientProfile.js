@@ -143,18 +143,21 @@ function initPurchasedEgifts(page) {
 }
 
 function initProfileReviewsSheet(page, root) {
+  let resetStars = () => {};
   const reviewSheet = bindProfileSheet(page, {
     overlayId: "profile-review-overlay",
     toggleSelector: ".js-profile-reviews-open",
     focusSelector: "#review-name",
+    onOpen: () => resetStars(),
   });
 
-  initProfileReviewForm(page, {
+  const reviewForm = initProfileReviewForm(page, {
     onSubmitted: () => {
       refreshProfileUI(page, root);
       reviewSheet?.close();
     },
   });
+  resetStars = reviewForm?.resetStars || resetStars;
 }
 
 function isNewsletterAccepted(profile) {

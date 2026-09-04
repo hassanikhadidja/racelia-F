@@ -54,17 +54,17 @@ export function createFooter() {
           <div class="col">
             <h3>Explorer RACÈLIA</h3>
             <ul>
-              <li><a href="#">Nouveautés</a></li>
-              <li><a href="#blogs" class="js-footer-blogs">Métiers d'Art 2026</a></li>
-              <li><a href="#">Toute la sélection</a></li>
+              <li><a href="#category/nouveautes" class="js-footer-category" data-category-key="nouveautes">Nouveautés</a></li>
+              <li><a href="#home" class="js-footer-metiers-home">Métiers d'Art 2026</a></li>
+              <li><a href="#category/all-selection" class="js-footer-category" data-category-key="all-selection">Toute la sélection</a></li>
               <li><a href="#carte-cadeau" class="js-footer-gift-card">Carte cadeau électronique RACÈLIA</a></li>
               <li><a href="#raceliastyle" class="js-footer-style">#RACÈLIASTYLE</a></li>
             </ul>
             <h3 class="group-title">Sacs</h3>
             <ul>
-              <li><a href="#">Mini sacs</a></li>
-              <li><a href="#">Le sac RACÈLIA</a></li>
-              <li><a href="#">Sacs Mom</a></li>
+              <li><a href="#category/mini-bags" class="js-footer-category" data-category-key="mini-bags">Mini sacs</a></li>
+              <li><a href="#category/racelia-handbag" class="js-footer-category" data-category-key="racelia-handbag">Le sac RACÈLIA</a></li>
+              <li><a href="#category/moms-bags" class="js-footer-category" data-category-key="moms-bags">Sacs Mom</a></li>
             </ul>
           </div>
 
@@ -134,7 +134,6 @@ export function createFooter() {
   subscribeOverlay.setAttribute("aria-labelledby", "subTitle");
   subscribeOverlay.innerHTML = `
     <div class="subscribe-modal">
-      <button class="subscribe-modal-close" id="closeSubscribe" type="button" aria-label="Fermer"></button>
       <div class="subscribe-modal-scroll">
         <h2 id="subTitle">S'ABONNER POUR RECEVOIR<br/>LES ACTUALITÉS DE RACÈLIA</h2>
         <p class="subscribe-modal-intro">
@@ -159,6 +158,7 @@ export function createFooter() {
           <button type="submit" class="submit-btn">S'ABONNER</button>
         </form>
       </div>
+      <button class="subscribe-modal-close" id="closeSubscribe" type="button" aria-label="Fermer"></button>
     </div>
   `;
 
@@ -170,9 +170,9 @@ export function createFooter() {
   thanksOverlay.setAttribute("aria-labelledby", "subscribeThanksTitle");
   thanksOverlay.innerHTML = `
     <div class="subscribe-thanks">
-      <button class="subscribe-modal-close" id="closeSubscribeThanks" type="button" aria-label="Fermer"></button>
       <h2 id="subscribeThanksTitle">MERCI</h2>
       <p>Merci pour votre inscription. Vous recevrez les actualités RACÈLIA.</p>
+      <button class="subscribe-modal-close" id="closeSubscribeThanks" type="button" aria-label="Fermer"></button>
     </div>
   `;
 

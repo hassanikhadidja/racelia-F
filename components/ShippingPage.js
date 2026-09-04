@@ -27,17 +27,17 @@ export function createShippingPage() {
           <tbody>
             <tr>
               <td>Livraison standard</td>
-              <td>Gratuite pour les commandes supérieures à 6 500 DZD</td>
+              <td>Gratuite pour les commandes supérieures à 6500 DZD</td>
               <td>2 à 5 jours ouvrables</td>
             </tr>
             <tr>
               <td>Livraison standard</td>
-              <td>Tarif fixe pour les commandes inférieures à 6 500 DZD. Les tarifs varient selon la société de livraison partenaire et la wilaya de destination (de 350 à 1 200 DZD).</td>
+              <td>Tarif fixe pour les commandes inférieures à 6500 DZD. Les tarifs varient selon la société de livraison partenaire et la wilaya de destination (de 350 à 1 200 DZD).</td>
               <td>2 à 5 jours ouvrables</td>
             </tr>
             <tr>
               <td>Livraison standard (communes sélectionnées d'Alger-Centre)</td>
-              <td>Gratuite pour les communes de Birtouta, Douéra, Baraki, Sidi Moussa, Khraïcia et Ouled Chebel</td>
+              <td>Gratuite pour les communes de Birtouta, Douéra, Baraki, Ben Talha, Sidi Moussa, Khraïcia, Ouled Chebel, Baba Hassen et Draria.</td>
               <td>1 à 3 jours ouvrables</td>
             </tr>
           </tbody>
@@ -58,7 +58,7 @@ export function createShippingPage() {
           <tbody>
             <tr>
               <td>Livraison express</td>
-              <td>Des frais additionnels s'appliquent (entre 500 et 1 500 DZD)</td>
+              <td>Des frais additionnels s'appliquent (entre 500 et 1500 DZD)</td>
               <td>1 à 3 jours ouvrables</td>
             </tr>
             <tr>

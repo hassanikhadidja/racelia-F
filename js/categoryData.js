@@ -25,6 +25,12 @@ export const categoryPages = {
     collectionBar: "2026 MÉTIERS D'ART",
     selectionLabel: "NOUVEAUTÉS",
   },
+  "all-selection": {
+    title: "TOUTE LA SÉLECTION",
+    subtitle: "L'ensemble des pièces de la collection.",
+    collectionBar: "TOUTE LA SÉLECTION",
+    selectionLabel: "TOUTE LA SÉLECTION",
+  },
   "mini-bags": {
     title: "MINI SACS",
     subtitle: "Silhouettes compactes des dernières collections.",
@@ -33,8 +39,8 @@ export const categoryPages = {
   },
   "racelia-handbag": {
     title: "LE SAC RACÈLIA",
-    subtitle: "Sacs signature de la maison RACÈLIA.",
-    collectionBar: "2026 MÉTIERS D'ART",
+    subtitle: "Produits de la marque RACÈLIA.",
+    collectionBar: "LE SAC RACÈLIA",
     selectionLabel: "LE SAC RACÈLIA",
   },
   "moms-bags": {

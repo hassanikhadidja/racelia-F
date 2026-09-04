@@ -33,7 +33,17 @@ function parseAmount(value) {
 }
 
 function isValidEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(String(value || "").trim());
+}
+
+function isValidPhone(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return false;
+  if (/[a-z]/i.test(raw)) return false;
+  const digits = raw.replace(/\D/g, "");
+  if (digits.startsWith("213")) return digits.length === 12;
+  if (digits.startsWith("0")) return digits.length === 10;
+  return digits.length >= 8 && digits.length <= 15;
 }
 
 function messageStats(text) {
@@ -60,6 +70,9 @@ export function initGiftCardPage(root) {
   const messageInput = page.querySelector("#giftCardMessage");
   const counterEl = page.querySelector("#giftCardCounter");
   const emailInput = page.querySelector("#giftCardEmail");
+  const phoneInput = page.querySelector("#giftCardPhone");
+  const emailError = page.querySelector("#giftCardEmailError");
+  const phoneError = page.querySelector("#giftCardPhoneError");
   const next1 = page.querySelector("#giftCardNext1");
   const next2 = page.querySelector("#giftCardNext2");
   const addBtn = page.querySelector("#giftCardAddToBag");
@@ -129,7 +142,16 @@ export function initGiftCardPage(root) {
   };
 
   const validateStep3 = () => {
-    if (addBtn) addBtn.disabled = !isValidEmail(emailInput?.value);
+    const email = emailInput?.value.trim() || "";
+    const phone = phoneInput?.value.trim() || "";
+    const emailOk = !email || isValidEmail(email);
+    const phoneOk = !phone || isValidPhone(phone);
+    const valid = Boolean(email || phone) && emailOk && phoneOk;
+
+    if (emailError) emailError.hidden = !(email && !emailOk);
+    if (phoneError) phoneError.hidden = !(phone && !phoneOk);
+    if (addBtn) addBtn.disabled = !valid;
+    return valid;
   };
 
   const updateCounter = () => {
@@ -181,6 +203,7 @@ export function initGiftCardPage(root) {
     updateCounter();
   });
   emailInput?.addEventListener("input", validateStep3);
+  phoneInput?.addEventListener("input", validateStep3);
 
   next1?.addEventListener("click", () => setStep(2));
   next2?.addEventListener("click", () => setStep(3));
@@ -196,7 +219,10 @@ export function initGiftCardPage(root) {
 
   form?.addEventListener("submit", (event) => {
     event.preventDefault();
-    if (!canLeave(1) || !canLeave(2) || !isValidEmail(emailInput?.value)) return;
+    if (!canLeave(1) || !canLeave(2) || !validateStep3()) return;
+
+    const email = emailInput?.value.trim() || "";
+    const phone = phoneInput?.value.trim() || "";
 
     const priceEur = displayAmountToEur(state.amount, state.currency);
     const recipient = recipientInput.value.trim();
@@ -218,7 +244,8 @@ export function initGiftCardPage(root) {
       item.dataset.giftSender = sender;
       item.dataset.giftRecipient = recipient;
       item.dataset.giftMessage = messageInput.value.trim();
-      item.dataset.giftEmail = emailInput.value.trim();
+      item.dataset.giftEmail = email;
+      item.dataset.giftPhone = phone;
       item.dataset.giftCurrency = state.currency;
       item.dataset.giftAmount = String(state.amount);
     }

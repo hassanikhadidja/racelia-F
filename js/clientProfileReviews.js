@@ -55,7 +55,7 @@ export function getProfileReviewOverlayMarkup() {
       <h3 id="profile-review-title">Ajouter un avis</h3>
       <button type="button" class="profile-sheet-close" data-close="profile-review-overlay">Fermer</button>
     </div>
-    <form class="profile-review-form" id="profile-review-form">
+    <form class="profile-review-form profile-sheet-scroll" id="profile-review-form">
       <div class="profile-review-field">
         <label for="review-name">Votre nom</label>
         <input type="text" id="review-name" name="name" autocomplete="name" required placeholder=" " />
@@ -76,7 +76,7 @@ export function getProfileReviewOverlayMarkup() {
           ${[1, 2, 3, 4, 5]
             .map(
               (n) =>
-                `<button type="button" class="profile-review-star" data-star="${n}" aria-label="${n} étoile${n > 1 ? "s" : ""}">★</button>`
+                `<button type="button" class="profile-review-star is-active${n === 5 ? " is-selected" : ""}" data-star="${n}" aria-label="${n} étoile${n > 1 ? "s" : ""}" aria-pressed="${n === 5 ? "true" : "false"}">★</button>`
             )
             .join("")}
         </div>
@@ -133,6 +133,7 @@ export function initProfileReviewForm(page, { onSubmitted } = {}) {
       const star = Number(btn.dataset.star);
       btn.classList.toggle("is-active", star <= value);
       btn.classList.toggle("is-selected", star === value);
+      btn.setAttribute("aria-pressed", String(star === value));
     });
   };
 
@@ -229,4 +230,8 @@ export function initProfileReviewForm(page, { onSubmitted } = {}) {
     onSubmitted?.(review);
     setFormStatus(form, `Merci. Vous avez gagné ${REVIEW_POINTS} points cadeau.`, "ok");
   });
+
+  return {
+    resetStars: () => setStars(5),
+  };
 }

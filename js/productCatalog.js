@@ -1,4 +1,4 @@
-import { getBuiltInCatalogProducts } from "./productCatalogSeed.js";
+import { CATALOG_SEED_VERSION, getBuiltInCatalogProducts } from "./productCatalogSeed.js";
 import { getAuthToken } from "./api.js";
 import { syncProductUpsert, syncProductDelete, resolveProductImagesForSave } from "./syncBackend.js";
 import {
@@ -20,6 +20,7 @@ import {
 import { getProductReviewsForDisplay } from "./dashboardReviewsData.js";
 
 export const CATALOG_STORAGE_KEY = "raceliaProductCatalog";
+const CATALOG_SEED_VERSION_KEY = "raceliaProductCatalogSeedVersion";
 
 export function isInSalesReport(product) {
   const value = product?.inSalesReport;
@@ -43,6 +44,24 @@ export const STOCK_NOTES = [
   { id: "not", label: "Not available" },
 ];
 
+const UNAVAILABLE_STOCK_IDS = new Set(["sold-out", "not"]);
+
+export function isProductUnavailableToBuy(productOrNote) {
+  const note = String(
+    typeof productOrNote === "object" && productOrNote
+      ? productOrNote.stockNote
+      : productOrNote || ""
+  )
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (!note) return false;
+  if (UNAVAILABLE_STOCK_IDS.has(note)) return true;
+  return /sold[\s-]?out|epuis|out of stock|indisponible|unavailable|not available/.test(note);
+}
+
 const swatchStyles = {
   grey: "radial-gradient(circle at 30% 30%, #c0c0c0, #5a5a5a)",
   chalk: "radial-gradient(circle at 30% 30%, #f5e9e3, #d8c8c0)",
@@ -62,6 +81,53 @@ function hexToSwatchStyle(hex) {
   const light = `rgb(${Math.min(255, r + 40)}, ${Math.min(255, g + 40)}, ${Math.min(255, b + 40)})`;
   const dark = `rgb(${Math.max(0, r - 30)}, ${Math.max(0, g - 30)}, ${Math.max(0, b - 30)})`;
   return `radial-gradient(circle at 30% 30%, ${light}, ${dark})`;
+}
+
+const KNOWN_HEX_COLOR_NAMES = {
+  "111111": "Noir",
+  "111": "Noir",
+  "000000": "Noir",
+  "5a4a36": "Taupe",
+  "f1ece2": "Beige",
+  "7a1f1f": "Rouge",
+  "6b8aa8": "Bleu",
+  "c4a882": "Camel",
+  "2f4f4f": "Vert",
+};
+
+function normalizeHexKey(hex) {
+  let key = String(hex || "")
+    .trim()
+    .replace(/^#/, "")
+    .toLowerCase();
+  if (key.length === 3) key = key.split("").map((c) => c + c).join("");
+  return key;
+}
+
+export function isGenericColorLabel(label) {
+  const text = String(label || "")
+    .trim()
+    .replace(/^(color|couleur)\s*:\s*/i, "");
+  if (!text) return true;
+  if (/^(color|couleur)\s*\d+$/i.test(text)) return true;
+  if (/^(option de couleur|color option|default)$/i.test(text)) return true;
+  return false;
+}
+
+export function sanitizeColorLabel(label) {
+  const text = String(label || "")
+    .trim()
+    .replace(/^(color|couleur)\s*:\s*/i, "")
+    .trim();
+  return isGenericColorLabel(text) ? "" : text;
+}
+
+export function colorVariantDisplayName(variant = {}, index = 0) {
+  void index;
+  const named = sanitizeColorLabel(variant?.label);
+  if (named) return named;
+  const fromHex = KNOWN_HEX_COLOR_NAMES[normalizeHexKey(variant?.hex)];
+  return fromHex || "";
 }
 
 function normalizeProductDetails(product = {}) {
@@ -150,20 +216,49 @@ export function normalizeCatalogProduct(product) {
   return normalized;
 }
 
+function getNormalizedSeedProducts() {
+  return getBuiltInCatalogProducts().map(normalizeCatalogProduct).filter((p) => p?.id);
+}
+
+function rememberSeedVersion() {
+  try {
+    localStorage.setItem(CATALOG_SEED_VERSION_KEY, String(CATALOG_SEED_VERSION));
+  } catch {
+    /* ignore */
+  }
+}
+
+function mergeMissingSeedProducts(existing) {
+  const savedIds = new Set(existing.map((p) => String(p.id)));
+  const extras = getNormalizedSeedProducts().filter((p) => !savedIds.has(String(p.id)));
+  if (!extras.length) return existing;
+  const next = [...existing, ...extras];
+  saveCatalogProducts(next);
+  return next;
+}
+
 export function loadCatalogProducts() {
   try {
     const saved = localStorage.getItem(CATALOG_STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        return parsed.map(normalizeCatalogProduct).filter((p) => p?.id);
+      if (Array.isArray(parsed) && parsed.length) {
+        const normalized = parsed.map(normalizeCatalogProduct).filter((p) => p?.id);
+        const applied = Number(localStorage.getItem(CATALOG_SEED_VERSION_KEY) || 0);
+        if (applied < CATALOG_SEED_VERSION) {
+          const merged = mergeMissingSeedProducts(normalized);
+          rememberSeedVersion();
+          return merged;
+        }
+        return normalized;
       }
     }
   } catch {
     /* ignore */
   }
-  const seed = getBuiltInCatalogProducts().map(normalizeCatalogProduct).filter(Boolean);
+  const seed = getNormalizedSeedProducts();
   saveCatalogProducts(seed);
+  rememberSeedVersion();
   return seed;
 }
 
@@ -184,13 +279,31 @@ export function getAllCatalogProducts() {
   return loadCatalogProducts();
 }
 
+function hasRaceliaTag(product) {
+  const hay = [
+    product.name,
+    product.tag,
+    product.description,
+    ...(product.details || []),
+    ...(product.filters || []),
+  ]
+    .join(" ")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return hay.includes("racelia");
+}
+
 export function getProductsForSection(sectionKey) {
   const products = loadCatalogProducts();
   if (sectionKey === "nouveautes") {
     return products.filter((p) => p.isNewArrival);
   }
   if (sectionKey === "all-selection") {
-    return products.filter((p) => p.sections.includes("all-selection"));
+    return products;
+  }
+  if (sectionKey === "racelia-handbag") {
+    return products.filter((p) => hasRaceliaTag(p));
   }
   if (sectionKey === "metiers-dart") {
     return products.filter(
@@ -211,7 +324,7 @@ export function toCategoryProduct(catalogProduct) {
   const swatches = (p.colorVariants.length ? p.colorVariants : p.colors.map((hex) => ({ hex }))).map(
     (v, index) => ({
       hex: v.hex || p.colors[index] || "#111",
-      label: v.label || `Color ${index + 1}`,
+      label: colorVariantDisplayName(v, index),
       index,
     })
   );
@@ -227,6 +340,9 @@ export function toCategoryProduct(catalogProduct) {
     images: images.length ? images : [p.cardCover, p.pdpCover].filter(Boolean),
     swatches: swatches.length ? swatches : [{ hex: "#111", label: "Default", index: 0 }],
     filters: p.filters,
+    description: p.description,
+    details: p.details,
+    sections: p.sections,
     hasColorImages: p.hasColorImages,
   };
 }
@@ -255,7 +371,7 @@ function buildProductDetail(catalogProduct) {
 
   const swatches = swatchSource.map((variant, index) => ({
     hex: variant.hex || p.colors[index] || "#111",
-    label: variant.label || `Color ${index + 1}`,
+    label: colorVariantDisplayName(variant, index),
     style: hexToSwatchStyle(variant.hex || p.colors[index]),
     active: index === 0,
     index,

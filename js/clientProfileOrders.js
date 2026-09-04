@@ -55,7 +55,7 @@ export function getProfileOrdersOverlayMarkup() {
       <h3 id="profile-orders-title">Mes commandes</h3>
       <button type="button" class="profile-sheet-close" data-close="profile-orders-overlay">Fermer</button>
     </div>
-    <div class="profile-orders-list" id="profile-orders-list">
+    <div class="profile-orders-list profile-sheet-scroll" id="profile-orders-list">
       ${renderProfileOrdersList()}
     </div>
   </div>

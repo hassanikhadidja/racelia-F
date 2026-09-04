@@ -5,6 +5,7 @@ import { getDashboardUsersSectionMarkup } from "./dashboardUsersMarkup.js";
 import { getDashboardBlogsSectionMarkup } from "./dashboardBlogsMarkup.js";
 import { getDashboardProductsSectionMarkup } from "./dashboardProductsMarkup.js";
 import { getDashboardEmailsSectionMarkup } from "./dashboardEmailsMarkup.js";
+import { getDashboardBoutiquesSectionMarkup } from "./dashboardBoutiquesMarkup.js";
 
 /** @generated from dashboard.html — do not edit by hand */
 export function getDashboardMarkup() {
@@ -196,6 +197,11 @@ export function getDashboardMarkup() {
       ${getDashboardEmailsSectionMarkup()}
     </section>
 
+    <!-- Boutiques -->
+    <section class="content" id="boutiques">
+      ${getDashboardBoutiquesSectionMarkup()}
+    </section>
+
     <!-- RACÈLIASTYLE -->
     <section class="content" id="raceliastyle">
       ${getDashboardRaceliaStyleSectionMarkup()}
@@ -260,6 +266,10 @@ export function getDashboardMarkup() {
       <button type="button" class="bottom-nav-item" role="tab" aria-selected="false" data-screen="emails" id="tab-emails">
         <span class="bottom-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg></span>
         <span>Emails</span>
+      </button>
+      <button type="button" class="bottom-nav-item" role="tab" aria-selected="false" data-screen="boutiques" id="tab-boutiques">
+        <span class="bottom-icon"><svg viewBox="0 0 24 24"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span>
+        <span>Boutiques</span>
       </button>
       <button type="button" class="bottom-nav-item" role="tab" aria-selected="false" data-screen="raceliastyle" id="tab-raceliastyle">
         <span class="bottom-icon"><svg viewBox="0 0 24 24"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3L8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg></span>

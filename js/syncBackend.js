@@ -1,4 +1,4 @@
-import { api, getAuthToken, setAuthToken, setStoredUser, uploadImageField } from "./api.js";
+import { api, getAuthToken, isAdminUser, setAuthToken, setStoredUser, uploadImageField } from "./api.js";
 import { applyStoredUser, saveClientOrders, saveClientProfileLocal, userToProfile } from "./clientProfileData.js";
 import { ensureLoyaltyRewards } from "./loyaltyCard.js";
 import {
@@ -19,6 +19,7 @@ import {
   normalizeEmail,
   notifyEmailsUpdated,
 } from "./dashboardEmailsData.js";
+import { saveStores, normalizeStore, loadStores } from "./boutiquesData.js";
 
 const ORDER_CONFIG_KEY = "raceliaOrderConfig";
 
@@ -135,12 +136,13 @@ function mergeCatalogFromApi(incomingList) {
 }
 
 async function syncPublicData() {
-  const [products, blogs, styleLooks, reviews, config] = await Promise.all([
+  const [products, blogs, styleLooks, reviews, config, boutiques] = await Promise.all([
     api.getProducts().catch(() => null),
     api.getPublishedBlogs().catch(() => null),
     api.getStorefrontStyleLooks().catch(() => null),
     api.getPublishedReviews().catch(() => null),
     api.getOrderConfig().catch(() => null),
+    api.getBoutiques().catch(() => null),
   ]);
 
   if (Array.isArray(products)) {
@@ -165,10 +167,23 @@ async function syncPublicData() {
     orderConfig = { ...orderConfig, ...config };
     writeStorage(ORDER_CONFIG_KEY, orderConfig);
   }
+
+  if (Array.isArray(boutiques)) {
+    const incoming = boutiques.map(normalizeStore).filter((store) => store?.id && store?.name);
+    if (isAdminUser()) {
+      const byId = new Map(incoming.map((store) => [store.id, store]));
+      for (const local of loadStores()) {
+        if (local?.id && local?.name && !byId.has(local.id)) byId.set(local.id, local);
+      }
+      saveStores([...byId.values()]);
+    } else {
+      saveStores(incoming);
+    }
+  }
 }
 
 export async function syncAdminData() {
-  if (!getAuthToken()) return;
+  if (!getAuthToken() || !isAdminUser()) return;
 
   const [blogs, orders, users, pendingReviews, styleLooks, emails, returns] = await Promise.all([
     api.getAdminBlogs().catch(() => null),
@@ -212,6 +227,12 @@ export async function syncAdminData() {
   }
   if (Array.isArray(styleLooks) && styleLooks.length) {
     saveStyleLooks(mapStorefrontStyleLooks(styleLooks));
+  }
+
+  await Promise.all(loadStores().map((store) => syncBoutiqueUpsert(store).catch(() => null)));
+  const remoteStores = await api.getBoutiques().catch(() => null);
+  if (Array.isArray(remoteStores)) {
+    saveStores(remoteStores.map(normalizeStore).filter((store) => store?.id && store?.name));
   }
 }
 
@@ -259,11 +280,25 @@ function loadClientProfileFallback() {
   }
 }
 
+function queueAuthenticatedSync(root) {
+  syncClientData(root)
+    .then(() => (isAdminUser() ? syncAdminData() : Promise.resolve()))
+    .then(() => {
+      root?.dispatchEvent(new CustomEvent("racelia:backend-synced", { bubbles: true }));
+    })
+    .catch((error) => {
+      console.warn("RACÈLIA session sync failed:", error?.message || error);
+    });
+}
+
 export async function initBackendSync(root) {
   try {
     await syncPublicData();
     if (getAuthToken()) {
-      await Promise.all([syncAdminData(), syncClientData(root)]);
+      await Promise.all([
+        isAdminUser() ? syncAdminData() : Promise.resolve(),
+        syncClientData(root),
+      ]);
     }
     root?.dispatchEvent(new CustomEvent("racelia:backend-synced", { bubbles: true }));
   } catch (error) {
@@ -275,9 +310,8 @@ export async function loginUser(email, password, root) {
   const result = await api.login({ email, password });
   if (!result?.token) throw new Error("Login failed");
   setAuthToken(result.token);
-  if (result.user) setStoredUser(result.user);
-  await Promise.all([syncAdminData(), syncClientData(root)]);
-  root?.dispatchEvent(new CustomEvent("racelia:backend-synced", { bubbles: true }));
+  if (result.user) applyStoredUser(result.user);
+  queueAuthenticatedSync(root);
   return result;
 }
 
@@ -638,6 +672,46 @@ export async function syncReturnDelete(id) {
     console.warn("RACÈLIA return delete failed:", error.message);
     return null;
   }
+}
+
+function boutiquePayload(store) {
+  const next = normalizeStore(store);
+  return {
+    id: next.id,
+    storeKey: next.id,
+    name: next.name,
+    type: next.type,
+    location: next.location,
+    city: next.city,
+    postal: next.postal,
+    phone: next.phone,
+    website: next.website,
+    hours: next.hours,
+    note: next.note,
+    mapLink: next.mapLink,
+    isOnlineStore: next.isOnlineStore,
+    lat: next.lat,
+    lng: next.lng,
+  };
+}
+
+export async function syncBoutiqueUpsert(store) {
+  if (!getAuthToken() || !isAdminUser()) return null;
+  const body = boutiquePayload(store);
+  try {
+    return await api.updateBoutique(body.id, body);
+  } catch (error) {
+    const message = String(error.message || "");
+    if (message.includes("not found") || message.includes("404") || /Not found/i.test(message)) {
+      return api.createBoutique(body);
+    }
+    throw error;
+  }
+}
+
+export async function syncBoutiqueDelete(id) {
+  if (!getAuthToken() || !isAdminUser() || !id) return null;
+  return api.deleteBoutique(id);
 }
 
 export async function refreshCatalogFromBackend() {

@@ -28,7 +28,7 @@ export function createCategoryPage() {
       <div class="category-page__filter-body">
         <div class="category-page__filter-item category-page__filter-item--look">
           <label class="category-page__check-row">
-            <input type="checkbox" />
+            <input type="checkbox" data-filter-group="look" data-filter-key="look" />
             <span class="category-page__check-box"></span>
             <span>Sur un look</span>
           </label>
@@ -46,10 +46,10 @@ export function createCategoryPage() {
             <span class="category-page__chev-icon" aria-hidden="true"></span>
           </button>
           <div class="category-page__accordion-content">
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Métiers d'art 2026</span></label>
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Printemps-Été 2026</span></label>
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Pré-collection Printemps-Été 2026</span></label>
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Les Emblématiques</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="collection" data-filter-key="metiers-2026"/><span class="category-page__check-box"></span><span>Métiers d'art 2026</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="collection" data-filter-key="ss26"/><span class="category-page__check-box"></span><span>Printemps-Été 2026</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="collection" data-filter-key="pre-ss26"/><span class="category-page__check-box"></span><span>Pré-collection Printemps-Été 2026</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="collection" data-filter-key="emblematics"/><span class="category-page__check-box"></span><span>Les Emblématiques</span></label>
           </div>
         </div>
 
@@ -59,8 +59,9 @@ export function createCategoryPage() {
             <span class="category-page__chev-icon" aria-hidden="true"></span>
           </button>
           <div class="category-page__accordion-content">
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Cuir</span></label>
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Tweed &amp; Tissus</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="matiere" data-filter-key="cuir"/><span class="category-page__check-box"></span><span>Cuir</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="matiere" data-filter-key="simili-cuir"/><span class="category-page__check-box"></span><span>Simili cuir</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="matiere" data-filter-key="tissu"/><span class="category-page__check-box"></span><span>Tissu</span></label>
           </div>
         </div>
 
@@ -70,12 +71,12 @@ export function createCategoryPage() {
             <span class="category-page__chev-icon" aria-hidden="true"></span>
           </button>
           <div class="category-page__accordion-content">
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Noir</span></label>
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Beige</span></label>
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Bleu</span></label>
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Rouge</span></label>
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Jaune</span></label>
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Autres couleurs</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="couleur" data-filter-key="noir"/><span class="category-page__check-box"></span><span>Noir</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="couleur" data-filter-key="beige"/><span class="category-page__check-box"></span><span>Beige</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="couleur" data-filter-key="bleu"/><span class="category-page__check-box"></span><span>Bleu</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="couleur" data-filter-key="rouge"/><span class="category-page__check-box"></span><span>Rouge</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="couleur" data-filter-key="jaune"/><span class="category-page__check-box"></span><span>Jaune</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="couleur" data-filter-key="autres"/><span class="category-page__check-box"></span><span>Autres couleurs</span></label>
           </div>
         </div>
 
@@ -85,8 +86,18 @@ export function createCategoryPage() {
             <span class="category-page__chev-icon" aria-hidden="true"></span>
           </button>
           <div class="category-page__accordion-content">
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Doré</span></label>
-            <label class="category-page__check-row"><input type="checkbox"/><span class="category-page__check-box"></span><span>Argenté</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="quincaillerie" data-filter-key="dore"/><span class="category-page__check-box"></span><span>Doré</span></label>
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="quincaillerie" data-filter-key="argente"/><span class="category-page__check-box"></span><span>Argenté</span></label>
+          </div>
+        </div>
+
+        <div class="category-page__filter-item category-page__accordion">
+          <button class="category-page__accordion-head" type="button">
+            <span class="category-page__accordion-label">MARQUE</span>
+            <span class="category-page__chev-icon" aria-hidden="true"></span>
+          </button>
+          <div class="category-page__accordion-content">
+            <label class="category-page__check-row"><input type="checkbox" data-filter-group="marque" data-filter-key="racelia"/><span class="category-page__check-box"></span><span>RACÈLIA</span></label>
           </div>
         </div>
       </div>

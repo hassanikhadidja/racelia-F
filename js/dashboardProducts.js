@@ -9,7 +9,7 @@ import {
   isInSalesReport,
   PRODUCT_SECTIONS,
 } from "./productCatalog.js";
-import { formatDzdPrice, formatProductPrice, parseDzdInput } from "./currency.js";
+import { formatDzdPrice, parseDzdInput } from "./currency.js";
 import { emptyColorVariant } from "./productImages.js";
 import { getDashboardProductsOverlaysMarkup } from "./dashboardProductsMarkup.js";
 import { setFormStatus } from "./formStatus.js";
@@ -31,7 +31,7 @@ function sectionLabels(sections) {
 function renderProductCard(product) {
   const cover = product.cardCover || product.coverImage || product.cardImages?.[0] || "";
   const note = product.stockNote ? stockNoteLabel(product.stockNote) : "";
-  const priceLabel = formatProductPrice(product);
+  const priceLabel = formatDzdPrice(product.priceAmountDzd || 0);
   return `<article class="product-card dashboard-product-card" data-product-id="${escapeHtml(product.id)}">
     <div class="product-thumb-lg dashboard-product-thumb" style="background-image:url('${escapeHtml(cover)}')">
       ${note ? `<span class="dashboard-product-card__note dashboard-product-card__note--${escapeHtml(product.stockNote)}">${escapeHtml(note)}</span>` : ""}
@@ -267,29 +267,43 @@ function mergeDefaultsIntoFirstVariant(variants = [], product = {}) {
   return list;
 }
 
+function hexToColorInputValue(hex) {
+  let value = String(hex || "#111111").trim();
+  if (!value.startsWith("#")) value = `#${value}`;
+  if (/^#[0-9a-fA-F]{3}$/.test(value)) {
+    value = `#${value[1]}${value[1]}${value[2]}${value[2]}${value[3]}${value[3]}`;
+  }
+  return /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#111111";
+}
+
 function colorVariantRowHtml(variant = emptyColorVariant(), index = 0, showOverrides = false) {
   const v = variant || emptyColorVariant();
   const isDefault = index === 0;
   const showImages = isDefault || showOverrides;
   const badge = isDefault
     ? `<span class="dashboard-color-badge dashboard-color-badge--default">1 · Default pictures</span>`
-    : `<span class="dashboard-color-badge">Color ${index + 1}</span>`;
+    : `<span class="dashboard-color-badge">${escapeHtml(v.label || `Color ${index + 1}`)}</span>`;
   const removeBtn = isDefault
     ? `<button type="button" class="edit-btn js-dashboard-color-remove" disabled title="Default color cannot be removed">Default</button>`
     : `<button type="button" class="edit-btn js-dashboard-color-remove" aria-label="Remove color">Remove</button>`;
+  const fillValue = hexToColorInputValue(v.hex);
 
   return `<div class="dashboard-color-variant${isDefault ? " is-default" : ""}" data-color-index="${index}">
     <div class="dashboard-color-variant__head">
       <div class="dashboard-color-variant__badge">${badge}</div>
+      <div class="dashboard-product-field dashboard-color-variant__fill">
+        <label>Color fill</label>
+        <input type="color" class="dashboard-color-fill" data-field="hexFill" value="${escapeHtml(fillValue)}" aria-label="Color fill" />
+      </div>
       <div class="dashboard-product-field">
         <label>Color hex</label>
         <input type="text" class="dashboard-color-input" data-field="hex" value="${escapeHtml(v.hex || "#111111")}" placeholder="#111111" />
       </div>
-      <div class="dashboard-product-field">
-        <label>Label</label>
-        <input type="text" class="dashboard-color-input" data-field="label" value="${escapeHtml(v.label || "")}" placeholder="Black" />
-      </div>
       ${removeBtn}
+    </div>
+    <div class="dashboard-product-field dashboard-color-variant__name">
+      <label>Color name</label>
+      <input type="text" class="dashboard-color-input" data-field="label" value="${escapeHtml(v.label || "")}" placeholder="Noir, Beige, Rouge…" />
     </div>
     ${
       isDefault
@@ -511,6 +525,21 @@ function bindProductEditor(page, root) {
       variants,
       page.querySelector("#dashboard-product-has-color-images")?.checked
     );
+  });
+
+  page.addEventListener("input", (event) => {
+    const fill = event.target.closest(".dashboard-color-fill[data-field='hexFill']");
+    if (fill) {
+      const hex = fill.closest(".dashboard-color-variant")?.querySelector("[data-field='hex']");
+      if (hex) hex.value = fill.value;
+      return;
+    }
+    const hex = event.target.closest(".dashboard-color-input[data-field='hex']");
+    if (hex) {
+      const picker = hex.closest(".dashboard-color-variant")?.querySelector("[data-field='hexFill']");
+      const normalized = hexToColorInputValue(hex.value);
+      if (picker && /^#[0-9a-fA-F]{6}$/i.test(normalized)) picker.value = normalized;
+    }
   });
 
   page.addEventListener("click", (event) => {

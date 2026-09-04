@@ -115,7 +115,7 @@ export function getProfileGiftPointsOverlayMarkup() {
       <h3 id="profile-points-title">Points cadeau</h3>
       <button type="button" class="profile-sheet-close" data-close="profile-points-overlay">Fermer</button>
     </div>
-    <div class="profile-points-body" id="profile-points-body">
+    <div class="profile-points-body profile-sheet-scroll" id="profile-points-body">
       ${renderGiftPointsSummary(total)}
     </div>
   </div>

@@ -50,7 +50,7 @@ export function initCart(root) {
 
     event.stopPropagation();
     const card = addBtn.closest(".category-product");
-    if (!card) return;
+    if (!card || addBtn.disabled || addBtn.classList.contains("is-disabled")) return;
 
     if (addCategoryCardToBag(root, card, { qty: 1, mode: "add" })) {
       syncBagCountFromDom(root);

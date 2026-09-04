@@ -32,6 +32,11 @@ import {
   initDashboardProducts,
   closeDashboardProductsOverlay,
 } from "./dashboardProducts.js";
+import {
+  initDashboardBoutiques,
+  closeDashboardBoutiquesOverlay,
+  renderDashboardBoutiques,
+} from "./dashboardBoutiques.js";
 
 const TAB_STORAGE_KEY = "racelia-dashboard-tab";
 
@@ -81,6 +86,9 @@ function createTabNav(page) {
     }
     if (screenId === "emails") {
       renderDashboardEmails(page);
+    }
+    if (screenId === "boutiques") {
+      renderDashboardBoutiques(page);
     }
     page.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -159,11 +167,13 @@ export function initDashboard(root) {
   initTargetOrders(page);
   initDashboardOrders(page);
   initDashboardProducts(page, root);
+  initDashboardBoutiques(page);
   createTabNav(page);
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !page.hidden) {
       if (closeDashboardProductsOverlay(page)) return;
+      if (closeDashboardBoutiquesOverlay(page)) return;
       if (closeDashboardBlogsOverlay(page)) return;
       if (closeDashboardEmailsOverlay(page)) return;
       if (closeDashboardUsersOverlay(page)) return;
