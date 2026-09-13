@@ -1,5 +1,7 @@
 /** Boutiques RACÈLIA — points de vente. */
 
+import { normalizeAudiences } from "./audience.js";
+
 export const BOUTIQUES_STORAGE_KEY = "raceliaBoutiques";
 
 export const STORE_TYPES = [
@@ -156,6 +158,7 @@ export function normalizeStore(store) {
     isOnlineStore,
     lat: coords?.lat ?? null,
     lng: coords?.lng ?? null,
+    audiences: normalizeAudiences(store.audiences),
   };
 }
 
@@ -173,6 +176,7 @@ export const RACELIA_STORES = [
     note: "Boutique phare — collection complète et services personnalisés.",
     lat: 36.7753,
     lng: 3.0588,
+    audiences: ["femme", "homme", "enfants", "mariee", "hammam"],
   },
   {
     id: "alger-hydracity",
@@ -187,6 +191,7 @@ export const RACELIA_STORES = [
     note: "Essai et conseils d’entretien.",
     lat: 36.7472,
     lng: 3.0365,
+    audiences: ["femme", "mariee", "hammam"],
   },
   {
     id: "oran-front-de-mer",
@@ -201,6 +206,7 @@ export const RACELIA_STORES = [
     note: "Livraison express disponible depuis cette boutique.",
     lat: 35.6971,
     lng: -0.6308,
+    audiences: ["homme"],
   },
   {
     id: "constantine-centre",
@@ -215,6 +221,7 @@ export const RACELIA_STORES = [
     note: "Corner partenaire — sélection saisonnière.",
     lat: 36.365,
     lng: 6.6147,
+    audiences: ["enfants"],
   },
   {
     id: "blida-centre",

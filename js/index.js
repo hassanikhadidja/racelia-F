@@ -2,10 +2,13 @@ import {
   createTopbar,
   createMenuPanel,
   createHero,
+  createHomeStories,
   createCategoryBlock,
   createIntro,
   createProductGrid,
   createEditorialProductGrid,
+  createSecondaryEditorialProductGrid,
+  createClosingProductGrid,
   createEditorial,
   createSecondaryEditorial,
   createCtaDock,
@@ -22,6 +25,7 @@ import {
   createReturnsPage,
   createGiftCardPage,
   createContactPage,
+  createAboutPage,
   createProductDetailPage,
   createPdpAddedOverlay,
   createDashboardPage,
@@ -44,14 +48,23 @@ export function mountRaceliaApp(container) {
   const dock = createCtaDock();
   const selection = createSelectionWidget();
 
+  const editorialBand = document.createElement("div");
+  editorialBand.className = "home-editorial-band";
+  editorialBand.append(createEditorial(), createEditorialProductGrid());
+
+  const secondaryEditorialBand = document.createElement("div");
+  secondaryEditorialBand.className = "home-editorial-band home-editorial-band--reverse";
+  secondaryEditorialBand.append(createSecondaryEditorial(), createSecondaryEditorialProductGrid());
+
   pageMain.append(
     createHero(),
+    createHomeStories(),
     createCategoryBlock(),
     createIntro(),
     createProductGrid(),
-    createEditorial(),
-    createEditorialProductGrid(),
-    createSecondaryEditorial(),
+    editorialBand,
+    secondaryEditorialBand,
+    createClosingProductGrid(),
     dock
   );
 
@@ -69,6 +82,7 @@ export function mountRaceliaApp(container) {
     createReturnsPage(),
     createGiftCardPage(),
     createContactPage(),
+    createAboutPage(),
     createProductDetailPage(),
     createPdpAddedOverlay(),
     createAccountPanel(),

@@ -22,6 +22,13 @@ export function initShoppingBag(root, { onBack } = {}) {
     leave();
   });
 
+  page.querySelectorAll(".js-shopping-bag-close").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.preventDefault();
+      leave();
+    });
+  });
+
   const modal = page.querySelector("#promoModal");
   const promoInput = page.querySelector("#promoInput");
 
@@ -105,6 +112,23 @@ export function initShoppingBag(root, { onBack } = {}) {
     if (target.closest(".js-wishlist-page-open")) {
       event.preventDefault();
       root.dispatchEvent(new CustomEvent("racelia:open-wishlist"));
+      return;
+    }
+
+    const categoryLink = target.closest(".js-bag-category");
+    if (categoryLink) {
+      event.preventDefault();
+      root.dispatchEvent(
+        new CustomEvent("racelia:open-category", {
+          detail: { categoryKey: categoryLink.dataset.categoryKey },
+        })
+      );
+      return;
+    }
+
+    if (target.closest(".js-bag-gift-card")) {
+      event.preventDefault();
+      root.dispatchEvent(new CustomEvent("racelia:open-gift-card"));
       return;
     }
 

@@ -209,7 +209,8 @@ body.wishlist-active #racelia-app .cta-dock {
   margin-top: 8px;
 }
 
-#wishlistPage .wishlist-btn {
+#wishlistPage .wishlist-empty .wishlist-btn,
+#wishlistPage .wishlist-footer .wishlist-btn {
   width: 100%;
   font-family: inherit;
   font-size: 12px;
@@ -257,5 +258,100 @@ body.wishlist-active #racelia-app .cta-dock {
   #wishlistPage .wishlist-shell {
     border-left: 1px solid #f0f0f0;
     border-right: 1px solid #f0f0f0;
+  }
+}
+
+#wishlistPage .wishlist-card {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  body.wishlist-active {
+    overflow: auto;
+  }
+
+  body.wishlist-active #racelia-app > .topbar {
+    display: flex !important;
+  }
+
+  body.wishlist-active #racelia-app > .site-footer {
+    display: block !important;
+  }
+
+  #wishlistPage {
+    position: relative;
+    inset: auto;
+    z-index: 1;
+    min-height: 100vh;
+    padding-top: 188px;
+  }
+
+  #wishlistPage .wishlist-shell {
+    max-width: none;
+    border: 0;
+    min-height: 0;
+  }
+
+  #wishlistPage .wishlist-topbar,
+  #wishlistPage .wishlist-footer,
+  #wishlistPage .wishlist-item,
+  #wishlistPage .wishlist-empty .wishlist-btn {
+    display: none;
+  }
+
+  #wishlistPage:has(.wishlist-empty:not([hidden])) .wishlist-summary {
+    display: none;
+  }
+
+  #wishlistPage .wishlist-summary {
+    padding: 8px 24px 40px;
+    font-size: 13px;
+    letter-spacing: 0.08em;
+  }
+
+  #wishlistPage .wishlist-empty {
+    padding: 72px 24px 160px;
+  }
+
+  #wishlistPage .wishlist-empty__title {
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: 0.28em;
+    line-height: 1.2;
+    margin-bottom: 18px;
+  }
+
+  #wishlistPage .wishlist-empty__text {
+    max-width: 420px;
+    margin: 0 auto;
+    font-size: 14px;
+    color: #111;
+    line-height: 1.6;
+  }
+
+  #wishlistPage .wishlist-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 353px);
+    justify-content: center;
+    gap: 28px 24px;
+    max-width: calc(353px * 4 + 24px * 3);
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  #wishlistPage .wishlist-card {
+    display: block;
+    width: 353px;
+    padding: 0 0 20px;
+  }
+
+  #wishlistPage .wishlist-card .imgwrap {
+    width: 353px;
+    height: 431px;
+    aspect-ratio: auto;
+  }
+
+  #wishlistPage .wishlist-card .underline {
+    display: none;
   }
 }

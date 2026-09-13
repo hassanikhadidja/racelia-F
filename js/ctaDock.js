@@ -15,6 +15,7 @@ function getActiveDock(root) {
   const returnsPage = root.querySelector("#returnsPage");
   const giftCardPage = root.querySelector("#giftCardPage");
   const contactPage = root.querySelector("#contactPage");
+  const aboutPage = root.querySelector("#aboutPage");
   const pageMain = root.querySelector("#pageMain");
 
   if (productDetailPage && !productDetailPage.hidden) {
@@ -61,6 +62,10 @@ function getActiveDock(root) {
     return root.querySelector("#contactCtaDock");
   }
 
+  if (aboutPage && !aboutPage.hidden) {
+    return root.querySelector("#aboutCtaDock");
+  }
+
   if (pageMain && !pageMain.hidden) {
     return root.querySelector("#ctaDock");
   }
@@ -87,6 +92,7 @@ export function getActiveDockSlot(root) {
   const returnsPage = root.querySelector("#returnsPage");
   const giftCardPage = root.querySelector("#giftCardPage");
   const contactPage = root.querySelector("#contactPage");
+  const aboutPage = root.querySelector("#aboutPage");
   const pageMain = root.querySelector("#pageMain");
 
   if (productDetailPage && !productDetailPage.hidden) {
@@ -133,6 +139,10 @@ export function getActiveDockSlot(root) {
     return root.querySelector("#contactCtaDockSlot");
   }
 
+  if (aboutPage && !aboutPage.hidden) {
+    return root.querySelector("#aboutCtaDockSlot");
+  }
+
   if (pageMain && !pageMain.hidden) {
     return root.querySelector("#ctaDockSlot");
   }
@@ -149,14 +159,28 @@ export function isCtaDockReached(root) {
   return dockTop <= limit;
 }
 
+function hasPassedHomeMetiersSection(root) {
+  const pageMain = root.querySelector("#pageMain");
+  if (!pageMain || pageMain.hidden) return true;
+
+  const section = root.querySelector("#metiersArtSection");
+  if (!section) return true;
+
+  return section.getBoundingClientRect().bottom <= 0;
+}
+
 export function updateCtaDock(root) {
   const widget = root.querySelector("#selectionWidget");
   const dock = getActiveDock(root);
 
   if (!dock || !widget) return;
-  if (widget.classList.contains("modal-animated-container--open")) return;
+  if (widget.classList.contains("modal-animated-container--open")) {
+    widget.classList.remove("is-hidden-until-scroll");
+    return;
+  }
 
   widget.classList.remove("modal-animated-container--pdp");
+  widget.classList.toggle("is-hidden-until-scroll", !hasPassedHomeMetiersSection(root));
   widget.classList.toggle("modal-animated-container--instant-dock", isOnProductDetailPage(root));
   widget.classList.toggle("modal-animated-container--docked", isCtaDockReached(root));
 

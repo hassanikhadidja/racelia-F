@@ -54,13 +54,15 @@ export function createFooter() {
           <div class="col">
             <h3>Explorer RACÈLIA</h3>
             <ul>
-              <li><a href="#category/nouveautes" class="js-footer-category" data-category-key="nouveautes">Nouveautés</a></li>
-              <li><a href="#home" class="js-footer-metiers-home">Métiers d'Art 2026</a></li>
+              <li><a href="#category/nouveautes" class="js-footer-category" data-category-key="nouveautes">Métiers d'Art 2026</a></li>
               <li><a href="#category/all-selection" class="js-footer-category" data-category-key="all-selection">Toute la sélection</a></li>
               <li><a href="#carte-cadeau" class="js-footer-gift-card">Carte cadeau électronique RACÈLIA</a></li>
               <li><a href="#raceliastyle" class="js-footer-style">#RACÈLIASTYLE</a></li>
             </ul>
-            <h3 class="group-title">Sacs</h3>
+          </div>
+
+          <div class="col">
+            <h3>Sacs</h3>
             <ul>
               <li><a href="#category/mini-bags" class="js-footer-category" data-category-key="mini-bags">Mini sacs</a></li>
               <li><a href="#category/racelia-handbag" class="js-footer-category" data-category-key="racelia-handbag">Le sac RACÈLIA</a></li>
@@ -77,7 +79,10 @@ export function createFooter() {
               <li><a href="#retours" class="js-footer-returns">Retours</a></li>
               <li><a href="#faq" class="js-footer-faq">FAQ</a></li>
             </ul>
-            <h3 class="group-title">La Maison RACÈLIA</h3>
+          </div>
+
+          <div class="col">
+            <h3>La Maison RACÈLIA</h3>
             <ul>
               <li><a href="#">Carrières</a></li>
               <li><a href="#conditions" class="js-footer-terms">Conditions d'utilisation</a></li>
@@ -92,35 +97,39 @@ export function createFooter() {
           <button class="toggle" id="contrastToggle" type="button" aria-label="Basculer le contraste élevé"></button>
         </div>
 
-        <div class="lang-row">
-          <span class="label">Changer de langue</span>
-          <div class="lang-select">
-            <select id="footerLangSelect" class="lang-select__native" aria-label="Langue">
-              <option value="en">English</option>
-              <option value="fr" selected>Français</option>
-            </select>
-            <span class="chev" aria-hidden="true"></span>
-          </div>
-        </div>
+        <div class="footer-meta">
+          <div class="footer-meta__controls">
+            <div class="lang-row">
+              <span class="label" data-i18n="lang.change">Changer de langue</span>
+              <div class="lang-select">
+                <select id="footerLangSelect" class="lang-select__native" aria-label="Langue" data-i18n-aria="lang.change">
+                  <option value="en">English</option>
+                  <option value="fr" selected>Français</option>
+                </select>
+                <span class="chev" aria-hidden="true"></span>
+              </div>
+            </div>
 
-        <div class="lang-row currency-row">
-          <span class="label">Changer de devise</span>
-          <div class="lang-select">
-            <select id="footerCurrencySelect" class="lang-select__native" aria-label="Devise">
-              <option value="DZD" selected>Dinar algérien (DZD)</option>
-              <option value="EUR">Euro (€)</option>
-              <option value="USD">Dollar américain ($)</option>
-            </select>
-            <span class="chev" aria-hidden="true"></span>
+            <div class="lang-row currency-row">
+              <span class="label">Changer de devise</span>
+              <div class="lang-select">
+                <select id="footerCurrencySelect" class="lang-select__native" aria-label="Devise">
+                  <option value="DZD" selected>Dinar algérien (DZD)</option>
+                  <option value="EUR">Euro (€)</option>
+                  <option value="USD">Dollar américain ($)</option>
+                </select>
+                <span class="chev" aria-hidden="true"></span>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div class="socials">
-          <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
-          <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/></svg></a>
-          <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.6 7.8a5.5 5.5 0 0 1-3.2-1V15a5.5 5.5 0 1 1-5.5-5.5c.3 0 .6 0 .9.1v2.7a2.8 2.8 0 1 0 2 2.7V2.5h2.6a5.5 5.5 0 0 0 3.2 3.5v1.8z"/></svg></a>
-          <a href="#" aria-label="Pinterest"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12c0 4.2 2.6 7.8 6.3 9.3-.1-.8-.2-2 0-2.9.2-.8 1.3-5.4 1.3-5.4s-.3-.7-.3-1.6c0-1.5.9-2.6 2-2.6.9 0 1.4.7 1.4 1.5 0 .9-.6 2.3-.9 3.5-.3 1.1.5 1.9 1.5 1.9 1.8 0 3.2-1.9 3.2-4.7 0-2.4-1.8-4.2-4.3-4.2-2.9 0-4.6 2.2-4.6 4.4 0 .9.3 1.8.8 2.3.1.1.1.2.1.3l-.3 1.2c0 .2-.2.2-.3.1-1.3-.6-2.1-2.5-2.1-4 0-3.3 2.4-6.3 6.9-6.3 3.6 0 6.4 2.6 6.4 6 0 3.6-2.3 6.5-5.4 6.5-1.1 0-2-.5-2.4-1.2l-.6 2.5c-.2.9-.9 2-1.3 2.7 1 .3 2 .5 3.1.5 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg></a>
-          <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 0 0 2 3.5v17A1.5 1.5 0 0 0 3.5 22h17a1.5 1.5 0 0 0 1.5-1.5v-17A1.5 1.5 0 0 0 20.5 2zM8 19H5V9h3v10zM6.5 7.7A1.7 1.7 0 1 1 6.5 4.3a1.7 1.7 0 0 1 0 3.4zM19 19h-3v-5c0-1.2-.5-2-1.6-2-.9 0-1.4.6-1.6 1.2-.1.2-.1.5-.1.8V19h-3V9h3v1.3c.4-.6 1.1-1.5 2.7-1.5 2 0 3.5 1.3 3.5 4.1V19z"/></svg></a>
+          <div class="socials">
+            <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>
+            <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/></svg></a>
+            <a href="#" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.6 7.8a5.5 5.5 0 0 1-3.2-1V15a5.5 5.5 0 1 1-5.5-5.5c.3 0 .6 0 .9.1v2.7a2.8 2.8 0 1 0 2 2.7V2.5h2.6a5.5 5.5 0 0 0 3.2 3.5v1.8z"/></svg></a>
+            <a href="#" aria-label="Pinterest"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.5 2 2 6.5 2 12c0 4.2 2.6 7.8 6.3 9.3-.1-.8-.2-2 0-2.9.2-.8 1.3-5.4 1.3-5.4s-.3-.7-.3-1.6c0-1.5.9-2.6 2-2.6.9 0 1.4.7 1.4 1.5 0 .9-.6 2.3-.9 3.5-.3 1.1.5 1.9 1.5 1.9 1.8 0 3.2-1.9 3.2-4.7 0-2.4-1.8-4.2-4.3-4.2-2.9 0-4.6 2.2-4.6 4.4 0 .9.3 1.8.8 2.3.1.1.1.2.1.3l-.3 1.2c0 .2-.2.2-.3.1-1.3-.6-2.1-2.5-2.1-4 0-3.3 2.4-6.3 6.9-6.3 3.6 0 6.4 2.6 6.4 6 0 3.6-2.3 6.5-5.4 6.5-1.1 0-2-.5-2.4-1.2l-.6 2.5c-.2.9-.9 2-1.3 2.7 1 .3 2 .5 3.1.5 5.5 0 10-4.5 10-10S17.5 2 12 2z"/></svg></a>
+            <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 2h-17A1.5 1.5 0 0 0 2 3.5v17A1.5 1.5 0 0 0 3.5 22h17a1.5 1.5 0 0 0 1.5-1.5v-17A1.5 1.5 0 0 0 20.5 2zM8 19H5V9h3v10zM6.5 7.7A1.7 1.7 0 1 1 6.5 4.3a1.7 1.7 0 0 1 0 3.4zM19 19h-3v-5c0-1.2-.5-2-1.6-2-.9 0-1.4.6-1.6 1.2-.1.2-.1.5-.1.8V19h-3V9h3v1.3c.4-.6 1.1-1.5 2.7-1.5 2 0 3.5 1.3 3.5 4.1V19z"/></svg></a>
+          </div>
         </div>
       </div>
     </div>

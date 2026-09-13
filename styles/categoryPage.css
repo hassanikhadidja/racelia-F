@@ -76,6 +76,13 @@
   box-sizing: border-box;
 }
 
+.category-page__empty {
+  text-align: center;
+  padding: 40px 20px 80px;
+  font-size: 16px;
+  color: #444;
+}
+
 .category-product {
   position: relative;
   display: flex;
@@ -294,14 +301,25 @@
 .category-page__filter {
   position: fixed;
   inset: 0;
-  background: #fff;
+  background: transparent;
   z-index: 400;
   display: none;
-  flex-direction: column;
 }
 
 .category-page__filter.open {
+  display: block;
+}
+
+.category-page__filter-backdrop {
+  display: none;
+}
+
+.category-page__filter-panel {
   display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: #fff;
 }
 
 .category-page__filter-close-spacer {
@@ -497,5 +515,80 @@
 
   .category-product {
     padding: 8px 8px 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .category-page__title {
+    padding-top: 176px;
+  }
+
+  .category-page__products {
+    max-width: none;
+    grid-template-columns: repeat(4, 353px);
+    justify-content: center;
+    padding: 30px 24px 48px;
+    gap: 28px 24px;
+  }
+
+  .category-product {
+    width: 353px;
+    padding: 0 0 20px;
+  }
+
+  .category-product .imgwrap {
+    width: 353px;
+    height: 431px;
+    aspect-ratio: auto;
+  }
+
+  .category-page__filter {
+    z-index: 1400;
+  }
+
+  .category-page__filter-backdrop {
+    display: block;
+    position: absolute;
+    inset: 0;
+    border: 0;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+  }
+
+  .category-page__filter-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: min(420px, 42vw);
+    max-width: 420px;
+    height: 100%;
+    animation: categoryFilterDrawerIn 0.28s ease;
+  }
+
+  @keyframes categoryFilterDrawerIn {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  .category-page__filter-close-spacer {
+    display: none;
+  }
+
+  .category-page__filter-body {
+    padding: 28px 32px 24px;
+  }
+
+  .category-page__filter-actions {
+    position: sticky;
+    bottom: 0;
+    left: auto;
+    right: auto;
+    width: 100%;
+    flex-shrink: 0;
   }
 }

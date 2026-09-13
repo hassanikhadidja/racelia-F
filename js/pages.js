@@ -1,6 +1,7 @@
 import { categoryPages, getCategoryProductsForSection } from "./categoryData.js";
+import { getAudienceLabel, getSelectedAudience, setSelectedAudience } from "./audience.js";
 import { getSelectedFilterEntries, productMatchesFilters } from "./categoryFilters.js";
-import { getCatalogProductById } from "./productCatalog.js";
+import { getCatalogProductById, searchProducts } from "./productCatalog.js";
 import { getCardImages } from "./productImages.js";
 import { defaultSelection } from "./data.js";
 import { createCategoryProduct } from "../components/CategoryProduct.js";
@@ -18,11 +19,12 @@ import { initClientProfile } from "./clientProfile.js";
 import { initShoppingBag } from "./shoppingBag.js";
 import { initWishlist } from "./wishlist.js";
 import { initCheckout } from "./checkout.js";
-import { collectBagItems } from "./bagHelpers.js";
+import { collectBagItems, refreshShoppingBagTotals } from "./bagHelpers.js";
 import { syncWishlistHeartStates } from "./clientCartWishlist.js";
 import { parseRoute, writeRoute, isValidProductRoute, shouldIgnoreHashChange, goBackInApp, beginRouteRestore, endRouteRestore } from "./route.js";
 import { refreshDisplayedPrices } from "./currency.js";
 import { renderHomeNewArrivals } from "./homeNewArrivals.js";
+import { renderHomeStories } from "./homeStories.js";
 import {
   initBlogsPage,
   renderBlogsList,
@@ -43,6 +45,7 @@ let currentProductId = null;
 let currentBlogId = null;
 let lastCategoryPage = null;
 let lastStorePage = "home";
+let currentSearchQuery = "";
 /** Page to restore when leaving the shopping bag (not overwritten by checkout/wishlist). */
 let pageBeforeShoppingBag = "home";
 let pageBeforeAccount = "home";
@@ -145,6 +148,16 @@ function syncRoute() {
     return;
   }
 
+  if (currentPage === "about") {
+    writeRoute({ view: "about" });
+    return;
+  }
+
+  if (currentPage === "search") {
+    writeRoute({ view: "search", searchQuery: currentSearchQuery });
+    return;
+  }
+
   if (categoryPages[currentPage]) {
     writeRoute({ view: "category", categoryKey: currentPage });
     return;
@@ -206,6 +219,12 @@ export function restoreRouteFromUrl(root) {
       return;
     }
 
+    if (route.view === "search") {
+      if (route.searchQuery) showSearch(root, route.searchQuery);
+      else showHome(root);
+      return;
+    }
+
     if (route.view === "blogs") {
       showBlogs(root);
       return;
@@ -253,6 +272,11 @@ export function restoreRouteFromUrl(root) {
 
     if (route.view === "contact") {
       showContact(root);
+      return;
+    }
+
+    if (route.view === "about") {
+      showAbout(root);
       return;
     }
 
@@ -377,12 +401,25 @@ function getSelectedFilterLabels(filter) {
   return getSelectedFilterEntries(filter);
 }
 
-function renderCategoryProducts(root, pageKey, selectedFilters = activeCategoryFilters) {
-  const config = categoryPages[pageKey];
-  const productsRoot = root.querySelector("#categoryProducts");
-  if (!config || !productsRoot) return;
+function isProductGridPage(page = currentPage) {
+  return page === "search" || Boolean(categoryPages[page]);
+}
 
-  const pageProducts = getCategoryProductsForSection(pageKey);
+function searchSubtitle(query, count) {
+  const q = String(query || "").trim();
+  if (!count) return `Aucun résultat pour « ${q} ».`;
+  return `${count} résultat${count > 1 ? "s" : ""} pour « ${q} ».`;
+}
+
+function renderCategoryProducts(root, pageKey, selectedFilters = activeCategoryFilters) {
+  const productsRoot = root.querySelector("#categoryProducts");
+  if (!productsRoot) return;
+  if (pageKey !== "search" && !categoryPages[pageKey]) return;
+
+  const pageProducts =
+    pageKey === "search"
+      ? searchProducts(currentSearchQuery)
+      : getCategoryProductsForSection(pageKey);
   const products = selectedFilters.length
     ? pageProducts.filter((product) => productMatchesFilters(product, selectedFilters))
     : pageProducts;
@@ -391,6 +428,20 @@ function renderCategoryProducts(root, pageKey, selectedFilters = activeCategoryF
   products.forEach((product) => {
     productsRoot.appendChild(createCategoryProduct(product));
   });
+
+  const empty = root.querySelector("#categoryProductsEmpty");
+  if (empty) {
+    empty.hidden = products.length > 0;
+    empty.textContent =
+      pageKey === "search"
+        ? searchSubtitle(currentSearchQuery, 0)
+        : "Aucun produit dans cette sélection.";
+  }
+
+  if (pageKey === "search") {
+    const sub = root.querySelector("#categoryPageSub");
+    if (sub) sub.textContent = searchSubtitle(currentSearchQuery, products.length);
+  }
 
   initCategoryInteractions(root);
   initProductSliders(root, productsRoot);
@@ -403,11 +454,55 @@ function renderCategory(root, pageKey) {
   const categoryPage = root.querySelector("#categoryPage");
   if (!config || !categoryPage) return;
 
+  categoryPage.dataset.page = pageKey;
+
+  const audienceLabel = config.kids ? "" : getAudienceLabel(getSelectedAudience());
   root.querySelector("#categoryPageTitle").textContent = config.title;
   root.querySelector("#categoryPageSub").textContent = config.subtitle;
-  root.querySelector("#categoryPageBar").textContent = config.collectionBar;
+  root.querySelector("#categoryPageBar").textContent = audienceLabel
+    ? `${config.collectionBar} · ${audienceLabel.toUpperCase()}`
+    : config.collectionBar;
 
   renderCategoryProducts(root, pageKey);
+}
+
+function isDesktopOverlay() {
+  return window.matchMedia("(min-width: 1024px)").matches;
+}
+
+function hideTransientOverlays(root) {
+  const accountPage = root.querySelector("#accountPage");
+  if (accountPage) accountPage.hidden = true;
+  const dashboard = root.querySelector("#dashboardPage");
+  if (dashboard) dashboard.hidden = true;
+  const clientProfile = root.querySelector("#clientProfilePage");
+  if (clientProfile) clientProfile.hidden = true;
+  const wishlist = root.querySelector("#wishlistPage");
+  if (wishlist) wishlist.hidden = true;
+  const checkout = root.querySelector("#checkoutPage");
+  if (checkout) checkout.hidden = true;
+}
+
+function revealStorefrontBehindBag(root) {
+  const page = lastStorePage || "home";
+  const byView = {
+    home: "#pageMain",
+    search: "#categoryPage",
+    product: "#productDetailPage",
+    about: "#aboutPage",
+    boutiques: "#boutiquesPage",
+    faq: "#faqPage",
+    contact: "#contactPage",
+    shipping: "#shippingPage",
+    privacy: "#privacyPage",
+    terms: "#termsPage",
+    returns: "#returnsPage",
+    "gift-card": "#giftCardPage",
+  };
+
+  const selector = categoryPages[page] ? "#categoryPage" : byView[page] || "#pageMain";
+  const el = root.querySelector(selector);
+  if (el) el.hidden = false;
 }
 
 function hideAllPages(root) {
@@ -443,6 +538,9 @@ function hideAllPages(root) {
   if (giftCardPage) giftCardPage.hidden = true;
   const contactPage = root.querySelector("#contactPage");
   if (contactPage) contactPage.hidden = true;
+  const aboutPage = root.querySelector("#aboutPage");
+  if (aboutPage) aboutPage.hidden = true;
+  document.body.classList.remove("product-detail-active");
 }
 
 function setOverlayShellActive(active) {
@@ -578,7 +676,7 @@ function clearCategoryFilters(root, filter, clearBtn) {
 
   activeCategoryFilters = [];
 
-  if (currentPage !== "home" && currentPage !== "product" && categoryPages[currentPage]) {
+  if (isProductGridPage()) {
     renderCategoryProducts(root, currentPage, []);
   }
 
@@ -588,7 +686,6 @@ function clearCategoryFilters(root, filter, clearBtn) {
 function initCategoryFilter(root) {
   const filter = root.querySelector("#categoryFilter");
   const openBtn = root.querySelector("#categoryFilterOpen");
-  const closeBtn = root.querySelector("#categoryFilterClose");
   const clearBtn = root.querySelector("#categoryFilterClear");
   const resultsBtn = root.querySelector("#categoryFilterResults");
   const widget = root.querySelector("#selectionWidget");
@@ -606,11 +703,13 @@ function initCategoryFilter(root) {
   const closeFilter = () => setFilterOpen(false);
 
   openBtn?.addEventListener("click", () => setFilterOpen(true));
-  closeBtn?.addEventListener("click", closeFilter);
+  filter.querySelectorAll(".js-category-filter-close").forEach((btn) => {
+    btn.addEventListener("click", closeFilter);
+  });
 
   resultsBtn?.addEventListener("click", () => {
     activeCategoryFilters = getSelectedFilterLabels(filter);
-    if (currentPage !== "home" && currentPage !== "product" && categoryPages[currentPage]) {
+    if (isProductGridPage()) {
       renderCategoryProducts(root, currentPage, activeCategoryFilters);
     }
     closeFilter();
@@ -688,6 +787,7 @@ export function showClientProfile(root) {
   initClientProfile(root);
   updateAccountButtons(root);
   updateCtaDock(root);
+  updateTopbar(root);
   syncRoute();
   page?.scrollTo({ top: 0 });
 }
@@ -726,21 +826,38 @@ export function leaveClientProfile(root) {
 export function showShoppingBag(root) {
   if (currentPage !== "shopping-bag") {
     pageBeforeShoppingBag = currentPage;
-    lastStorePage = currentPage;
+    if (
+      currentPage !== "wishlist" &&
+      currentPage !== "checkout" &&
+      currentPage !== "account" &&
+      currentPage !== "dashboard" &&
+      currentPage !== "client-profile"
+    ) {
+      lastStorePage = currentPage;
+    }
   }
 
   currentPage = "shopping-bag";
-  hideAllPages(root);
   closeOverlays(root);
+
+  if (isDesktopOverlay()) {
+    hideTransientOverlays(root);
+    revealStorefrontBehindBag(root);
+  } else {
+    hideAllPages(root);
+  }
 
   const page = root.querySelector("#shoppingBagPage");
   if (page) page.hidden = false;
 
   setShoppingBagShellActive(true);
   initShoppingBag(root, { onBack: () => leaveShoppingBag(root) });
+  refreshShoppingBagTotals(root);
   updateCtaDock(root);
+  updateTopbar(root);
   syncRoute();
-  page?.scrollTo({ top: 0 });
+  const drawer = isDesktopOverlay() ? page?.querySelector(".shopping-bag-shell") : page;
+  drawer?.scrollTo({ top: 0 });
 }
 
 export function leaveShoppingBag(root) {
@@ -782,6 +899,7 @@ export function showWishlist(root) {
     },
   });
   updateCtaDock(root);
+  updateTopbar(root);
   syncRoute();
   page?.scrollTo({ top: 0 });
 }
@@ -864,7 +982,9 @@ export function showHome(root, { selectionLabel = defaultSelection, scrollToGrid
   setOverlayShellActive(false);
   currentPage = "home";
   currentProductId = null;
+  currentSearchQuery = "";
   activeCategoryFilters = [];
+  setSelectedAudience("");
 
   hideAllPages(root);
   const pageMain = root.querySelector("#pageMain");
@@ -872,6 +992,7 @@ export function showHome(root, { selectionLabel = defaultSelection, scrollToGrid
 
   closeOverlays(root);
   updateTopbar(root);
+  root.dispatchEvent(new CustomEvent("racelia:audience-changed"));
   attachSelectionWidget(root);
   setSelectionLabel(root, defaultSelection);
   syncRoute();
@@ -894,7 +1015,7 @@ export function showProductDetail(root, productId) {
     return;
   }
 
-  if (currentPage !== "home" && currentPage !== "product" && categoryPages[currentPage]) {
+  if (isProductGridPage()) {
     lastCategoryPage = currentPage;
   }
 
@@ -903,6 +1024,7 @@ export function showProductDetail(root, productId) {
 
   hideAllPages(root);
   root.querySelector("#productDetailPage").hidden = false;
+  document.body.classList.add("product-detail-active");
 
   closeOverlays(root);
   root.querySelector("#selectionWidget")?.classList.remove("is-hidden-for-filter");
@@ -911,7 +1033,9 @@ export function showProductDetail(root, productId) {
   updateTopbar(root);
   window.scrollTo({ top: 0, behavior: "smooth" });
 
-  if (lastCategoryPage && categoryPages[lastCategoryPage]) {
+  if (lastCategoryPage === "search") {
+    setSelectionLabel(root, "RECHERCHE");
+  } else if (lastCategoryPage && categoryPages[lastCategoryPage]) {
     setSelectionLabel(root, categoryPages[lastCategoryPage].selectionLabel);
   }
 
@@ -919,6 +1043,11 @@ export function showProductDetail(root, productId) {
 }
 
 export function showBlogs(root, { blogId = null } = {}) {
+  if (!blogId) {
+    showCategory(root, "nouveautes");
+    return;
+  }
+
   setOverlayShellActive(false);
   currentPage = "blogs";
   currentProductId = null;
@@ -1113,6 +1242,24 @@ export function showContact(root) {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+export function showAbout(root) {
+  setOverlayShellActive(false);
+  currentPage = "about";
+  currentProductId = null;
+  currentBlogId = null;
+
+  hideAllPages(root);
+  const aboutPage = root.querySelector("#aboutPage");
+  if (aboutPage) aboutPage.hidden = false;
+
+  closeOverlays(root);
+  attachSelectionWidget(root);
+  updateCtaDock(root);
+  updateTopbar(root);
+  syncRoute();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
 export function showBlogArticle(root, blogId) {
   if (!renderBlogArticle(root, blogId)) {
     showBlogs(root);
@@ -1129,7 +1276,7 @@ export function showBlogArticle(root, blogId) {
 
 export function showCategory(root, pageKey) {
   if (pageKey === "metiers-dart") {
-    showBlogs(root);
+    showCategory(root, "nouveautes");
     return;
   }
 
@@ -1139,6 +1286,7 @@ export function showCategory(root, pageKey) {
   setOverlayShellActive(false);
   currentPage = pageKey;
   currentProductId = null;
+  currentSearchQuery = "";
   lastCategoryPage = pageKey;
   activeCategoryFilters = [];
 
@@ -1163,6 +1311,56 @@ export function showCategory(root, pageKey) {
   closeOverlays(root);
   attachSelectionWidget(root);
   setSelectionLabel(root, config.selectionLabel);
+  syncRoute();
+  updateTopbar(root);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  requestAnimationFrame(() => updateTopbar(root));
+}
+
+export function showSearch(root, query) {
+  const q = String(query || "").trim();
+  if (!q) {
+    showHome(root);
+    return;
+  }
+
+  setOverlayShellActive(false);
+  currentPage = "search";
+  currentProductId = null;
+  currentSearchQuery = q;
+  lastCategoryPage = "search";
+  activeCategoryFilters = [];
+
+  hideAllPages(root);
+  const categoryPageEl = root.querySelector("#categoryPage");
+  if (categoryPageEl) {
+    categoryPageEl.hidden = false;
+    categoryPageEl.dataset.page = "search";
+  }
+
+  const filter = root.querySelector("#categoryFilter");
+  if (filter) {
+    filter.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+      input.checked = false;
+    });
+    filter.querySelectorAll(".category-page__accordion.open").forEach((accordion) => {
+      accordion.classList.remove("open");
+    });
+    filter.classList.remove("open");
+    filter.setAttribute("aria-hidden", "true");
+    root.querySelector("#selectionWidget")?.classList.remove("is-hidden-for-filter");
+    updateClearButtonState(filter, root.querySelector("#categoryFilterClear"));
+  }
+
+  const title = root.querySelector("#categoryPageTitle");
+  const bar = root.querySelector("#categoryPageBar");
+  if (title) title.textContent = "RECHERCHE";
+  if (bar) bar.textContent = q.toUpperCase();
+
+  renderCategoryProducts(root, "search");
+  closeOverlays(root);
+  attachSelectionWidget(root);
+  setSelectionLabel(root, "RECHERCHE");
   syncRoute();
   updateTopbar(root);
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1236,6 +1434,11 @@ export function restoreView(root) {
     return;
   }
 
+  if (currentPage === "about") {
+    showAbout(root);
+    return;
+  }
+
   if (currentPage === "faq") {
     showFaq(root, faqStateToRoute(root.querySelector("#faqPage")?.__faqState));
     return;
@@ -1260,10 +1463,16 @@ export function restoreView(root) {
     if (mountProductDetail(root, currentProductId)) {
       hideAllPages(root);
       if (productDetailPage) productDetailPage.hidden = false;
+      document.body.classList.add("product-detail-active");
       attachSelectionWidget(root);
     } else {
       showHome(root);
     }
+    return;
+  }
+
+  if (currentPage === "search") {
+    showSearch(root, currentSearchQuery);
     return;
   }
 
@@ -1294,13 +1503,25 @@ export function initPages(root) {
     const productId = event.detail?.productId;
     if (productId) showProductDetail(root, productId);
   });
-  root.addEventListener("racelia:open-blogs", () => showBlogs(root));
+  root.addEventListener("racelia:open-blogs", () => showCategory(root, "nouveautes"));
   root.addEventListener("racelia:open-home-section", (event) => {
     showHome(root, { scrollToSection: event.detail?.sectionId || null });
   });
   root.addEventListener("racelia:open-category", (event) => {
     const categoryKey = event.detail?.categoryKey;
     if (categoryKey) showCategory(root, categoryKey);
+  });
+  root.addEventListener("racelia:open-search", (event) => {
+    const query = event.detail?.query;
+    if (query) showSearch(root, query);
+  });
+  root.addEventListener("racelia:audience-changed", () => {
+    updateTopbar(root);
+    if (isProductGridPage()) {
+      if (currentPage === "search") renderCategoryProducts(root, "search");
+      else renderCategory(root, currentPage);
+    }
+    if (currentPage === "boutiques") initBoutiquesPage(root);
   });
   root.addEventListener("racelia:open-privacy", () => showPrivacy(root));
   root.addEventListener("racelia:open-terms", (event) => {
@@ -1314,6 +1535,7 @@ export function initPages(root) {
   root.addEventListener("racelia:open-returns", () => showReturns(root));
   root.addEventListener("racelia:open-gift-card", () => showGiftCard(root));
   root.addEventListener("racelia:open-contact", () => showContact(root));
+  root.addEventListener("racelia:open-about", () => showAbout(root));
   root.addEventListener("racelia:open-blog", (event) => {
     const blogId = event.detail?.blogId;
     if (blogId) showBlogArticle(root, blogId);
@@ -1322,6 +1544,7 @@ export function initPages(root) {
     if (currentPage === "boutiques") initBoutiquesPage(root);
   });
   root.addEventListener("racelia:catalog-updated", () => {
+    renderHomeStories(root);
     renderHomeNewArrivals(root);
     if (currentPage === "home") {
       import("./productSliders.js").then(({ initProductSliders }) => initProductSliders(root));
@@ -1329,7 +1552,7 @@ export function initPages(root) {
     if (currentPage === "product" && currentProductId) {
       mountProductDetail(root, currentProductId);
     }
-    if (currentPage !== "home" && currentPage !== "product" && categoryPages[currentPage]) {
+    if (isProductGridPage()) {
       renderCategoryProducts(root, currentPage);
     }
   });
@@ -1341,7 +1564,7 @@ export function initPages(root) {
   });
 
   root.addEventListener("racelia:currency-changed", () => {
-    if (categoryPages[currentPage]) {
+    if (isProductGridPage()) {
       renderCategoryProducts(root, currentPage);
     }
     if (currentPage === "product" && currentProductId) {

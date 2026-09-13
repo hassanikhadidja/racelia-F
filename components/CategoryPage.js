@@ -22,8 +22,11 @@ export function createCategoryPage() {
     </div>
 
     <div class="category-page__products" id="categoryProducts"></div>
+    <p class="category-page__empty" id="categoryProductsEmpty" hidden>Aucun produit dans cette sélection.</p>
 
     <div class="category-page__filter" id="categoryFilter" aria-hidden="true">
+      <button type="button" class="category-page__filter-backdrop js-category-filter-close" aria-label="Fermer les filtres"></button>
+      <div class="category-page__filter-panel">
       <div class="category-page__filter-close-spacer" aria-hidden="true"></div>
       <div class="category-page__filter-body">
         <div class="category-page__filter-item category-page__filter-item--look">
@@ -33,7 +36,7 @@ export function createCategoryPage() {
             <span>Sur un look</span>
           </label>
           <button
-            class="category-page__filter-close"
+            class="category-page__filter-close js-category-filter-close"
             id="categoryFilterClose"
             type="button"
             aria-label="Fermer les filtres"
@@ -105,6 +108,7 @@ export function createCategoryPage() {
       <div class="category-page__filter-actions">
         <button class="category-page__filter-clear" id="categoryFilterClear" type="button">EFFACER</button>
         <button class="category-page__filter-results" id="categoryFilterResults" type="button">RÉSULTATS</button>
+      </div>
       </div>
     </div>
   `;

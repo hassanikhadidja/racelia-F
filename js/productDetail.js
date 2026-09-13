@@ -1,8 +1,12 @@
+import { createProduct } from "../components/Product.js";
+import { wishlistIcon } from "../components/icons.js";
 import { getProductDetail } from "../js/productDetailData.js";
 import { getCategoryProductById } from "../js/categoryData.js";
+import { initProductSliders } from "./productSliders.js";
 import { getCatalogProductById, isProductUnavailableToBuy, sanitizeColorLabel } from "../js/productCatalog.js";
 import { getPdpImages, getCloserLookForColor } from "../js/productImages.js";
 import { initPdpActionBar, updatePdpActionBar, resetPdpActionBar } from "./pdpActionBar.js";
+import { initPdpStickyGallery, updatePdpStickyGallery } from "./pdpStickyGallery.js";
 import { syncBagCountFromDom } from "./cart.js";
 import {
   refreshShoppingBagTotals,
@@ -320,6 +324,19 @@ function scrollToPdpComments(root) {
   window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
 }
 
+function detailsSpecRows(details) {
+  if (!details.length) return `<p>Détails à venir.</p>`;
+  return `<div class="pdp-spec__rows">${details
+    .map((line) => {
+      const parts = String(line).split(/\s*[:：]\s*/);
+      if (parts.length >= 2 && parts[0].length < 36) {
+        return `<div class="pdp-spec__row"><span class="pdp-spec__k">${escapeHtml(parts[0])}</span><span class="pdp-spec__v">${escapeHtml(parts.slice(1).join(": "))}</span></div>`;
+      }
+      return `<div class="pdp-spec__row pdp-spec__row--stack"><span class="pdp-spec__v">${escapeHtml(line)}</span></div>`;
+    })
+    .join("")}</div>`;
+}
+
 function renderProductDescription(product) {
   const description =
     product.description ||
@@ -327,20 +344,40 @@ function renderProductDescription(product) {
 
   const details = Array.isArray(product.details) ? product.details.filter(Boolean) : [];
   const detailsHtml = details.length
-    ? details.map((line) => `<li>${line}</li>`).join("")
+    ? details.map((line) => `<li>${escapeHtml(line)}</li>`).join("")
     : `<li>Détails à venir.</li>`;
 
   return `
     <section class="pdp-description">
       <h2 class="pdp-description__title">Description du produit</h2>
-      <p class="pdp-description__text">${description}</p>
+      <p class="pdp-description__text">${escapeHtml(description)}</p>
       <h3 class="pdp-description__subtitle">Détails du produit</h3>
       <ul class="pdp-description__list">${detailsHtml}</ul>
+    </section>
+    <section class="pdp-specs">
+      <div class="pdp-spec open">
+        <button type="button" class="pdp-spec__head pdp-acc-header">Description du produit <span class="pdp-spec__chev" aria-hidden="true"></span></button>
+        <div class="pdp-spec__body">
+          <p>${escapeHtml(description)}</p>
+        </div>
+      </div>
+      <div class="pdp-spec open">
+        <button type="button" class="pdp-spec__head pdp-acc-header">Détails du produit <span class="pdp-spec__chev" aria-hidden="true"></span></button>
+        <div class="pdp-spec__body">
+          ${detailsSpecRows(details)}
+        </div>
+      </div>
+      <div class="pdp-spec open">
+        <button type="button" class="pdp-spec__head pdp-acc-header">Foire aux questions <span class="pdp-spec__chev" aria-hidden="true"></span></button>
+        <div class="pdp-spec__body">
+          ${renderPdpFaqList("pdpSpecFaq")}
+        </div>
+      </div>
     </section>`;
 }
 
-function renderPdpFaq() {
-  const items = [
+function getPdpFaqItems() {
+  return [
     {
       icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8l8-5 8 5v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8z"/><path d="M4 8l8 5 8-5"/></svg>`,
       q: "Quand recevrai-je ma commande ?",
@@ -372,32 +409,35 @@ function renderPdpFaq() {
       a: "Les frais de livraison dépendent de votre wilaya et sont calculés au moment du paiement. Certaines offres peuvent inclure la livraison offerte.",
     },
   ];
+}
 
+function renderPdpFaqList(idPrefix = "pdpFaq") {
+  return `
+    <div class="pdp-faq__list">
+      ${getPdpFaqItems()
+        .map(
+          (item, index) => `
+        <div class="pdp-faq__item">
+          <button type="button" class="pdp-faq__question" aria-expanded="false" aria-controls="${idPrefix}Answer${index}">
+            <span class="pdp-faq__icon" aria-hidden="true">${item.icon}</span>
+            <span class="pdp-faq__q-text">${item.q}</span>
+            <span class="pdp-faq__chev" aria-hidden="true"></span>
+          </button>
+          <div class="pdp-faq__answer" id="${idPrefix}Answer${index}" hidden>
+            <p>${item.a}</p>
+          </div>
+        </div>`
+        )
+        .join("")}
+    </div>`;
+}
+
+function renderPdpFaq() {
   return `
     <section class="pdp-faq" id="pdpFaq">
       <h2 class="pdp-faq__title">Foire aux questions</h2>
-      <div class="pdp-faq__list">
-        ${items
-          .map(
-            (item, index) => `
-          <div class="pdp-faq__item">
-            <button type="button" class="pdp-faq__question" aria-expanded="false" aria-controls="pdpFaqAnswer${index}">
-              <span class="pdp-faq__icon" aria-hidden="true">${item.icon}</span>
-              <span class="pdp-faq__q-text">${item.q}</span>
-              <span class="pdp-faq__chev" aria-hidden="true"></span>
-            </button>
-            <div class="pdp-faq__answer" id="pdpFaqAnswer${index}" hidden>
-              <p>${item.a}</p>
-            </div>
-          </div>`
-          )
-          .join("")}
-      </div>
+      ${renderPdpFaqList("pdpFaq")}
     </section>`;
-}
-
-function bagPlusIcon() {
-  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1"/><circle cx="17" cy="20" r="1"/><path d="M3 3h2l2.2 11.2a2 2 0 0 0 2 1.6h7.6a2 2 0 0 0 2-1.6L21 7H6"/><path d="M12 9v4"/><path d="M10 11h4"/></svg>`;
 }
 
 function rateStarIcon() {
@@ -488,22 +528,50 @@ export function renderProductDetail(product) {
 
   const reviewScore = product.reviews?.score || "0";
   const unavailable = isProductUnavailableToBuy(product);
+  const stockLine =
+    product.stockNote === "sold-out"
+      ? `<p class="pdp-stock pdp-stock--out">Épuisé</p>`
+      : product.stockNote === "not"
+        ? `<p class="pdp-stock pdp-stock--out">Indisponible</p>`
+        : product.stockNote === "new"
+          ? `<p class="pdp-stock">Nouveauté</p>`
+          : "";
 
   return `
+    <nav class="pdp-crumbs" aria-label="Fil d'Ariane">
+      <a href="#category/nouveautes">Boutique</a>
+      <span aria-hidden="true">/</span>
+      <span>${escapeHtml(product.name)}</span>
+    </nav>
+    <div class="pdp-main">
+    <div class="pdp-gallery-col">
     <section class="pdp-hero" id="pdpHero">
-      <div class="pdp-hero__media">
-        <div class="pdp-slides" id="pdpSlides">${images}</div>
+      <div class="pdp-gallery-bar">
+        <button type="button" class="wishlist-btn pdp-gallery-wish" id="pdpGalleryWish" aria-label="Ajouter à la liste d'envies">${wishlistIcon}</button>
+      </div>
+      <div class="pdp-gallery-stage">
+        <div class="pdp-thumbs">
+          <button type="button" class="pdp-thumb-nav pdp-thumb-nav--prev" aria-label="Image précédente"></button>
+          <div class="pdp-thumbs__list" id="pdpThumbs"></div>
+          <button type="button" class="pdp-thumb-nav pdp-thumb-nav--next" aria-label="Image suivante"></button>
+        </div>
+        <div class="pdp-hero__media">
+          <div class="pdp-slides" id="pdpSlides">${images}</div>
+        </div>
       </div>
       <div class="pdp-dots" id="pdpDots" role="tablist" aria-label="Images du produit">${dots}</div>
     </section>
+    </div>
 
     <section class="pdp-sheet" id="pdpSheet">
+      <div class="pdp-buy">
       <div class="pdp-title-block">
-        <div class="pdp-badges">${stockBadge}${tagBadge}${packBadge}</div>
         <h1 class="pdp-title">${product.name}</h1>
+        <div class="pdp-badges">${stockBadge}${tagBadge}${packBadge}</div>
         <div class="pdp-price" data-price-eur="${product.priceEur ?? ""}">${product.price}</div>
+        <p class="pdp-color-label">Couleur <span class="pdp-color-name" id="pdpColorName"${initialColorName ? "" : " hidden"}>${escapeHtml(initialColorName)}</span></p>
         <div class="pdp-swatches">${swatches}</div>
-        <p class="pdp-color-name" id="pdpColorName"${initialColorName ? "" : " hidden"}>${escapeHtml(initialColorName)}</p>
+        ${stockLine}
       </div>
 
       <div class="pdp-action-bar-wrap" id="pdpActionBarWrap">
@@ -520,17 +588,22 @@ export function renderProductDetail(product) {
           ${
             unavailable
               ? `<button class="pdp-add-btn pdp-add-btn--wishlist" id="pdpWishlistBtn" type="button">AJOUTER À LA LISTE D'ENVIES</button>`
-              : `<button class="pdp-add-btn" id="pdpAddBtn" type="button">AJOUTER LE PRODUIT</button>`
+              : `<button class="pdp-add-btn" id="pdpAddBtn" type="button">AJOUTER AU PANIER</button>`
           }
           <button type="button" class="pdp-comments-btn" id="pdpCommentsBtn" aria-label="Voir la note et les avis">
             ${rateStarIcon()}
             <span class="pdp-comments-btn__score">${reviewScore}</span>
           </button>
         </div>
+        ${unavailable ? "" : `<button class="pdp-buy-btn" id="pdpBuyBtn" type="button">Acheter</button>`}
       </div>
 
       ${renderProductDescription(product)}
+      </div>
+    </section>
+    </div>
 
+    <div class="pdp-lower">
       <section class="pdp-closer-look">
         <img src="${product.closerLook.image}" alt="${product.closerLook.title}" loading="lazy" />
         <h2 class="pdp-cl-title">${product.closerLook.title}</h2>
@@ -549,7 +622,7 @@ export function renderProductDetail(product) {
       ${renderCommentsSection(product)}
 
       <div class="pdp-footer-space"></div>
-    </section>
+    </div>
   `;
 }
 
@@ -559,6 +632,7 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
   page.dataset.bound = "true";
 
   initPdpActionBar(root);
+  initPdpStickyGallery(root);
 
   page.addEventListener("click", (event) => {
     const productCard = event.target.closest(".js-product-open");
@@ -596,7 +670,8 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
 
     const accHeader = event.target.closest(".pdp-acc-header");
     if (accHeader) {
-      accHeader.closest(".pdp-acc-item")?.classList.toggle("open");
+      accHeader.closest(".pdp-acc-item, .pdp-spec")?.classList.toggle("open");
+      updatePdpStickyGallery(root);
       return;
     }
 
@@ -650,6 +725,7 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
     }
 
     if (event.target.closest("#pdpWishlistBtn")) {
+      event.stopPropagation();
       toggleWishlistProduct(root, event.target.closest("#pdpWishlistBtn"));
       const btn = page.querySelector("#pdpWishlistBtn");
       if (btn) {
@@ -669,6 +745,21 @@ export function initProductDetailPage(root, { onProductSelect } = {}) {
       return;
     }
 
+    if (event.target.closest("#pdpBuyBtn")) {
+      const quantity = getPdpQuantity(root);
+      if (!syncPdpToBag(root, quantity, "add")) return;
+      syncBagCountFromDom(root);
+      refreshShoppingBagTotals(root);
+      root.dispatchEvent(new CustomEvent("racelia:open-checkout"));
+      return;
+    }
+
+    if (event.target.closest("#pdpGalleryWish")) {
+      event.stopPropagation();
+      toggleWishlistProduct(root, event.target.closest("#pdpGalleryWish"));
+      return;
+    }
+
     if (event.target.closest(".pdp-view-all")) {
       return;
     }
@@ -685,15 +776,64 @@ export function initProductDetailSlider(root) {
   const count = images.length;
   if (!count) return;
 
+  const thumbs = page.querySelector("#pdpThumbs");
+  if (thumbs) {
+    thumbs.innerHTML = images
+      .map(
+        (img, index) =>
+          `<button type="button" class="pdp-thumb${index === 0 ? " is-active" : ""}" data-thumb-index="${index}" aria-label="Image ${index + 1}"><img src="${img.getAttribute("src") || ""}" alt="" /></button>`
+      )
+      .join("");
+  }
+
   const setActive = (index) => {
     const safe = Math.min(count - 1, Math.max(0, index));
     dots?.querySelectorAll(".pdp-dot").forEach((dot, i) => {
       dot.classList.toggle("is-active", i === safe);
     });
+    thumbs?.querySelectorAll(".pdp-thumb").forEach((thumb, i) => {
+      thumb.classList.toggle("is-active", i === safe);
+    });
   };
 
   setActive(0);
   slides.scrollLeft = 0;
+
+  if (page.dataset.pdpGalleryBound !== "true") {
+    page.dataset.pdpGalleryBound = "true";
+    page.addEventListener("click", (event) => {
+      const liveSlides = page.querySelector("#pdpSlides");
+      const liveImages = [...(liveSlides?.querySelectorAll("img") || [])];
+      const liveThumbs = page.querySelector("#pdpThumbs");
+      const liveDots = page.querySelector("#pdpDots");
+      if (!liveSlides || !liveImages.length) return;
+      const total = liveImages.length;
+      const current = Math.round(liveSlides.scrollLeft / Math.max(1, liveSlides.clientWidth));
+      const moveTo = (index) => {
+        const safe = (index + total) % total;
+        liveSlides.scrollTo({ left: safe * liveSlides.clientWidth, behavior: "smooth" });
+        liveDots?.querySelectorAll(".pdp-dot").forEach((dot, i) => {
+          dot.classList.toggle("is-active", i === safe);
+        });
+        liveThumbs?.querySelectorAll(".pdp-thumb").forEach((item, i) => {
+          item.classList.toggle("is-active", i === safe);
+        });
+      };
+
+      const thumb = event.target.closest(".pdp-thumb");
+      if (thumb && page.contains(thumb)) {
+        moveTo(Number(thumb.dataset.thumbIndex || 0));
+        return;
+      }
+      if (event.target.closest(".pdp-thumb-nav--prev")) {
+        moveTo(current - 1);
+        return;
+      }
+      if (event.target.closest(".pdp-thumb-nav--next")) {
+        moveTo(current + 1);
+      }
+    });
+  }
 
   let raf;
   slides.addEventListener(
@@ -717,61 +857,22 @@ export function initProductDetailSlider(root) {
   });
 }
 
-function createAlsoLikeCard(product) {
-  const card = document.createElement("article");
-  card.className = "pdp-like-card js-product-open";
-  card.dataset.productId = product.id;
-  const image = product.images?.[0] || "";
-  const unavailable = isProductUnavailableToBuy(product);
-  card.innerHTML = `
-    <div class="pdp-like-card__media">
-      <img src="${image}" alt="${product.name}" loading="lazy" onerror="this.style.visibility='hidden'" />
-      ${
-        unavailable
-          ? ""
-          : `<button type="button" class="pdp-like-card__add" aria-label="Ajouter ${product.name} au panier">
-        ${bagPlusIcon()}
-      </button>`
-      }
-    </div>
-    <h3 class="pdp-like-card__name">${product.name}</h3>
-    <p class="pdp-like-card__price" data-price-eur="${product.priceEur ?? ""}">${product.price}</p>
-  `;
-  return card;
-}
-
 function mountRelatedProducts(root, product) {
   const alsoLikeRoot = root.querySelector("#pdpAlsoLikeGrid");
   if (!alsoLikeRoot) return;
 
   alsoLikeRoot.replaceChildren();
   const ids = [...new Set([...(product.forYou || []), ...(product.similar || [])])].slice(0, 4);
-  ids.forEach((id) => {
+  ids.forEach((id, index) => {
     const item = getCategoryProductById(id);
-    if (item) alsoLikeRoot.appendChild(createAlsoLikeCard(item));
+    if (!item) return;
+    const card = createProduct({ ...item, images: item.images || [] }, index);
+    card.classList.add("in");
+    alsoLikeRoot.appendChild(card);
   });
 
-  alsoLikeRoot.querySelectorAll(".pdp-like-card__add").forEach((btn) => {
-    btn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const card = btn.closest(".pdp-like-card");
-      const productId = card?.dataset.productId;
-      const detail = productId ? getProductDetail(productId) : null;
-      if (!detail || isProductUnavailableToBuy(detail)) return;
-      upsertBagLineItem(root, {
-        productId: detail.id,
-        name: detail.name,
-        priceEur: detail.priceEur,
-        color: "",
-        imageUrl: detail.images?.[0] || "",
-        qty: 1,
-        mode: "add",
-      });
-      syncBagCountFromDom(root);
-      refreshShoppingBagTotals(root);
-      openPdpAddedOverlay(root, 1);
-    });
-  });
+  initProductSliders(root, alsoLikeRoot);
+  syncWishlistHeartStates(root);
 }
 
 function updatePdpSelectedColorName(page) {
@@ -838,6 +939,7 @@ export function mountProductDetail(root, productId) {
   bindPdpReviewOverlay(root);
   mountRelatedProducts(root, product);
   updatePdpActionBar(root);
+  updatePdpStickyGallery(root);
   syncWishlistHeartStates(root);
   const wishlistBtn = root.querySelector("#pdpWishlistBtn");
   if (wishlistBtn && isProductInWishlist(product.id)) {

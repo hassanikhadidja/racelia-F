@@ -2,7 +2,6 @@ import { getDashboardAccountOverlaysMarkup } from "./dashboardAccountMarkup.js";
 import { getDashboardReviewsSectionMarkup } from "./dashboardReviewsMarkup.js";
 import { getDashboardRaceliaStyleSectionMarkup } from "./dashboardRaceliaStyleMarkup.js";
 import { getDashboardUsersSectionMarkup } from "./dashboardUsersMarkup.js";
-import { getDashboardBlogsSectionMarkup } from "./dashboardBlogsMarkup.js";
 import { getDashboardProductsSectionMarkup } from "./dashboardProductsMarkup.js";
 import { getDashboardEmailsSectionMarkup } from "./dashboardEmailsMarkup.js";
 import { getDashboardBoutiquesSectionMarkup } from "./dashboardBoutiquesMarkup.js";
@@ -182,11 +181,6 @@ export function getDashboardMarkup() {
       </div>
     </section>
 
-    <!-- Blogs -->
-    <section class="content" id="blogs">
-      ${getDashboardBlogsSectionMarkup()}
-    </section>
-
     <!-- Users -->
     <section class="content" id="users">
       ${getDashboardUsersSectionMarkup()}
@@ -254,10 +248,6 @@ export function getDashboardMarkup() {
       <button type="button" class="bottom-nav-item" role="tab" aria-selected="false" data-screen="analytics" id="tab-analytics">
         <span class="bottom-icon"><svg viewBox="0 0 24 24"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></span>
         <span>Analytics</span>
-      </button>
-      <button type="button" class="bottom-nav-item" role="tab" aria-selected="false" data-screen="blogs" id="tab-blogs">
-        <span class="bottom-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg></span>
-        <span>Blogs</span>
       </button>
       <button type="button" class="bottom-nav-item" role="tab" aria-selected="false" data-screen="users" id="tab-users">
         <span class="bottom-icon"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg></span>

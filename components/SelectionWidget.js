@@ -13,7 +13,7 @@ export function createSelectionWidget() {
   backdrop.id = "backdrop";
 
   const container = document.createElement("div");
-  container.className = "modal-animated-container";
+  container.className = "modal-animated-container is-hidden-until-scroll";
   container.id = "selectionWidget";
 
   const panel = document.createElement("div");

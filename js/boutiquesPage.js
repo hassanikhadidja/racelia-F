@@ -1,4 +1,5 @@
 import { loadStores, storeTypeLabel, storeMapUrl, storeMatchesType, storeMatchesQuery, STORE_TYPES } from "./boutiquesData.js";
+import { storeMatchesAudience } from "./audience.js";
 
 const LEAFLET_CSS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css";
 const LEAFLET_JS = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
@@ -110,7 +111,10 @@ function renderStoreCard(store) {
 }
 
 function filterStores(query, type) {
-  return loadStores().filter((store) => storeMatchesType(store, type) && storeMatchesQuery(store, query));
+  return loadStores().filter(
+    (store) =>
+      storeMatchesAudience(store) && storeMatchesType(store, type) && storeMatchesQuery(store, query)
+  );
 }
 
 function typeOptionsHtml() {

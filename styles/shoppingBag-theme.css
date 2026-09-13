@@ -448,3 +448,169 @@
     border-right: 1px solid #f0f0f0;
   }
 }
+
+#shoppingBagPage .shopping-bag-backdrop,
+#shoppingBagPage .shopping-bag-close,
+#shoppingBagPage .bag-empty {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  body.shopping-bag-active #racelia-app > .topbar {
+    display: flex !important;
+  }
+
+  body.shopping-bag-active #racelia-app > .site-footer {
+    display: block !important;
+  }
+
+  #shoppingBagPage {
+    background: transparent;
+    overflow: hidden;
+    z-index: 1400;
+  }
+
+  #shoppingBagPage .shopping-bag-backdrop {
+    display: block;
+    position: absolute;
+    inset: 0;
+    border: 0;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+  }
+
+  #shoppingBagPage .shopping-bag-shell {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: min(420px, 42vw);
+    max-width: 420px;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    border: 0;
+    overflow: auto;
+    background: #fff;
+    animation: shoppingBagDrawerIn 0.28s ease;
+  }
+
+  @keyframes shoppingBagDrawerIn {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+
+  #shoppingBagPage .shopping-bag-topbar {
+    grid-template-columns: 1fr auto;
+    padding: 28px 28px 20px;
+    border-bottom: 0;
+    position: sticky;
+    top: 0;
+  }
+
+  #shoppingBagPage .shopping-bag-topbar .js-shopping-bag-back,
+  #shoppingBagPage .shopping-bag-topbar__spacer {
+    display: none;
+  }
+
+  #shoppingBagPage .shopping-bag-close {
+    display: block;
+    position: relative;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    background: none;
+    cursor: pointer;
+  }
+
+  #shoppingBagPage .shopping-bag-close::before,
+  #shoppingBagPage .shopping-bag-close::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 8px;
+    width: 20px;
+    height: 1px;
+    background: #000;
+  }
+
+  #shoppingBagPage .shopping-bag-close::before {
+    transform: rotate(45deg);
+  }
+
+  #shoppingBagPage .shopping-bag-close::after {
+    transform: rotate(-45deg);
+  }
+
+  #shoppingBagPage .shopping-bag-topbar h1 {
+    text-align: left;
+    font-size: 13px;
+    letter-spacing: 0.22em;
+  }
+
+  #shoppingBagPage .bag-header-summary {
+    display: none;
+  }
+
+  #shoppingBagPage.is-empty .promo-section,
+  #shoppingBagPage.is-empty .order-summary,
+  #shoppingBagPage.is-empty .wishlist-section {
+    display: none;
+  }
+
+  #shoppingBagPage.is-empty .bag-empty {
+    display: block;
+    padding: 8px 28px 48px;
+  }
+
+  #shoppingBagPage .bag-empty__text {
+    font-size: 14px;
+    color: #111;
+    margin: 0 0 48px;
+  }
+
+  #shoppingBagPage .bag-shop,
+  #shoppingBagPage .bag-detail {
+    padding-top: 8px;
+  }
+
+  #shoppingBagPage .bag-shop h2,
+  #shoppingBagPage .bag-detail h2 {
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 20px;
+  }
+
+  #shoppingBagPage .bag-shop a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0;
+    font-size: 15px;
+    color: #111;
+    text-decoration: none;
+    border-bottom: 0;
+  }
+
+  #shoppingBagPage .bag-shop a span {
+    font-size: 18px;
+    color: #777;
+  }
+
+  #shoppingBagPage .bag-detail {
+    margin-top: 40px;
+  }
+
+  #shoppingBagPage .bag-detail img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+  }
+}

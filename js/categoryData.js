@@ -31,6 +31,12 @@ export const categoryPages = {
     collectionBar: "TOUTE LA SÉLECTION",
     selectionLabel: "TOUTE LA SÉLECTION",
   },
+  sacs: {
+    title: "SACS",
+    subtitle: "L'ensemble des sacs de la collection.",
+    collectionBar: "SACS",
+    selectionLabel: "SACS",
+  },
   "mini-bags": {
     title: "MINI SACS",
     subtitle: "Silhouettes compactes des dernières collections.",
@@ -54,5 +60,33 @@ export const categoryPages = {
     subtitle: "Catalogue grossiste pour les partenaires professionnels.",
     collectionBar: "CATALOGUE GROSSISTE",
     selectionLabel: "CATALOGUE GROSSISTE",
+  },
+  "fille-6-14": {
+    title: "FILLE",
+    subtitle: "6 - 14 ANS",
+    collectionBar: "ENFANTS",
+    selectionLabel: "FILLE 6-14 ANS",
+    kids: true,
+  },
+  "garcon-6-14": {
+    title: "GARÇON",
+    subtitle: "6 - 14 ANS",
+    collectionBar: "ENFANTS",
+    selectionLabel: "GARÇON 6-14 ANS",
+    kids: true,
+  },
+  "fille-0-6": {
+    title: "FILLE",
+    subtitle: "½ - 6 ANS",
+    collectionBar: "ENFANTS",
+    selectionLabel: "FILLE ½-6 ANS",
+    kids: true,
+  },
+  "garcon-0-6": {
+    title: "GARÇON",
+    subtitle: "½ - 6 ANS",
+    collectionBar: "ENFANTS",
+    selectionLabel: "GARÇON ½-6 ANS",
+    kids: true,
   },
 };

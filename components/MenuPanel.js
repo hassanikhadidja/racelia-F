@@ -1,5 +1,6 @@
-import { wishlistIcon, accountIcon, closeIcon, searchIcon, chevronIcon } from "./icons.js";
+import { wishlistIcon, accountIcon, closeIcon, chevronIcon } from "./icons.js";
 import { menuItems } from "../js/data.js";
+import { AUDIENCES, KIDS_GROUPS } from "../js/audience.js";
 import { createRaceliaStyleView } from "./RaceliaStyleView.js";
 
 export function createMenuPanel() {
@@ -19,6 +20,7 @@ export function createMenuPanel() {
   menuTab.className = "menu-tab active";
   menuTab.id = "menuTab";
   menuTab.type = "button";
+  menuTab.dataset.i18n = "nav.menu";
   menuTab.textContent = "MENU";
 
   const styleTab = document.createElement("button");
@@ -61,12 +63,44 @@ export function createMenuPanel() {
   menuView.className = "menu-view is-active";
   menuView.id = "menuView";
 
-  const search = document.createElement("div");
-  search.className = "menu-search";
-  search.innerHTML = `<input type="text" placeholder="Rechercher">${searchIcon}`;
+  const audiences = document.createElement("nav");
+  audiences.className = "menu-audiences";
+  audiences.setAttribute("aria-label", "Univers");
+  audiences.setAttribute("data-i18n-aria", "nav.univers");
+  AUDIENCES.forEach((audience) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "menu-audiences__btn js-menu-audience";
+    btn.dataset.audience = audience.id;
+    btn.dataset.i18n = `nav.${audience.id}`;
+    btn.textContent = audience.label.toUpperCase();
+    audiences.appendChild(btn);
+  });
 
   const list = document.createElement("ul");
   list.className = "menu-list";
+  list.id = "menuDefaultList";
+
+  const adminList = document.createElement("ul");
+  adminList.className = "menu-list menu-list--admin";
+
+  const kidsList = document.createElement("ul");
+  kidsList.className = "menu-kids";
+  kidsList.id = "menuKidsList";
+  kidsList.hidden = true;
+  KIDS_GROUPS.forEach((group) => {
+    const li = document.createElement("li");
+    li.className = "menu-kids__item js-menu-category";
+    li.dataset.page = group.id;
+    li.innerHTML = `
+      <img src="${group.image}" alt="" />
+      <span class="menu-kids__copy">
+        <span class="menu-kids__name">${group.label}</span>
+        <span class="menu-kids__age">${group.age}</span>
+      </span>
+    `;
+    kidsList.appendChild(li);
+  });
 
   menuItems.forEach((item) => {
     const li = document.createElement("li");
@@ -76,8 +110,14 @@ export function createMenuPanel() {
     if (item.submenu) li.classList.add("menu-list__group");
     if (item.action === "new-arrivals") li.classList.add("js-menu-new-arrivals");
     if (item.action === "dashboard") {
-      li.classList.add("js-dashboard-open", "js-dashboard-menu-item");
+      li.classList.add("js-dashboard-open", "js-dashboard-menu-item", "muted");
       li.hidden = true;
+      const dashLabel = document.createElement("span");
+      if (item.i18n) dashLabel.dataset.i18n = item.i18n;
+      dashLabel.textContent = item.label;
+      li.appendChild(dashLabel);
+      adminList.appendChild(li);
+      return;
     }
     if (item.action === "client-profile") {
       li.classList.add("js-client-profile-open", "js-client-profile-menu-item");
@@ -97,6 +137,7 @@ export function createMenuPanel() {
       row.setAttribute("aria-expanded", "false");
 
       const label = document.createElement("span");
+      if (item.i18n) label.dataset.i18n = item.i18n;
       label.textContent = item.label;
       row.appendChild(label);
 
@@ -113,6 +154,7 @@ export function createMenuPanel() {
         const subLi = document.createElement("li");
         subLi.className = "js-menu-category";
         subLi.dataset.page = subItem.page;
+        if (subItem.i18n) subLi.dataset.i18n = subItem.i18n;
         subLi.textContent = subItem.label;
         sub.appendChild(subLi);
       });
@@ -120,12 +162,14 @@ export function createMenuPanel() {
       li.append(row, sub);
     } else {
       const label = document.createElement("span");
+      if (item.i18n) label.dataset.i18n = item.i18n;
       label.textContent = item.label;
       li.appendChild(label);
 
       if (item.tag) {
         const tag = document.createElement("span");
         tag.className = "new-tag";
+        if (item.tagI18n) tag.dataset.i18n = item.tagI18n;
         tag.textContent = item.tag;
         li.appendChild(tag);
       } else if (item.chevron) {
@@ -140,7 +184,7 @@ export function createMenuPanel() {
     list.appendChild(li);
   });
 
-  menuView.append(search, list);
+  menuView.append(audiences, list, kidsList, adminList);
   panel.append(head, menuView, createRaceliaStyleView());
 
   const fragment = document.createDocumentFragment();

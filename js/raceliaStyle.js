@@ -1,5 +1,6 @@
 import { getCategoryProductById } from "./categoryData.js";
 import { getStorefrontStyleLooks } from "./dashboardRaceliaStyleData.js";
+import { tokenizeQuery } from "./categoryFilters.js";
 
 function escapeHtml(text) {
   return String(text)
@@ -7,6 +8,38 @@ function escapeHtml(text) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function normalizeStyleText(text) {
+  return String(text || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/œ/g, "oe")
+    .replace(/['’]/g, "'");
+}
+
+function lookSearchText(look) {
+  const productBits = (look.products || []).flatMap((product) => {
+    const meta = getCategoryProductById(product.id);
+    return [product.id, meta?.name, meta?.tag];
+  });
+  return normalizeStyleText([look.title, look.tag, "raceliastyle", ...productBits].join(" "));
+}
+
+function lookMatchesQuery(look, query) {
+  const tokens = tokenizeQuery(query);
+  if (!tokens.length) return true;
+  const haystack = lookSearchText(look);
+  return tokens.every((token) => haystack.includes(token));
+}
+
+function getStyleQuery(root) {
+  return root.querySelector("#styleSearchInput")?.value.trim() || "";
+}
+
+function getVisibleLooks(root) {
+  return getStorefrontStyleLooks().filter((look) => lookMatchesQuery(look, getStyleQuery(root)));
 }
 
 function renderStyleProducts(look) {
@@ -56,74 +89,21 @@ function closeStyleSheet(root) {
   unlockStyleSheetPage(root);
 }
 
-export function refreshStyleGrid(root) {
-  const grid = root.querySelector("#styleGrid");
-  if (grid) {
-    grid.replaceChildren();
-    delete grid.dataset.ready;
-  }
-  ensureStyleGrid(root);
-}
-
-export function ensureStyleGrid(root) {
-  const grid = root.querySelector("#styleGrid");
-  if (!grid || grid.dataset.ready === "true") return;
-
-  const raceliaLooks = getStorefrontStyleLooks();
-  if (!raceliaLooks.length) return;
-
+function bindStyleSheet(root) {
   const overlay = root.querySelector("#styleSheetOverlay");
   const sheet = root.querySelector("#styleSheet");
-  const heroImg = root.querySelector("#styleHeroImg");
-  const productsEl = root.querySelector("#styleSheetProducts");
-  const countNum = root.querySelector("#styleSheetCountNum");
-  const countLabel = root.querySelector("#styleSheetCountLabel");
-  const tagEl = root.querySelector("#styleSheetTag");
-  const eyebrowEl = root.querySelector("#styleSheetEyebrow");
   const closeBtn = root.querySelector("#styleSheetClose");
-  const searchForm = root.querySelector("#styleSearchForm");
+  if (!overlay || !sheet) return;
 
-  if (!overlay || !sheet || !heroImg || !productsEl) return;
+  if (sheet.dataset.sheetBound !== "true") {
+    sheet.dataset.sheetBound = "true";
+    closeBtn?.addEventListener("click", () => closeStyleSheet(root));
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) closeStyleSheet(root);
+    });
+  }
 
-  const openSheet = (index) => {
-    const look = raceliaLooks[index];
-    const count = look.products.length;
-    heroImg.src = look.img;
-    heroImg.alt = look.title || `RACÈLIASTYLE look ${index + 1}`;
-    productsEl.innerHTML = renderStyleProducts(look);
-    if (countNum) countNum.textContent = String(count);
-    if (countLabel) countLabel.textContent = count > 1 ? "produits" : "produit";
-    if (tagEl) {
-      tagEl.textContent = look.tag || "Demo";
-      tagEl.hidden = !look.tag && !look.title;
-    }
-    if (eyebrowEl) {
-      eyebrowEl.textContent = look.title
-        ? `#RACÈLIASTYLE · ${look.title}`
-        : "#RACÈLIASTYLE";
-    }
-    overlay.classList.add("open");
-    overlay.setAttribute("aria-hidden", "false");
-    sheet.classList.add("open");
-    sheet.setAttribute("aria-hidden", "false");
-    sheet.querySelector(".style-sheet-scroll")?.scrollTo(0, 0);
-    lockStyleSheetPage(root);
-  };
-
-  raceliaLooks.forEach((look, index) => {
-    const cell = document.createElement("div");
-    cell.className = "style-cell" + (index === 0 ? " style-cell--span-2" : "");
-    cell.innerHTML = `<img src="${look.img}" alt="Look ${index + 1}" loading="lazy" />`;
-    cell.addEventListener("click", () => openSheet(index));
-    grid.appendChild(cell);
-  });
-
-  closeBtn?.addEventListener("click", () => closeStyleSheet(root));
-  overlay.addEventListener("click", (event) => {
-    if (event.target === overlay) closeStyleSheet(root);
-  });
-
-  if (!sheet.dataset.productNavBound) {
+  if (sheet.dataset.productNavBound !== "true") {
     sheet.dataset.productNavBound = "true";
     sheet.addEventListener("click", (event) => {
       const productBtn = event.target.closest(".style-product[data-product-id]");
@@ -138,7 +118,7 @@ export function ensureStyleGrid(root) {
     });
   }
 
-  if (!root.dataset.styleKeyListener) {
+  if (root.dataset.styleKeyListener !== "true") {
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape" && sheet.classList.contains("open")) {
         closeStyleSheet(root);
@@ -146,17 +126,105 @@ export function ensureStyleGrid(root) {
     });
     root.dataset.styleKeyListener = "true";
   }
+}
 
-  searchForm?.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const query = root.querySelector("#styleSearchInput")?.value.trim();
-    if (query) closeStyleSheet(root);
+function openStyleSheet(root, look, index) {
+  const overlay = root.querySelector("#styleSheetOverlay");
+  const sheet = root.querySelector("#styleSheet");
+  const heroImg = root.querySelector("#styleHeroImg");
+  const productsEl = root.querySelector("#styleSheetProducts");
+  const countNum = root.querySelector("#styleSheetCountNum");
+  const countLabel = root.querySelector("#styleSheetCountLabel");
+  const tagEl = root.querySelector("#styleSheetTag");
+  const eyebrowEl = root.querySelector("#styleSheetEyebrow");
+  if (!overlay || !sheet || !heroImg || !productsEl || !look) return;
+
+  const count = look.products.length;
+  heroImg.src = look.img;
+  heroImg.alt = look.title || `RACÈLIASTYLE look ${index + 1}`;
+  productsEl.innerHTML = renderStyleProducts(look);
+  if (countNum) countNum.textContent = String(count);
+  if (countLabel) countLabel.textContent = count > 1 ? "produits" : "produit";
+  if (tagEl) {
+    tagEl.textContent = look.tag || "Demo";
+    tagEl.hidden = !look.tag && !look.title;
+  }
+  if (eyebrowEl) {
+    eyebrowEl.textContent = look.title
+      ? `#RACÈLIASTYLE · ${look.title}`
+      : "#RACÈLIASTYLE";
+  }
+  overlay.classList.add("open");
+  overlay.setAttribute("aria-hidden", "false");
+  sheet.classList.add("open");
+  sheet.setAttribute("aria-hidden", "false");
+  sheet.querySelector(".style-sheet-scroll")?.scrollTo(0, 0);
+  lockStyleSheetPage(root);
+}
+
+function renderStyleGrid(root) {
+  const grid = root.querySelector("#styleGrid");
+  const empty = root.querySelector("#styleSearchEmpty");
+  if (!grid) return;
+
+  const looks = getVisibleLooks(root);
+  grid.replaceChildren();
+
+  looks.forEach((look, index) => {
+    const cell = document.createElement("div");
+    cell.className = "style-cell" + (index === 0 ? " style-cell--span-2" : "");
+    cell.innerHTML = `<img src="${escapeHtml(look.img)}" alt="${escapeHtml(look.title || `Look ${index + 1}`)}" loading="lazy" />`;
+    cell.addEventListener("click", () => openStyleSheet(root, look, index));
+    grid.appendChild(cell);
   });
+
+  if (empty) {
+    const query = getStyleQuery(root);
+    empty.hidden = looks.length > 0 || !query;
+    if (query && !looks.length) {
+      empty.textContent = `Aucun look ne correspond à « ${query} ».`;
+    }
+  }
 
   grid.dataset.ready = "true";
 }
 
+export function refreshStyleGrid(root) {
+  const grid = root.querySelector("#styleGrid");
+  if (grid) delete grid.dataset.ready;
+  bindStyleSheet(root);
+  renderStyleGrid(root);
+}
+
+export function ensureStyleGrid(root) {
+  bindStyleSheet(root);
+  const grid = root.querySelector("#styleGrid");
+  if (grid?.dataset.ready === "true") return;
+  renderStyleGrid(root);
+}
+
+function initStyleSearch(root) {
+  const form = root.querySelector("#styleSearchForm");
+  const input = root.querySelector("#styleSearchInput");
+  if (!form || !input || form.dataset.bound === "true") return;
+  form.dataset.bound = "true";
+
+  const applySearch = () => {
+    const grid = root.querySelector("#styleGrid");
+    if (grid) delete grid.dataset.ready;
+    renderStyleGrid(root);
+  };
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    applySearch();
+  });
+
+  input.addEventListener("input", applySearch);
+}
+
 export function initRaceliaStyle(root) {
+  initStyleSearch(root);
   ensureStyleGrid(root);
   if (!root.dataset.styleLooksListener) {
     root.addEventListener("racelia:style-looks-updated", () => refreshStyleGrid(root));

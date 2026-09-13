@@ -18,6 +18,14 @@ import {
   buildImageList,
 } from "./productImages.js";
 import { getProductReviewsForDisplay } from "./dashboardReviewsData.js";
+import { productMatchesQuery, scoreProductMatch } from "./categoryFilters.js";
+import {
+  getSelectedAudience,
+  isKidsGroup,
+  normalizeAudiences,
+  normalizeKidsGroup,
+  productMatchesAudience,
+} from "./audience.js";
 
 export const CATALOG_STORAGE_KEY = "raceliaProductCatalog";
 const CATALOG_SEED_VERSION_KEY = "raceliaProductCatalogSeedVersion";
@@ -209,6 +217,11 @@ export function normalizeCatalogProduct(product) {
     colorVariants,
     details: normalizeProductDetails(product),
     filters: Array.isArray(product.filters) ? product.filters.filter(Boolean) : [],
+    audiences: (() => {
+      const audiences = normalizeAudiences(product.audiences);
+      return audiences.length ? audiences : ["femme"];
+    })(),
+    kidsGroup: normalizeKidsGroup(product.kidsGroup, product.sections),
     createdAt: product.createdAt || Date.now(),
     updatedAt: product.updatedAt || Date.now(),
   };
@@ -237,6 +250,22 @@ function mergeMissingSeedProducts(existing) {
   return next;
 }
 
+function overlaySeedAudienceFields(existing) {
+  const seedById = new Map(getNormalizedSeedProducts().map((p) => [String(p.id), p]));
+  let changed = false;
+  const next = existing.map((product) => {
+    const seed = seedById.get(String(product.id));
+    if (!seed) return product;
+    const audiences = product.audiences?.length ? product.audiences : seed.audiences;
+    const kidsGroup = product.kidsGroup || seed.kidsGroup || "";
+    if (audiences === product.audiences && kidsGroup === product.kidsGroup) return product;
+    changed = true;
+    return { ...product, audiences, kidsGroup };
+  });
+  if (changed) saveCatalogProducts(next);
+  return next;
+}
+
 export function loadCatalogProducts() {
   try {
     const saved = localStorage.getItem(CATALOG_STORAGE_KEY);
@@ -246,7 +275,7 @@ export function loadCatalogProducts() {
         const normalized = parsed.map(normalizeCatalogProduct).filter((p) => p?.id);
         const applied = Number(localStorage.getItem(CATALOG_SEED_VERSION_KEY) || 0);
         if (applied < CATALOG_SEED_VERSION) {
-          const merged = mergeMissingSeedProducts(normalized);
+          const merged = overlaySeedAudienceFields(mergeMissingSeedProducts(normalized));
           rememberSeedVersion();
           return merged;
         }
@@ -296,11 +325,20 @@ function hasRaceliaTag(product) {
 
 export function getProductsForSection(sectionKey) {
   const products = loadCatalogProducts();
+  if (isKidsGroup(sectionKey)) {
+    return products.filter((p) => p.kidsGroup === sectionKey || p.sections.includes(sectionKey));
+  }
   if (sectionKey === "nouveautes") {
     return products.filter((p) => p.isNewArrival);
   }
   if (sectionKey === "all-selection") {
     return products;
+  }
+  if (sectionKey === "sacs") {
+    const bagSections = new Set(["mini-bags", "racelia-handbag", "moms-bags", "sacs"]);
+    return products.filter(
+      (p) => (p.sections || []).some((section) => bagSections.has(section)) || hasRaceliaTag(p)
+    );
   }
   if (sectionKey === "racelia-handbag") {
     return products.filter((p) => hasRaceliaTag(p));
@@ -313,6 +351,11 @@ export function getProductsForSection(sectionKey) {
     );
   }
   return products.filter((p) => p.sections.includes(sectionKey));
+}
+
+function applyAudienceFilter(products) {
+  const audience = getSelectedAudience();
+  return products.filter((product) => productMatchesAudience(product, audience));
 }
 
 export function toCategoryProduct(catalogProduct) {
@@ -343,6 +386,8 @@ export function toCategoryProduct(catalogProduct) {
     description: p.description,
     details: p.details,
     sections: p.sections,
+    audiences: p.audiences,
+    kidsGroup: p.kidsGroup,
     hasColorImages: p.hasColorImages,
   };
 }
@@ -353,11 +398,26 @@ export function getCategoryProductById(id) {
 }
 
 export function getAllSelectionProducts() {
-  return getProductsForSection("all-selection").map(toCategoryProduct).filter(Boolean);
+  return applyAudienceFilter(getProductsForSection("all-selection"))
+    .map(toCategoryProduct)
+    .filter(Boolean);
 }
 
 export function getCategoryProductsForSection(sectionKey) {
-  return getProductsForSection(sectionKey).map(toCategoryProduct).filter(Boolean);
+  return applyAudienceFilter(getProductsForSection(sectionKey))
+    .map(toCategoryProduct)
+    .filter(Boolean);
+}
+
+export function searchProducts(query, { limit = 0 } = {}) {
+  const q = String(query || "").trim();
+  if (!q) return [];
+  const matches = applyAudienceFilter(loadCatalogProducts())
+    .map(toCategoryProduct)
+    .filter(Boolean)
+    .filter((product) => productMatchesQuery(product, q))
+    .sort((a, b) => scoreProductMatch(b, q) - scoreProductMatch(a, q));
+  return limit > 0 ? matches.slice(0, limit) : matches;
 }
 
 function buildProductDetail(catalogProduct) {
@@ -469,15 +529,25 @@ export function getNewArrivalProducts() {
   return getHomeProductPool(4);
 }
 
-/** Second 2×2 grid under the home editorial image. */
+/** First 2×2 grid beside the home editorial image. */
 export function getEditorialGridProducts() {
   return getHomeProductPool(8).slice(4, 8);
 }
 
+/** Second 2×2 grid beside the reversed home editorial image. */
+export function getSecondaryEditorialGridProducts() {
+  return getHomeProductPool(12).slice(8, 12);
+}
+
+/** Full row of four cards under the closing home caption. */
+export function getClosingGridProducts() {
+  return getHomeProductPool(16).slice(12, 16);
+}
+
 /** Large home editorial photos (name + link under each campaign image). */
 export function getEditorialSpotlightProducts() {
-  const pool = getHomeProductPool(10);
-  if (pool.length >= 10) return pool.slice(8, 10);
+  const pool = getHomeProductPool(18);
+  if (pool.length >= 18) return pool.slice(16, 18);
   if (pool.length >= 2) return pool.slice(-2);
   return pool;
 }
@@ -572,6 +642,8 @@ export function createEmptyCatalogProduct() {
     colorVariants: [emptyColorVariant("#111111", "Black")],
     details: [],
     filters: [],
+    audiences: ["femme"],
+    kidsGroup: "",
   });
 }
 

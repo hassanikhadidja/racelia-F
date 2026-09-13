@@ -9,13 +9,20 @@ export { createFaqPage } from "./FaqPage.js";
 export { createReturnsPage } from "./ReturnsPage.js";
 export { createGiftCardPage } from "./GiftCardPage.js";
 export { createContactPage } from "./ContactPage.js";
+export { createAboutPage } from "./AboutPage.js";
 export { createCategoryProduct } from "./CategoryProduct.js";
 export { createTopbar } from "./Topbar.js";
 export { createMenuPanel } from "./MenuPanel.js";
 export { createHero } from "./Hero.js";
+export { createHomeStories } from "./HomeStories.js";
 export { createCategoryBlock } from "./CategoryBlock.js";
 export { createIntro } from "./Intro.js";
-export { createProductGrid, createEditorialProductGrid } from "./ProductGrid.js";
+export {
+  createProductGrid,
+  createEditorialProductGrid,
+  createSecondaryEditorialProductGrid,
+  createClosingProductGrid,
+} from "./ProductGrid.js";
 export { createEditorial, createSecondaryEditorial } from "./Editorial.js";
 export { createSelectionWidget } from "./SelectionWidget.js";
 export { createFooter } from "./Footer.js";

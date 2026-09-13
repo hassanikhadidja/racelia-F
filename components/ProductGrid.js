@@ -31,3 +31,17 @@ export function createEditorialProductGrid() {
     ariaLabel: "More products",
   });
 }
+
+export function createSecondaryEditorialProductGrid() {
+  return createHomeProductSection({
+    id: "secondaryEditorialProductsSection",
+    ariaLabel: "More products",
+  });
+}
+
+export function createClosingProductGrid() {
+  return createHomeProductSection({
+    id: "closingProductsSection",
+    ariaLabel: "Collection finale",
+  });
+}

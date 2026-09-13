@@ -1,4 +1,5 @@
 import { PRODUCT_SECTIONS, STOCK_NOTES } from "./productCatalog.js";
+import { AUDIENCES, KIDS_GROUPS } from "./audience.js";
 
 function escapeHtml(text) {
   return String(text)
@@ -6,6 +7,15 @@ function escapeHtml(text) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function audienceCheckboxesHtml() {
+  return AUDIENCES.map(
+    (audience) => `<label class="dashboard-product-section-opt">
+      <input type="checkbox" class="dashboard-product-audience-check" value="${escapeHtml(audience.id)}" />
+      <span>${escapeHtml(audience.label)}</span>
+    </label>`
+  ).join("");
 }
 
 function sectionCheckboxesHtml() {
@@ -146,6 +156,22 @@ export function getDashboardProductsOverlaysMarkup() {
           <legend>Sections</legend>
           <div class="dashboard-product-section-grid">${sectionCheckboxesHtml()}</div>
         </fieldset>
+
+        <fieldset class="dashboard-product-fieldset">
+          <legend>Univers</legend>
+          <div class="dashboard-product-section-grid">${audienceCheckboxesHtml()}</div>
+        </fieldset>
+
+        <div class="dashboard-product-field" id="dashboard-product-kids-group-wrap" hidden>
+          <label for="dashboard-product-kids-group">Kids category</label>
+          <select id="dashboard-product-kids-group">
+            <option value="">None</option>
+            ${KIDS_GROUPS.map(
+              (group) =>
+                `<option value="${escapeHtml(group.id)}">${escapeHtml(`${group.label} ${group.age}`)}</option>`
+            ).join("")}
+          </select>
+        </div>
 
         <div class="dashboard-product-closer-copy">
           <h4 class="dashboard-product-images__title">Closer look — text</h4>

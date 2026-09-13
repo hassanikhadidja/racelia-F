@@ -126,6 +126,38 @@
   padding-right: 0;
 }
 
+@media (min-width: 1024px) {
+  .site-footer .footer-top {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 48px 80px;
+    max-width: none;
+    padding: 56px 80px 64px;
+  }
+
+  .site-footer .accordion {
+    border-bottom: 0;
+  }
+
+  .site-footer .accordion-header {
+    padding: 0 0 20px;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .site-footer .accordion-header .chevron {
+    display: none;
+  }
+
+  .site-footer .accordion-body,
+  .site-footer .accordion.open .accordion-body {
+    max-height: none;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+}
+
 .site-footer .footer-bottom {
   background: #000;
   color: #fff;
@@ -152,10 +184,46 @@
   gap: 32px;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
+  .site-footer .footer-bottom {
+    padding: 64px 80px 40px;
+    margin-top: 0;
+  }
+
+  .site-footer .footer-inner {
+    max-width: none;
+  }
+
   .site-footer .columns {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: start;
+    gap: 40px 48px;
+  }
+
+  .site-footer .group-title {
+    margin-top: 0;
+  }
+
+  .site-footer .contrast-row {
+    justify-content: flex-start;
+    gap: 16px;
+    margin-top: 56px;
+    padding: 0 0 28px;
+  }
+
+  .site-footer .footer-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 40px;
+    padding-top: 28px;
+  }
+
+  .site-footer .socials {
+    margin-top: 0;
+    justify-content: flex-end;
+    gap: 28px;
+    flex-shrink: 0;
   }
 }
 
@@ -326,6 +394,32 @@
   width: 26px;
   height: 26px;
   display: block;
+}
+
+@media (min-width: 1024px) {
+  .site-footer .footer-meta__controls {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 32px;
+    flex: 0 0 auto;
+    width: max-content;
+  }
+
+  .site-footer .lang-row,
+  .site-footer .currency-row {
+    display: inline-flex;
+    flex: 0 0 auto;
+    width: max-content;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+  }
 }
 
 body.footer-hc .site-footer .col a,

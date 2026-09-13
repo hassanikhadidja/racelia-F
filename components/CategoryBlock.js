@@ -6,6 +6,7 @@ export function createCategoryBlock() {
 
   const eyebrow = document.createElement("div");
   eyebrow.className = "eyebrow";
+  eyebrow.dataset.i18nHtml = "home.metiersTitle";
   eyebrow.innerHTML = "MÉTIERS D'ART 2026<br>COLLECTION";
 
   const heading = document.createElement("h1");

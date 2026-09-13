@@ -22,6 +22,8 @@ export function getClientProfileMarkup() {
     </button>
   </div>
 
+  <div class="profile-desk">
+  <div class="profile-desk__identity">
   <!-- Avatar (initial letter only — not editable) -->
   <div class="avatar-section">
     <div class="avatar-wrap" id="avatar-wrap" aria-hidden="true">
@@ -84,7 +86,9 @@ export function getClientProfileMarkup() {
       </div>
     </div>
   </div>
+  </div>
 
+  <div class="profile-desk__cards">
   <!-- Loyalty Card Title -->
   <div class="section-title-row section-title-row--action js-loyalty-orders-toggle" role="button" tabindex="0" aria-expanded="false" aria-controls="profile-orders-overlay">
     <h3>Carte de fidélité</h3>
@@ -172,6 +176,8 @@ export function getClientProfileMarkup() {
       <a href="#carte-cadeau" class="js-profile-gift-card">Faites plaisir à vos proches avec une carte cadeau électronique RACÈLIA.</a>
     </p>
   </div>
+  </div>
+  </div>
 
   <!-- Reviews & Gift Points (under cards) -->
   <div class="card contact-card-below">
@@ -211,7 +217,7 @@ export function getClientProfileMarkup() {
     <button type="button" class="profile-logout-btn" id="profile-logout-btn">Déconnecter</button>
   </div>
 
-</div></div>${getProfileOrdersOverlayMarkup()}${getProfileEgiftsOverlayMarkup()}${getProfileReviewOverlayMarkup()}<div class="profile-edit-overlay" id="profile-edit-overlay" aria-hidden="true">
+</div>${getProfileOrdersOverlayMarkup()}${getProfileEgiftsOverlayMarkup()}${getProfileReviewOverlayMarkup()}<div class="profile-edit-overlay" id="profile-edit-overlay" aria-hidden="true">
   <div class="profile-edit-sheet" role="dialog" aria-labelledby="profile-edit-title">
     <div class="profile-edit-header">
       <h3 id="profile-edit-title">Modifier le profil</h3>

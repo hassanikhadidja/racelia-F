@@ -82,6 +82,14 @@ export function updatePdpActionBar(root) {
 
   removeExtraActionBars(root, bar);
 
+  if (window.matchMedia("(min-width: 1024px)").matches) {
+    placeBarInWrap(wrap, bar);
+    bar.classList.remove("is-fixed", "is-docked");
+    bar.style.bottom = "";
+    wrap.style.minHeight = "";
+    return;
+  }
+
   const rect = wrap.getBoundingClientRect();
   const barHeight = bar.offsetHeight || 52;
   const shouldFix = rect.bottom <= 0;

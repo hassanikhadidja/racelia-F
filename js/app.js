@@ -3,14 +3,18 @@ import { initCtaDock, updateCtaDock } from "./ctaDock.js";
 import { initRaceliaStyle, ensureStyleGrid, closeStyleSheet } from "./raceliaStyle.js";
 import { initAccount } from "./account.js";
 import { initCart } from "./cart.js";
-import { showHome, showCategory, showBlogs, showBoutiques, showDashboard, showClientProfile, showWishlist, initPages } from "./pages.js";
+import { showHome, showCategory, showBoutiques, showDashboard, showClientProfile, showWishlist, showAbout, initPages } from "./pages.js";
 import { defaultSelection } from "./data.js";
 import { initProductSliders } from "./productSliders.js";
 import { initTopbarSearch, updateTopbar } from "./topbar.js";
+import { initMegaMenu } from "./megaMenu.js";
 import { refreshStyleGrid } from "./raceliaStyle.js";
 import { notifyCatalogUpdated } from "./productCatalog.js";
 import { renderHomeNewArrivals } from "./homeNewArrivals.js";
+import { initHomeStories, renderHomeStories } from "./homeStories.js";
 import { initClientCartWishlist, syncWishlistHeartStates } from "./clientCartWishlist.js";
+import { getSelectedAudience, setSelectedAudience, toggleSelectedAudience } from "./audience.js";
+import { initI18n } from "./i18n.js";
 
 function goHome(root) {
   showHome(root, { selectionLabel: defaultSelection });
@@ -29,6 +33,7 @@ function initTopbar(root) {
   });
 
   initTopbarSearch(root);
+  initMegaMenu(root);
   updateTopbar(root);
   window.addEventListener("scroll", () => updateTopbar(root), { passive: true });
   window.addEventListener("resize", () => updateTopbar(root));
@@ -246,6 +251,20 @@ function initMenu(root) {
 
   if (!menuPanel || !menuBackdrop || !menuBtn || !menuClose) return;
 
+  const applyAudienceMenu = () => {
+    const selected = getSelectedAudience();
+    const kids = selected === "enfants";
+    const defaultList = root.querySelector("#menuDefaultList");
+    const kidsList = root.querySelector("#menuKidsList");
+    if (defaultList) defaultList.hidden = kids;
+    if (kidsList) kidsList.hidden = !kids;
+    root.querySelectorAll(".js-menu-audience, .js-desktop-audience").forEach((btn) => {
+      const on = btn.dataset.audience === selected;
+      btn.classList.toggle("is-selected", on);
+      btn.setAttribute("aria-pressed", String(on));
+    });
+  };
+
   const showMenu = () => {
     menuPanel.classList.remove("menu-panel--style");
     menuTab?.classList.add("active");
@@ -269,6 +288,7 @@ function initMenu(root) {
   };
 
   const openMenu = () => {
+    applyAudienceMenu();
     menuPanel.classList.add("open");
     menuPanel.setAttribute("aria-hidden", "false");
     menuBackdrop.classList.add("open");
@@ -283,6 +303,55 @@ function initMenu(root) {
     closeStyleSheet(root);
     showMenu();
   };
+
+  root.querySelectorAll(".js-menu-audience").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+      toggleSelectedAudience(btn.dataset.audience);
+      applyAudienceMenu();
+      root.dispatchEvent(new CustomEvent("racelia:audience-changed"));
+    });
+  });
+
+  root.querySelectorAll(".js-desktop-audience").forEach((btn) => {
+    btn.addEventListener("click", (event) => {
+      event.stopPropagation();
+    });
+  });
+
+  root.querySelectorAll(".js-desktop-audience-link").forEach((item) => {
+    item.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (item.dataset.audience) setSelectedAudience(item.dataset.audience);
+      applyAudienceMenu();
+      root.dispatchEvent(new CustomEvent("racelia:audience-changed"));
+      closeMenu();
+      if (item.dataset.page) showCategory(root, item.dataset.page);
+      if (item.dataset.action === "boutiques") showBoutiques(root);
+    });
+  });
+
+  const isDesktopMegaTrigger = (el) =>
+    Boolean(el?.closest?.("[data-mega]") && window.matchMedia("(min-width: 1024px)").matches);
+
+  root.querySelectorAll(".js-desktop-clear-audience").forEach((item) => {
+    item.addEventListener("click", () => {
+      if (isDesktopMegaTrigger(item)) return;
+      setSelectedAudience("");
+      applyAudienceMenu();
+      root.dispatchEvent(new CustomEvent("racelia:audience-changed"));
+    });
+  });
+
+  root.querySelectorAll(".js-desktop-about-open").forEach((item) => {
+    item.addEventListener("click", () => {
+      if (isDesktopMegaTrigger(item)) return;
+      closeMenu();
+      showAbout(root);
+    });
+  });
+
+  applyAudienceMenu();
 
   menuBtn.addEventListener("click", openMenu);
   menuClose.addEventListener("click", closeMenu);
@@ -320,6 +389,19 @@ function initMenu(root) {
     showWishlist(root);
   });
 
+  root.querySelector("#topbarWishlistBtn")?.addEventListener("click", () => {
+    closeMenu();
+    showWishlist(root);
+  });
+
+  root.querySelectorAll(".js-desktop-style-open").forEach((item) => {
+    item.addEventListener("click", () => {
+      if (isDesktopMegaTrigger(item)) return;
+      openMenu();
+      showStyle();
+    });
+  });
+
   root.querySelectorAll(".js-menu-new-arrivals").forEach((item) => {
     item.addEventListener("click", () => {
       closeMenu();
@@ -330,12 +412,13 @@ function initMenu(root) {
   root.querySelectorAll(".js-menu-blogs-open").forEach((item) => {
     item.addEventListener("click", () => {
       closeMenu();
-      showBlogs(root);
+      showCategory(root, "nouveautes");
     });
   });
 
   root.querySelectorAll(".js-menu-boutiques-open").forEach((item) => {
     item.addEventListener("click", () => {
+      if (isDesktopMegaTrigger(item)) return;
       closeMenu();
       showBoutiques(root);
     });
@@ -353,6 +436,7 @@ function initMenu(root) {
 
   root.querySelectorAll(".js-menu-category").forEach((item) => {
     item.addEventListener("click", (event) => {
+      if (isDesktopMegaTrigger(item)) return;
       event.stopPropagation();
       const page = item.dataset.page;
       if (!page) return;
@@ -363,6 +447,7 @@ function initMenu(root) {
 }
 
 export function initApp(root) {
+  initI18n(root);
   initTopbar(root);
   initReveal(root);
   initStars(root);
@@ -376,12 +461,14 @@ export function initApp(root) {
   initRaceliaStyle(root);
   initAccount(root);
   initPages(root);
+  initHomeStories(root);
   renderHomeNewArrivals(root);
   root.dispatchEvent(new CustomEvent("racelia:reveal"));
 
   root.addEventListener("racelia:backend-synced", () => {
     refreshStyleGrid(root);
     notifyCatalogUpdated(root);
+    renderHomeStories(root);
     renderHomeNewArrivals(root);
     syncWishlistHeartStates(root);
   });

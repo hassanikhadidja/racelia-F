@@ -1,9 +1,12 @@
+import { createProduct } from "../components/Product.js";
 import { getAuthToken, getStoredUser } from "./api.js";
 import { getCatalogProductById, isProductUnavailableToBuy, sanitizeColorLabel, colorVariantDisplayName } from "./productCatalog.js";
+import { getCardImages } from "./productImages.js";
 import { getProductDetail } from "./productDetailData.js";
 import { formatPrice, parsePriceFromCatalog, upsertBagLineItem, refreshShoppingBagTotals } from "./bagHelpers.js";
 import { syncBagCountFromDom } from "./cart.js";
 import { openPdpAddedOverlay } from "./cartAddedOverlay.js";
+import { initProductSliders } from "./productSliders.js";
 
 const CART_PREFIX = "raceliaClientCart:";
 const WISHLIST_PREFIX = "raceliaClientWishlist:";
@@ -265,15 +268,40 @@ function renderWishlistItem(item) {
   return el;
 }
 
+function toWishlistCardProduct(item) {
+  const catalog = getCatalogProductById(item.productId);
+  const catalogImages = catalog ? getCardImages(catalog, 0) : [];
+  const images = catalogImages.length
+    ? catalogImages
+    : item.imageUrl
+      ? [item.imageUrl]
+      : [];
+
+  return {
+    id: item.productId,
+    name: item.name || catalog?.name || "Product",
+    images,
+  };
+}
+
+function renderWishlistCard(item, index) {
+  const card = createProduct(toWishlistCardProduct(item), index);
+  card.classList.add("wishlist-card", "in");
+  card.dataset.productId = item.productId;
+  return card;
+}
+
 export function renderWishlistPage(root) {
   const list = root.querySelector("#wishlistList");
   const empty = root.querySelector("#wishlistEmpty");
   if (!list) return;
 
   list.replaceChildren();
-  wishlistItems.forEach((item) => {
+  wishlistItems.forEach((item, index) => {
     list.appendChild(renderWishlistItem(item));
+    list.appendChild(renderWishlistCard(item, index));
   });
+  initProductSliders(root, list);
 
   const count = wishlistItems.length;
   list.hidden = count === 0;
@@ -284,6 +312,7 @@ export function renderWishlistPage(root) {
   if (countEl) countEl.textContent = String(count);
   if (labelEl) labelEl.textContent = count === 1 ? "article" : "articles";
   root.querySelector("#wishlistPage .wishlist-footer")?.toggleAttribute("hidden", count === 0);
+  syncWishlistHeartStates(root);
 }
 
 export function syncWishlistHeartStates(root) {

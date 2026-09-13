@@ -45,17 +45,6 @@ export function initFooter(root) {
     });
   });
 
-  root.querySelectorAll(".js-footer-metiers-home").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      root.dispatchEvent(
-        new CustomEvent("racelia:open-home-section", {
-          detail: { sectionId: "metiersArtSection" },
-        })
-      );
-    });
-  });
-
   root.querySelectorAll(".js-footer-category").forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();

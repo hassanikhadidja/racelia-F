@@ -1,6 +1,6 @@
 /** Built-in catalog seed — no imports from productCatalog to avoid cycles. */
 
-export const CATALOG_SEED_VERSION = 2;
+export const CATALOG_SEED_VERSION = 4;
 
 const img = {
   bag1: "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&w=800&q=80",
@@ -39,6 +39,7 @@ function p(data) {
     closerLookImages: data.closerLookImages || [],
     colors: data.colors || [],
     sections: data.sections || ["all-selection"],
+    audiences: data.audiences || ["femme"],
   };
 }
 
@@ -57,6 +58,8 @@ export function getBuiltInCatalogProducts() {
       colors: ["#5a4a36", "#111", "#f1ece2", "#7a1f1f", "#6b8aa8", "#c4a882"],
       filters: ["Métiers d'art 2026", "Cuir", "Noir", "Doré", "RACÈLIA"],
       sections: ["mini-bags", "all-selection", "metiers-dart"],
+      audiences: ["femme", "enfants"],
+      kidsGroup: "fille-6-14",
       description: "The Mini Flap Bag features signature RACÈLIA hardware and a compact silhouette for day-to-night wear.",
       details: [
         "Largeur : 20 cm · Hauteur : 14 cm · Profondeur : 6 cm",
@@ -77,6 +80,8 @@ export function getBuiltInCatalogProducts() {
       colors: ["#111", "#7a1f1f", "#f1ece2"],
       filters: ["Printemps-Été 2026", "Cuir", "Rouge", "Argenté", "RACÈLIA"],
       sections: ["mini-bags", "all-selection"],
+      audiences: ["femme", "enfants"],
+      kidsGroup: "garcon-6-14",
       description: "Soft hobo silhouette with adjustable strap and interior card slots.",
     }),
     p({
@@ -91,6 +96,7 @@ export function getBuiltInCatalogProducts() {
       colors: ["#6b8aa8", "#111", "#f1ece2", "#5a4a36", "#7a1f1f"],
       filters: ["Les Emblématiques", "Tissu", "Simili cuir", "Bleu", "Doré", "RACÈLIA"],
       sections: ["mini-bags", "all-selection"],
+      audiences: ["femme", "mariee", "hammam"],
       description: "Compact evening clutch with chain strap and magnetic closure.",
     }),
     p({
@@ -106,6 +112,7 @@ export function getBuiltInCatalogProducts() {
       colors: ["#6b8aa8", "#111", "#f1ece2", "#5a4a36", "#7a1f1f", "#c4a882", "#2f4f4f"],
       filters: ["Métiers d'art 2026", "Cuir", "Beige", "Doré", "RACÈLIA"],
       sections: ["racelia-handbag", "all-selection", "metiers-dart"],
+      audiences: ["femme", "homme", "mariee", "hammam"],
       description: "Signature RACÈLIA hardware, a top handle and a detachable crossbody strap for versatile day-to-evening wear.",
     }),
     p({
@@ -120,6 +127,7 @@ export function getBuiltInCatalogProducts() {
       colors: ["#5a4a36", "#111"],
       filters: ["Pré-collection Printemps-Été 2026", "Cuir", "Noir", "Argenté", "RACÈLIA"],
       sections: ["racelia-handbag", "all-selection"],
+      audiences: ["femme", "homme"],
       description: "Oversized flap silhouette with double-compartment interior.",
     }),
     p({
@@ -134,6 +142,7 @@ export function getBuiltInCatalogProducts() {
       colors: ["#111", "#f1ece2", "#7a1f1f"],
       filters: ["Printemps-Été 2026", "Tissu", "Rouge", "Doré", "RACÈLIA"],
       sections: ["racelia-handbag", "all-selection"],
+      audiences: ["femme", "homme"],
       description: "Structured tote with reinforced base and interior zip pocket.",
     }),
     p({
@@ -192,6 +201,8 @@ export function getBuiltInCatalogProducts() {
       colors: ["#111", "#f1ece2", "#7a1f1f", "#6b8aa8"],
       filters: ["Printemps-Été 2026", "Cuir", "Noir", "Doré", "RACÈLIA"],
       sections: ["mini-bags", "all-selection"],
+      audiences: ["femme", "enfants"],
+      kidsGroup: "fille-0-6",
       description: "Structured mini box with a top handle and detachable chain strap.",
     }),
     p({
@@ -206,6 +217,7 @@ export function getBuiltInCatalogProducts() {
       colors: ["#111", "#c4a882", "#f1ece2"],
       filters: ["Les Emblématiques", "Cuir", "Noir", "Doré", "RACÈLIA"],
       sections: ["mini-bags", "all-selection"],
+      audiences: ["femme", "mariee", "hammam"],
       description: "Slim pochette with a signature chain and magnetic flap.",
     }),
     p({
@@ -221,6 +233,7 @@ export function getBuiltInCatalogProducts() {
       colors: ["#5a4a36", "#111", "#7a1f1f"],
       filters: ["Métiers d'art 2026", "Cuir", "Taupe", "Doré", "RACÈLIA"],
       sections: ["racelia-handbag", "all-selection", "metiers-dart"],
+      audiences: ["femme", "mariee", "hammam"],
       description: "Soft bucket silhouette with drawstring closure and interior pouch.",
     }),
     p({
@@ -235,6 +248,7 @@ export function getBuiltInCatalogProducts() {
       colors: ["#111", "#6b8aa8", "#f1ece2", "#5a4a36"],
       filters: ["Pré-collection Printemps-Été 2026", "Cuir", "Noir", "Argenté", "RACÈLIA"],
       sections: ["racelia-handbag", "all-selection", "metiers-dart"],
+      audiences: ["femme", "homme"],
       description: "Horizontal flap bag with a wide strap and double-compartment interior.",
     }),
     p({
@@ -253,6 +267,22 @@ export function getBuiltInCatalogProducts() {
       description: "Open shopper with reinforced handles and a detachable inner pouch.",
     }),
     p({
+      id: "kids-mini-backpack",
+      name: "MINI SAC À DOS",
+      tag: "Enfants",
+      price: "€ 1,850",
+      stockNote: "dispo",
+      coverImage: img.bag7,
+      cardImages: [img.bag7, img.bag1, img.bag5],
+      closerLookImages: [img.bag1, img.bag5],
+      colors: ["#111", "#6b8aa8", "#7a1f1f"],
+      filters: ["Cuir", "Noir", "Doré", "RACÈLIA"],
+      sections: ["mini-bags", "all-selection"],
+      audiences: ["enfants"],
+      kidsGroup: "garcon-0-6",
+      description: "Compact backpack sized for little adventurers, with an adjustable strap and easy-open zip.",
+    }),
+    p({
       id: "wholesale-mini-lot",
       name: "LOT MINI SACS",
       tag: "Grossiste",
@@ -266,6 +296,7 @@ export function getBuiltInCatalogProducts() {
       colors: ["#111", "#5a4a36", "#f1ece2"],
       filters: ["Cuir", "Noir", "Doré", "RACÈLIA"],
       sections: ["catalogue-grossiste"],
+      audiences: ["femme", "homme", "enfants", "mariee", "hammam"],
       description: "Lot grossiste de 6 mini sacs RACÈLIA, coloris mixtes, destiné aux partenaires professionnels.",
       details: [
         "Quantité : 6 pièces",
@@ -287,6 +318,7 @@ export function getBuiltInCatalogProducts() {
       colors: ["#111", "#6b8aa8", "#7a1f1f"],
       filters: ["Cuir", "Noir", "Doré", "RACÈLIA"],
       sections: ["catalogue-grossiste"],
+      audiences: ["femme", "homme", "enfants", "mariee", "hammam"],
       description: "Lot grossiste de 4 sacs RACÈLIA classiques pour points de vente partenaires.",
       details: [
         "Quantité : 4 pièces",
@@ -308,6 +340,7 @@ export function getBuiltInCatalogProducts() {
       colors: ["#5a4a36", "#111", "#f1ece2"],
       filters: ["Cuir", "Beige", "Doré", "RACÈLIA"],
       sections: ["catalogue-grossiste"],
+      audiences: ["femme", "homme", "enfants", "mariee", "hammam"],
       description: "Lot grossiste de 4 sacs Mom spacieux, pensé pour le quotidien.",
       details: [
         "Quantité : 4 pièces",

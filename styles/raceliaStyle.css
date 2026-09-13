@@ -120,6 +120,17 @@
   grid-row: span 2;
 }
 
+.style-empty {
+  margin: 28px 0 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #fff;
+}
+
+.style-empty[hidden] {
+  display: none;
+}
+
 .style-sheet-overlay {
   position: fixed;
   inset: 0;

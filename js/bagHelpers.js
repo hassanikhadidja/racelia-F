@@ -234,4 +234,9 @@ export function refreshShoppingBagTotals(root) {
   if (countEl) countEl.textContent = String(count);
   if (labelEl) labelEl.textContent = count === 1 ? "article" : "articles";
   if (headerTotal) headerTotal.textContent = formattedTotal;
+
+  const empty = page.querySelector("#bagEmpty");
+  const itemCount = page.querySelectorAll(".bag-item").length;
+  page.classList.toggle("is-empty", itemCount === 0);
+  if (empty) empty.hidden = itemCount > 0;
 }

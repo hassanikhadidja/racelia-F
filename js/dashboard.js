@@ -20,10 +20,6 @@ import {
   closeDashboardEmailsOverlay,
   renderDashboardEmails,
 } from "./dashboardEmails.js";
-import {
-  initDashboardBlogs,
-  closeDashboardBlogsOverlay,
-} from "./dashboardBlogs.js";
 import { initTargetOrders } from "./dashboardTargetOrders.js";
 import { initDashboardOrders } from "./dashboardOrders.js";
 import { initDashboardOverview, renderDashboardOverview } from "./dashboardOverview.js";
@@ -161,7 +157,6 @@ export function initDashboard(root) {
   initDashboardRaceliaStyle(page, root);
   initDashboardUsers(page);
   initDashboardEmails(page);
-  initDashboardBlogs(page);
   initDashboardOverview(page);
   initDashboardAnalytics(page);
   initTargetOrders(page);
@@ -174,7 +169,6 @@ export function initDashboard(root) {
     if (event.key === "Escape" && !page.hidden) {
       if (closeDashboardProductsOverlay(page)) return;
       if (closeDashboardBoutiquesOverlay(page)) return;
-      if (closeDashboardBlogsOverlay(page)) return;
       if (closeDashboardEmailsOverlay(page)) return;
       if (closeDashboardUsersOverlay(page)) return;
       if (closeDashboardRaceliaStyleOverlay(page)) return;

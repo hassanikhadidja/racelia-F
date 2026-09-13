@@ -6,7 +6,6 @@ export const DASHBOARD_SCREENS = new Set([
   "order",
   "product",
   "analytics",
-  "blogs",
   "users",
   "emails",
   "boutiques",
@@ -87,7 +86,7 @@ export function parseRoute(hash = window.location.hash) {
 
   if (parts[0] === "category" && parts[1]) {
     if (parts[1] === "metiers-dart") {
-      return { view: "blogs" };
+      return { view: "category", categoryKey: "nouveautes" };
     }
     if (categoryPages[parts[1]]) {
       return { view: "category", categoryKey: parts[1] };
@@ -127,7 +126,7 @@ export function parseRoute(hash = window.location.hash) {
     if (parts[1]) {
       return { view: "blog", blogId: decodeURIComponent(parts[1]) };
     }
-    return { view: "blogs" };
+    return { view: "category", categoryKey: "nouveautes" };
   }
 
   if (parts[0] === "confidentialite" || parts[0] === "privacy") {
@@ -160,6 +159,15 @@ export function parseRoute(hash = window.location.hash) {
 
   if (parts[0] === "contact") {
     return { view: "contact" };
+  }
+
+  if (parts[0] === "about" || parts[0] === "a-propos") {
+    return { view: "about" };
+  }
+
+  if (parts[0] === "recherche" || parts[0] === "search") {
+    const queryParts = parts.slice(1).map(decodeRoutePart);
+    return { view: "search", searchQuery: queryParts.join("/") };
   }
 
   if (DASHBOARD_SCREENS.has(parts[0]) && parts.length === 1) {
@@ -213,6 +221,12 @@ export function buildHash(route) {
       return "#carte-cadeau";
     case "contact":
       return "#contact";
+    case "about":
+      return "#about";
+    case "search": {
+      const query = String(route.searchQuery || "").trim();
+      return query ? `#recherche/${encodeURIComponent(query)}` : "#recherche";
+    }
     default:
       return "#home";
   }

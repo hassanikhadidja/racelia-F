@@ -16,6 +16,7 @@ import "@/styles/faqPage.css";
 import "@/styles/returnsPage.css";
 import "@/styles/giftCardPage.css";
 import "@/styles/contactPage.css";
+import "@/styles/aboutPage.css";
 import "@/styles/productDetail.css";
 import "@/styles/dashboard.css";
 import "@/styles/dashboard-theme.css";

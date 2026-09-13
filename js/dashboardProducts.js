@@ -363,6 +363,15 @@ function updateCardCoverPreview(page) {
   void page;
 }
 
+function syncKidsGroupVisibility(page) {
+  const wrap = page.querySelector("#dashboard-product-kids-group-wrap");
+  if (!wrap) return;
+  const hasKids = [...page.querySelectorAll(".dashboard-product-audience-check")].some(
+    (input) => input.checked && input.value === "enfants"
+  );
+  wrap.hidden = !hasKids;
+}
+
 function fillProductEditor(page, product) {
   const isEdit = Boolean(product?.id && getCatalogProductById(product.id));
   page.querySelector("#dashboard-product-editor-title").textContent = isEdit
@@ -395,6 +404,18 @@ function fillProductEditor(page, product) {
   page.querySelectorAll(".dashboard-product-section-check").forEach((input) => {
     input.checked = (product.sections || []).includes(input.value);
   });
+  page.querySelectorAll(".dashboard-product-audience-check").forEach((input) => {
+    input.checked = (product.audiences || ["femme"]).includes(input.value);
+  });
+  const kidsSelect = page.querySelector("#dashboard-product-kids-group");
+  if (kidsSelect) kidsSelect.value = product.kidsGroup || "";
+  if (page.dataset.kidsGroupBound !== "true") {
+    page.dataset.kidsGroupBound = "true";
+    page.querySelectorAll(".dashboard-product-audience-check").forEach((input) => {
+      input.addEventListener("change", () => syncKidsGroupVisibility(page));
+    });
+  }
+  syncKidsGroupVisibility(page);
 
   const rawVariants = product.colorVariants?.length
     ? product.colorVariants
@@ -415,6 +436,9 @@ function collectProductFromEditor(page) {
   const colorVariants = readColorVariants(page);
   const first = colorVariants[0] || emptyColorVariant();
   const sections = [...page.querySelectorAll(".dashboard-product-section-check:checked")].map(
+    (input) => input.value
+  );
+  const audiences = [...page.querySelectorAll(".dashboard-product-audience-check:checked")].map(
     (input) => input.value
   );
 
@@ -442,6 +466,8 @@ function collectProductFromEditor(page) {
       .map((f) => f.trim())
       .filter(Boolean),
     sections: sections.length ? sections : ["all-selection"],
+    audiences: audiences.length ? audiences : ["femme"],
+    kidsGroup: page.querySelector("#dashboard-product-kids-group")?.value || "",
     /* Defaults always come from the first color */
     cardCover: first.cardCover || "",
     cardScroll: first.cardScroll || [],

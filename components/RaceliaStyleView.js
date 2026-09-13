@@ -3,8 +3,8 @@ export function createRaceliaStyleView() {
   view.className = "style-view";
   view.id = "styleView";
   view.innerHTML = `
-    <form class="style-search" id="styleSearchForm">
-      <input id="styleSearchInput" type="text" placeholder="Rechercher" />
+    <form class="style-search" id="styleSearchForm" role="search">
+      <input id="styleSearchInput" type="search" placeholder="Rechercher" autocomplete="off" enterkeyhint="search" aria-label="Rechercher un look" />
       <button type="submit" class="style-search__btn" aria-label="Rechercher">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       </button>
@@ -17,6 +17,7 @@ export function createRaceliaStyleView() {
     </p>
 
     <div class="style-grid" id="styleGrid"></div>
+    <p class="style-empty" id="styleSearchEmpty" hidden>Aucun look ne correspond à votre recherche.</p>
   `;
   return view;
 }

@@ -10,18 +10,51 @@ function normalizeText(text) {
 }
 
 function productSearchText(product) {
-  const swatchLabels = (product.swatches || []).map((s) => s.label || "");
+  const swatchLabels = (product.swatches || []).map((s) =>
+    typeof s === "string" ? s : s.label || ""
+  );
+  const colorLabels = (product.colorVariants || []).map((v) => v.label || v.name || "");
   return normalizeText(
     [
+      product.id,
       product.name,
       product.tag,
       product.description,
+      product.stockNote,
       ...(product.details || []),
       ...(product.filters || []),
       ...(product.sections || []),
       ...swatchLabels,
+      ...colorLabels,
     ].join(" ")
   );
+}
+
+export function tokenizeQuery(query) {
+  return normalizeText(query)
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+export function productMatchesQuery(product, query) {
+  const tokens = Array.isArray(query) ? query : tokenizeQuery(query);
+  if (!tokens.length) return false;
+  const haystack = productSearchText(product);
+  return tokens.every((token) => haystack.includes(token));
+}
+
+export function scoreProductMatch(product, query) {
+  const tokens = Array.isArray(query) ? query : tokenizeQuery(query);
+  if (!tokens.length) return 0;
+  const name = normalizeText(product.name);
+  const id = normalizeText(product.id).replace(/-/g, " ");
+  const tag = normalizeText(product.tag);
+  if (tokens.every((token) => name.includes(token))) return 100;
+  if (tokens.every((token) => id.includes(token))) return 80;
+  if (tokens.every((token) => tag.includes(token))) return 60;
+  return 10;
 }
 
 function hasAny(haystack, needles) {

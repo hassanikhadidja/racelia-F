@@ -14,8 +14,8 @@ export function getWishlistMarkup() {
     <p class="wishlist-summary"><span class="wishlist-count">0</span> <span class="wishlist-count-label">articles</span></p>
 
     <div class="wishlist-empty" id="wishlistEmpty">
-      <p class="wishlist-empty__title">Votre liste d'envies est vide</p>
-      <p class="wishlist-empty__text">Enregistrez les pièces que vous aimez pour les retrouver ici.</p>
+      <p class="wishlist-empty__title">Créer une liste d'envies</p>
+      <p class="wishlist-empty__text">Ajoutez des produits et des looks à votre liste d'envies pour les retrouver et les partager.</p>
       <button type="button" class="wishlist-btn wishlist-btn--outline js-wishlist-continue">Continuer vos achats</button>
     </div>
 

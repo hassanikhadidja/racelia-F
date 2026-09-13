@@ -3,6 +3,8 @@ import {
   getEditorialGridProducts,
   getEditorialSpotlightProducts,
   getNewArrivalProducts,
+  getSecondaryEditorialGridProducts,
+  getClosingGridProducts,
 } from "./productCatalog.js";
 import { initProductSliders } from "./productSliders.js";
 import { syncWishlistHeartStates } from "./clientCartWishlist.js";
@@ -28,7 +30,7 @@ function renderHomeProductSection(
   root,
   sectionId,
   products,
-  { withRowCaption = false, withEndCaption = false } = {}
+  { withRowCaption = false, withLeadingCaption = false } = {}
 ) {
   const section = root.querySelector(`#${sectionId}`);
   if (!section) return;
@@ -48,17 +50,16 @@ function renderHomeProductSection(
   }
 
   section.hidden = false;
+  if (withLeadingCaption) {
+    grid.appendChild(createHomeCaption(HOME_END_CAPTION, "home-product-caption--right"));
+  }
   const cards = products.map((product, index) => createProduct(product, index));
   cards.forEach((card, index) => {
     grid.appendChild(card);
-    if (withRowCaption && index === 1) {
+    if (withRowCaption && index === 3) {
       grid.appendChild(createHomeCaption(HOME_ROW_CAPTION));
     }
   });
-
-  if (withEndCaption) {
-    grid.appendChild(createHomeCaption(HOME_END_CAPTION, "home-product-caption--right"));
-  }
 
   revealProductCards(cards);
   initProductSliders(root, grid);
@@ -86,9 +87,16 @@ export function renderHomeNewArrivals(root) {
   renderHomeProductSection(
     root,
     "editorialProductsSection",
-    getEditorialGridProducts(),
-    { withEndCaption: true }
+    getEditorialGridProducts()
   );
+  renderHomeProductSection(
+    root,
+    "secondaryEditorialProductsSection",
+    getSecondaryEditorialGridProducts()
+  );
+  renderHomeProductSection(root, "closingProductsSection", getClosingGridProducts(), {
+    withLeadingCaption: true,
+  });
   bindHomeEditorials(root);
   syncWishlistHeartStates(root);
 }

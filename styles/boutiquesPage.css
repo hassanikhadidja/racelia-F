@@ -339,6 +339,14 @@
 }
 
 @media (min-width: 1024px) {
+  .boutiques-page {
+    color: #111;
+    -webkit-font-smoothing: antialiased;
+    background: #ffffff;
+    min-height: calc(100dvh - 120px);
+    font-family: Georgia, Times New Roman, serif;
+  }
+
   .boutiques-page__inner {
     margin: 32px auto;
     padding-bottom: 48px;

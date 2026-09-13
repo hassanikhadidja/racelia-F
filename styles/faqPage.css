@@ -7,6 +7,10 @@
 
 @media (min-width: 1024px) {
   .faq-page {
+    color: #111;
+    -webkit-font-smoothing: antialiased;
+    background: #fafafa;
+    font-family: Georgia, Times New Roman, serif;
     min-height: calc(100vh - 120px);
     min-height: calc(100dvh - 120px);
   }

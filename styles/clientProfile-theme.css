@@ -898,6 +898,145 @@
   color: #000;
 }
 
+@media (min-width: 1024px) {
+  body.client-profile-active {
+    overflow: auto;
+  }
+
+  body.client-profile-active .topbar {
+    display: flex !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  body.client-profile-active .site-footer {
+    display: block !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  #clientProfilePage {
+    position: relative;
+    inset: auto;
+    z-index: 1;
+    display: block;
+    height: auto;
+    min-height: 100vh;
+    max-height: none;
+    padding: 188px 48px 80px;
+    overflow: visible;
+  }
+
+  #clientProfilePage:not([hidden]) {
+    display: block;
+  }
+
+  #clientProfilePage .client-profile-phone-frame {
+    max-width: 1080px;
+    margin: 0 auto;
+    min-height: 0;
+  }
+
+  #clientProfilePage .top-bar {
+    position: static;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0 0 36px;
+    border-bottom: 0;
+  }
+
+  #clientProfilePage .top-bar .js-client-profile-back {
+    display: none;
+  }
+
+  #clientProfilePage .top-bar h1 {
+    font-size: 28px;
+    font-weight: 400;
+    letter-spacing: 0.22em;
+  }
+
+  #clientProfilePage .top-bar #edit-profile-btn {
+    width: auto;
+    height: auto;
+    border: 0;
+    padding: 0;
+    border-radius: 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #000;
+    background: none;
+  }
+
+  #clientProfilePage .top-bar #edit-profile-btn svg {
+    display: none;
+  }
+
+  #clientProfilePage .top-bar #edit-profile-btn::after {
+    content: "Modifier";
+  }
+
+  #clientProfilePage .top-bar #edit-profile-btn:hover {
+    background: none;
+    opacity: 0.55;
+  }
+
+  #clientProfilePage .profile-desk {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 48px 72px;
+    align-items: start;
+  }
+
+  #clientProfilePage .avatar-section {
+    padding: 0 0 28px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  #clientProfilePage .avatar-wrap,
+  #clientProfilePage .avatar-placeholder {
+    width: 72px;
+    height: 72px;
+  }
+
+  #clientProfilePage .avatar-placeholder {
+    font-size: 28px;
+    line-height: 72px;
+  }
+
+  #clientProfilePage .avatar-section h2 {
+    font-size: 20px;
+    letter-spacing: 0.14em;
+    margin: 0;
+  }
+
+  #clientProfilePage .card {
+    margin: 0;
+  }
+
+  #clientProfilePage .section-title-row {
+    padding: 0 0 16px;
+  }
+
+  #clientProfilePage .loyalty-card-wrap,
+  #clientProfilePage .egift-card-wrap {
+    padding: 0 0 36px;
+  }
+
+  #clientProfilePage .contact-card-below {
+    margin: 48px 0 24px;
+  }
+
+  #clientProfilePage .profile-logout-section {
+    max-width: 280px;
+  }
+}
+
 @media (min-width: 769px) {
   #clientProfilePage .profile-edit-overlay {
     align-items: center;

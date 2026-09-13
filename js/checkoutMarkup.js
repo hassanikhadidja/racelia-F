@@ -59,7 +59,7 @@ export function getCheckoutMarkup() {
       <section class="checkout-section">
         <h2 class="checkout-section__title">Coordonnées de livraison</h2>
         <div class="checkout-field checkout-field--required">
-          <label for="checkout-name">Nom complet</label>
+          <label for="checkout-name">Nom</label>
           <input id="checkout-name" name="name" type="text" autocomplete="name" required placeholder=" " />
         </div>
         <div class="checkout-field checkout-field--required">

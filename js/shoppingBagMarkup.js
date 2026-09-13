@@ -1,6 +1,7 @@
 /** @generated from shopping bag page.html */
 export function getShoppingBagMarkup() {
-  return `<div class="shopping-bag-shell">
+  return `<button type="button" class="shopping-bag-backdrop js-shopping-bag-close" aria-label="Fermer le panier"></button>
+<div class="shopping-bag-shell">
   <header class="shopping-bag-topbar">
     <button type="button" class="btn-icon js-shopping-bag-back" aria-label="Retour">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
@@ -9,6 +10,7 @@ export function getShoppingBagMarkup() {
     </button>
     <h1>Mon panier</h1>
     <span class="shopping-bag-topbar__spacer" aria-hidden="true"></span>
+    <button type="button" class="shopping-bag-close js-shopping-bag-close" aria-label="Fermer"></button>
   </header>
   <div class="shopping-bag-inner">
     <p class="bag-header-summary"><span class="bag-header-count">0</span> <span class="bag-header-items-label">articles</span> · <span class="bag-header-total">0.00 €</span></p>
@@ -16,6 +18,23 @@ export function getShoppingBagMarkup() {
 <div class="bag-items">
 
 </div><!-- /bag-items -->
+
+<div class="bag-empty" id="bagEmpty" hidden>
+  <p class="bag-empty__text">Votre panier est vide.</p>
+  <div class="bag-shop">
+    <h2>Acheter en ligne</h2>
+    <a href="#category/nouveautes" class="js-bag-category" data-category-key="nouveautes">Nouveautés <span aria-hidden="true">›</span></a>
+    <a href="#category/sacs" class="js-bag-category" data-category-key="sacs">Sacs <span aria-hidden="true">›</span></a>
+    <a href="#category/mini-bags" class="js-bag-category" data-category-key="mini-bags">Mini sacs <span aria-hidden="true">›</span></a>
+    <a href="#category/racelia-handbag" class="js-bag-category" data-category-key="racelia-handbag">Le sac RACÈLIA <span aria-hidden="true">›</span></a>
+  </div>
+  <div class="bag-detail">
+    <h2>L'art du détail</h2>
+    <a href="#carte-cadeau" class="bag-detail__link js-bag-gift-card">
+      <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80" alt="Carte cadeau RACÈLIA" />
+    </a>
+  </div>
+</div>
 
 <!-- ════════════ PROMOS & SIGN IN ════════════ -->
 <div class="promo-section">
