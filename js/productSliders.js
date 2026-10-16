@@ -1,3 +1,5 @@
+import { responsiveImgTag } from "./imageDelivery.js";
+
 const ARROW_SVG =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
 
@@ -28,10 +30,13 @@ export function initProductSliders(root, scope = root) {
     const imgwrap = product.querySelector(".imgwrap");
     if (!slides || !underline) return;
 
+    const inFeed = Boolean(product.closest("#mobileHomeFeed"));
     slides.innerHTML = imgs
-      .map(
-        (src) =>
-          `<img src="${src}" alt="" onerror="this.style.visibility='hidden'">`
+      .map((src, index) =>
+        responsiveImgTag(src, {
+          eager: inFeed && index === 0,
+          extra: `onerror="this.style.visibility='hidden'"`,
+        })
       )
       .join("");
 

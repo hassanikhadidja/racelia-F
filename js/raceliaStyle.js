@@ -1,6 +1,7 @@
 import { getCategoryProductById } from "./categoryData.js";
 import { getStorefrontStyleLooks } from "./dashboardRaceliaStyleData.js";
 import { tokenizeQuery } from "./categoryFilters.js";
+import { responsiveImgTag, applyResponsiveImage, PDP_SIZES, PDP_WIDTHS } from "./imageDelivery.js";
 
 function escapeHtml(text) {
   return String(text)
@@ -50,7 +51,7 @@ function renderStyleProducts(look) {
       const image = meta?.images?.[0] || product.image || "";
       return `<button type="button" class="style-product" data-product-id="${escapeHtml(product.id)}" aria-label="Voir ${escapeHtml(label)}">
         <span class="style-product__media">
-          <img src="${escapeHtml(image)}" alt="" loading="lazy" />
+          ${responsiveImgTag(image, { widths: [240, 480], sizes: "160px" })}
         </span>
         <span class="style-product__meta">
           <span class="style-product__name">${escapeHtml(label)}</span>
@@ -128,6 +129,11 @@ function bindStyleSheet(root) {
   }
 }
 
+export function openStyleLook(root, look, index = 0) {
+  bindStyleSheet(root);
+  openStyleSheet(root, look, index);
+}
+
 function openStyleSheet(root, look, index) {
   const overlay = root.querySelector("#styleSheetOverlay");
   const sheet = root.querySelector("#styleSheet");
@@ -140,8 +146,12 @@ function openStyleSheet(root, look, index) {
   if (!overlay || !sheet || !heroImg || !productsEl || !look) return;
 
   const count = look.products.length;
-  heroImg.src = look.img;
   heroImg.alt = look.title || `RACÈLIASTYLE look ${index + 1}`;
+  applyResponsiveImage(heroImg, look.img, {
+    eager: true,
+    sizes: PDP_SIZES,
+    widths: PDP_WIDTHS,
+  });
   productsEl.innerHTML = renderStyleProducts(look);
   if (countNum) countNum.textContent = String(count);
   if (countLabel) countLabel.textContent = count > 1 ? "produits" : "produit";
@@ -173,8 +183,12 @@ function renderStyleGrid(root) {
   looks.forEach((look, index) => {
     const cell = document.createElement("div");
     cell.className = "style-cell" + (index === 0 ? " style-cell--span-2" : "");
-    cell.innerHTML = `<img src="${escapeHtml(look.img)}" alt="${escapeHtml(look.title || `Look ${index + 1}`)}" loading="lazy" />`;
-    cell.addEventListener("click", () => openStyleSheet(root, look, index));
+    cell.innerHTML = responsiveImgTag(look.img, {
+      alt: look.title || `Look ${index + 1}`,
+      widths: index === 0 ? [480, 900] : [320, 640],
+      sizes: index === 0 ? "(max-width: 720px) 100vw, 50vw" : "(max-width: 720px) 50vw, 25vw",
+    });
+    cell.addEventListener("click", () => openStyleLook(root, look, index));
     grid.appendChild(cell);
   });
 

@@ -179,16 +179,14 @@ export function updateCtaDock(root) {
     return;
   }
 
+  const passed = hasPassedHomeMetiersSection(root);
+  const onPdp = isOnProductDetailPage(root);
+  const docked = isCtaDockReached(root);
+
   widget.classList.remove("modal-animated-container--pdp");
-  widget.classList.toggle("is-hidden-until-scroll", !hasPassedHomeMetiersSection(root));
-  widget.classList.toggle("modal-animated-container--instant-dock", isOnProductDetailPage(root));
-  widget.classList.toggle("modal-animated-container--docked", isCtaDockReached(root));
+  widget.classList.toggle("is-hidden-until-scroll", !passed);
+  widget.classList.toggle("modal-animated-container--instant-dock", onPdp);
+  widget.classList.toggle("modal-animated-container--docked", docked);
 
   updatePdpActionBar(root);
-}
-
-export function initCtaDock(root) {
-  updateCtaDock(root);
-  window.addEventListener("scroll", () => updateCtaDock(root), { passive: true });
-  window.addEventListener("resize", () => updateCtaDock(root));
 }

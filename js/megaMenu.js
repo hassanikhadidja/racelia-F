@@ -1,5 +1,6 @@
 import { setSelectedAudience } from "./audience.js";
 import { t } from "./i18n.js";
+import { applyResponsiveImage } from "./imageDelivery.js";
 
 const AUDIENCE_COLUMNS = [
   {
@@ -252,8 +253,14 @@ export function initMegaMenu(root) {
     const audience = panel.audience || "";
     if (activeKey !== key) {
       activeKey = key;
-      if (imageEl.getAttribute("src") !== panel.image) {
-        imageEl.src = panel.image;
+      if (imageEl.dataset.origin !== panel.image) {
+        applyResponsiveImage(imageEl, panel.image, {
+          eager: true,
+          keepOrigin: true,
+          width: 900,
+          widths: [480, 900],
+          sizes: "420px",
+        });
       }
       imageEl.alt = "";
     }
@@ -269,11 +276,6 @@ export function initMegaMenu(root) {
     trigger?.closest(".topbar-nav__item")?.classList.add("is-mega-active");
     setExpanded(key);
   };
-
-  Object.values(MEGA_PANELS).forEach((panel) => {
-    const preload = new Image();
-    preload.src = panel.image;
-  });
 
   root.querySelector("#topbarSearchBtn")?.addEventListener("click", closeMega);
   closeBtn?.addEventListener("click", (event) => {
@@ -302,6 +304,14 @@ export function initMegaMenu(root) {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
+
+      if (item.dataset.mega === "style") {
+        closeMega();
+        setSelectedAudience("");
+        root.dispatchEvent(new CustomEvent("racelia:audience-changed"));
+        root.dispatchEvent(new CustomEvent("racelia:open-style"));
+        return;
+      }
 
       const key = item.dataset.mega;
       if (activeKey === key) {

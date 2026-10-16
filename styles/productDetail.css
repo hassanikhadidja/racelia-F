@@ -228,6 +228,18 @@
   font-size: 16px;
 }
 
+.pdp-price-was,
+.pdp-price-now {
+  display: block;
+}
+
+.pdp-price-was {
+  color: #9a9a9a;
+  font-weight: 400;
+  font-size: 13px;
+  text-decoration: line-through;
+}
+
 .pdp-action-bar-wrap {
   position: relative;
 }
@@ -1165,25 +1177,44 @@ body.pdp-review-open .pdp-action-bar.is-docked {
 }
 
 .pdp-dots {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  z-index: 3;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 7px;
-  padding: 14px 0 10px;
+  gap: 5px;
+  height: 12px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  pointer-events: none;
 }
 
 .pdp-dot {
-  width: 7px;
-  height: 7px;
+  width: 5px;
+  height: 5px;
+  min-width: 5px;
+  min-height: 5px;
   border-radius: 50%;
   border: 0;
   padding: 0;
-  background: #d0d0d0;
+  margin: 0;
+  line-height: 0;
+  font-size: 0;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18);
   cursor: pointer;
+  pointer-events: auto;
+  flex-shrink: 0;
 }
 
 .pdp-dot.is-active {
   background: #111;
+  box-shadow: none;
 }
 
 .pdp-sheet {

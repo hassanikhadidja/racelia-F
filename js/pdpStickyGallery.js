@@ -36,18 +36,19 @@ export function updatePdpStickyGallery(root) {
     return;
   }
 
-  col.style.position = "relative";
-  col.style.minHeight = `${sheet.offsetHeight}px`;
-
+  const sheetHeight = sheet.offsetHeight;
   const top = getHeaderOffset(root);
   const sheetRect = sheet.getBoundingClientRect();
   const colRect = col.getBoundingClientRect();
   const heroHeight = hero.offsetHeight;
   const pinLimit = sheetRect.bottom - heroHeight;
 
+  col.style.position = "relative";
+  col.style.minHeight = `${sheetHeight}px`;
+
   if (sheetRect.top >= top) {
     clearPdpGalleryPin(hero, col);
-    col.style.minHeight = `${sheet.offsetHeight}px`;
+    col.style.minHeight = `${sheetHeight}px`;
     return;
   }
 

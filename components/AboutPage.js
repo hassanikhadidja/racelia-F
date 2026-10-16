@@ -11,7 +11,7 @@ export function createAboutPage() {
       <p class="about-eyebrow">La Maison</p>
       <h1>ABOUT RACÈLIA</h1>
       <p>RACÈLIA est une maison de création dédiée à l'élégance, à la matière et aux savoir-faire. Chaque pièce est pensée comme un objet de caractère, entre héritage artisanal et allure contemporaine.</p>
-      <p>La collection Métiers d'Art 2026 prolonge cette exigence : des sacs, des détails précieux et une silhouette immédiate, destinés à accompagner le quotidien comme les grands moments.</p>
+      <p>La collection L’ART DU GESTE 2026 prolonge cette exigence : des sacs, des détails précieux et une silhouette immédiate, destinés à accompagner le quotidien comme les grands moments.</p>
       <p>De la femme à l'homme, des enfants à la mariée et au hammam, RACÈLIA imagine des univers distincts, unis par le même soin du geste.</p>
 
       <h2>La Maison</h2>

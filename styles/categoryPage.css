@@ -10,6 +10,10 @@
   box-sizing: border-box;
 }
 
+#categoryPage[data-page="icons-cc"] .category-page__title {
+  display: none;
+}
+
 .category-page__title {
   text-align: center;
   padding: 80px 20px 16px;
@@ -18,6 +22,33 @@
   letter-spacing: 1px;
   max-width: 100%;
   overflow-wrap: anywhere;
+}
+
+.category-page__title:has(.category-page__title-mark) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.category-page__title-mark {
+  height: 72px;
+  width: auto;
+  display: block;
+  object-fit: contain;
+}
+
+.category-page__bar-label:has(.category-page__bar-mark) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.category-page__bar-mark {
+  height: 32px;
+  width: auto;
+  display: block;
+  object-fit: contain;
 }
 
 .category-page__sub {
@@ -122,6 +153,9 @@
   top: 8px;
   left: 8px;
   z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
   pointer-events: none;
 }
 
@@ -255,6 +289,17 @@
   overflow-wrap: anywhere;
 }
 
+.category-product__price-was,
+.category-product__price-now {
+  display: block;
+}
+
+.category-product__price-was {
+  color: #9a9a9a;
+  font-weight: 400;
+  text-decoration: line-through;
+}
+
 .category-product__add {
   position: relative;
   display: flex;
@@ -314,6 +359,19 @@
   display: none;
 }
 
+.category-page__filter-head {
+  display: none;
+}
+
+.category-page__filter-title {
+  margin: 0;
+  text-align: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
 .category-page__filter-panel {
   display: flex;
   flex-direction: column;
@@ -344,8 +402,8 @@
 .category-page__filter-close {
   position: relative;
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   margin: 0;
   padding: 0;
   background: none;
@@ -360,8 +418,8 @@
 .category-page__filter-close::after {
   content: "";
   position: absolute;
-  width: 14px;
-  height: 1.5px;
+  width: 22px;
+  height: 2px;
   background: #000;
 }
 
@@ -461,30 +519,20 @@
 }
 
 .category-page__filter-actions {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
   display: flex;
-  height: 64px;
-  z-index: 201;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 12px 16px 22px;
+  background: #fff;
 }
 
 .category-page__filter-actions button {
   border: none;
   cursor: pointer;
-  font-family: inherit;
 }
 
 .category-page__filter-clear {
-  flex: 1;
-  background: #fff;
-  border-top: 1px solid #eee;
-  letter-spacing: 3px;
-  font-size: 13px;
-  color: #bbb;
-  font-weight: 600;
-  transition: color 0.15s ease;
+  display: none;
 }
 
 .category-page__filter-clear.is-active {
@@ -492,12 +540,83 @@
 }
 
 .category-page__filter-results {
-  flex: 1;
-  background: #000;
+  flex: 0 0 auto;
+  min-width: 148px;
+  height: 46px;
+  padding: 0 32px;
+  border-radius: 999px;
+  background: #e6e6e6;
+  color: #8d8d8d;
+  letter-spacing: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.category-page__filter-results.is-ready {
+  background: #111;
   color: #fff;
-  letter-spacing: 3px;
-  font-size: 13px;
-  font-weight: 600;
+}
+
+@media (max-width: 1023px) {
+  .category-page__filter {
+    z-index: 1400;
+  }
+
+  .category-page__filter-backdrop {
+    display: block;
+    position: absolute;
+    inset: 0;
+    border: 0;
+    padding: 0;
+    background: rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+  }
+
+  .category-page__filter-panel {
+    position: absolute;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    max-height: min(88vh, 720px);
+    border-radius: 28px 28px 0 0;
+    overflow: hidden;
+    animation: categoryFilterSheetIn 0.32s ease;
+  }
+
+  .category-page__filter-head {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 18px 16px 4px;
+  }
+
+  .category-page__filter-close-spacer {
+    display: none;
+  }
+
+  .category-page__filter-body {
+    padding: 4px 22px 8px;
+  }
+
+  .category-page__filter-actions {
+    position: static;
+  }
+}
+
+@keyframes categoryFilterSheetIn {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-page__filter-panel {
+    animation: none;
+  }
 }
 
 @media (min-width: 768px) {

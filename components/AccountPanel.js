@@ -34,7 +34,7 @@ export function createAccountPanel() {
                 <span class="account-password-toggle__icon account-password-toggle__icon--hide" aria-hidden="true">${eyeHideIcon}</span>
               </button>
             </div>
-            <a href="#" class="account-forgot">Mot de passe oublié</a>
+            <button type="button" class="account-forgot" id="accountForgotOpen">Mot de passe oublié</button>
 
             <div class="account-checkbox-row">
               <input type="checkbox" id="accountRemember" class="account-chanel-check" />
@@ -46,10 +46,29 @@ export function createAccountPanel() {
           </form>
         </section>
 
+        <section class="account-panel-section" id="accountForgot">
+          <div class="account-welcome">
+            <h2>MOT DE PASSE OUBLIÉ</h2>
+            <p>Indiquez votre nom et votre adresse e-mail. Nous vous contacterons bientôt.</p>
+          </div>
+          <form id="accountForgotForm">
+            <div class="account-field">
+              <input type="text" id="accountForgotName" name="name" placeholder=" " required autocomplete="name" />
+              <label for="accountForgotName">Nom</label>
+            </div>
+            <div class="account-field">
+              <input type="email" id="accountForgotEmail" name="email" placeholder=" " required autocomplete="email" />
+              <label for="accountForgotEmail">E-mail</label>
+            </div>
+            <button type="submit" class="account-btn">ENVOYER</button>
+          </form>
+          <p class="account-forgot-done" id="accountForgotDone" hidden>Merci. Nous vous contacterons bientôt.</p>
+          <button type="button" class="account-forgot-back" id="accountForgotBack">Retour à la connexion</button>
+        </section>
+
         <section class="account-panel-section" id="accountRegister">
-          <p class="account-intro">La création d'un compte international vous permettra de gérer vos informations personnelles, de personnaliser votre expérience en ligne et dans nos boutiques sélectionnées à travers le monde, et de profiter d'un paiement en ligne plus rapide.</p>
-          <p class="account-intro">Si vous ne souhaitez pas créer de compte, vous bénéficierez de l'expérience RACÈLIA en tant qu'invité (sous réserve des réglementations locales).</p>
-          <p class="account-mandatory">Tous les champs sont obligatoires.</p>
+          <p class="account-intro">La création d’un compte vous permettra de gérer vos informations personnelles, de personnaliser votre expérience en ligne et de profiter d’un paiement plus rapide et simplifié.</p>
+          <p class="account-mandatory">Seuls les champs nom, adresse e-mail et mot de passe sont obligatoires.</p>
 
           <form id="accountRegisterForm">
             <div class="account-field">
@@ -76,17 +95,8 @@ export function createAccountPanel() {
 
             <div class="account-consent-row">
               <input type="checkbox" class="account-chanel-check" id="accountConsent" checked />
-              <label for="accountConsent">J'accepte que RACÈLIA m'envoie des communications de la marque concernant les nouvelles collections, produits, services et événements par e-mail, téléphone, SMS et messagerie instantanée.</label>
+              <label for="accountConsent">J'accepte que RACÈLIA m'envoie des communications de la marque concernant les nouvelles collections, produits, services et événements par e-mail et messagerie instantanée.</label>
             </div>
-
-            <div class="account-channels">
-              <label><input type="checkbox" class="account-chanel-check" checked /> E-mail</label>
-              <label><input type="checkbox" class="account-chanel-check" /> Téléphone</label>
-              <label><input type="checkbox" class="account-chanel-check" checked /> SMS</label>
-              <label><input type="checkbox" class="account-chanel-check" checked /> Messagerie instantanée</label>
-            </div>
-
-            <p class="account-fine">J'accepte de recevoir des messages marketing (y compris SMS et MMS) issus d'un système automatisé des bureaux de RACÈLIA, aux numéros de téléphone fournis. Des frais de messagerie et de données standard peuvent s'appliquer.</p>
 
             <p class="account-ack">En créant un compte RACÈLIA, vous reconnaissez que RACÈLIA collectera, traitera, transférera et stockera vos données personnelles comme décrit dans la <a href="#confidentialite" class="js-account-privacy">Politique de confidentialité</a> et les <a href="#conditions" class="js-account-terms">Conditions d'utilisation</a>.</p>
             <p class="account-ack">Vous pouvez retirer vos consentements à tout moment. Pour toute question concernant vos droits d'accès, de suppression, d'opposition, etc., veuillez nous contacter à <a href="mailto:privacy@racelia.com">privacy@racelia.com</a>.</p>

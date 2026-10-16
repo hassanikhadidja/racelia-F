@@ -12,7 +12,7 @@ export function getDashboardMarkup() {
   <main class="main">
     <header class="dashboard-topbar">
       <div class="logo">
-        <div class="logo-mark"><img src="/icon.png" alt="" width="36" height="36" /></div>
+        <div class="logo-mark"><img src="/icon.png" alt="" width="36" height="36" loading="lazy" decoding="async" /></div>
         RACÈLIA
       </div>
       <button type="button" class="dashboard-store-btn js-dashboard-store-btn" aria-label="Back to store">

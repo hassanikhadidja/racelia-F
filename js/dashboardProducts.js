@@ -9,6 +9,13 @@ import {
   isInSalesReport,
   PRODUCT_SECTIONS,
 } from "./productCatalog.js";
+import {
+  kidsCategoryLabel,
+  mallFilterLabel,
+  PRODUCT_UNIVERSES,
+  universeLabel,
+  UNIVERSE_SECTIONS,
+} from "./productPlacement.js";
 import { formatDzdPrice, parseDzdInput } from "./currency.js";
 import { emptyColorVariant } from "./productImages.js";
 import { getDashboardProductsOverlaysMarkup } from "./dashboardProductsMarkup.js";
@@ -22,26 +29,47 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
-function sectionLabels(sections) {
-  return (sections || [])
+function sectionLabels(product) {
+  const placement = [
+    ...(product.univers || []).map((id) => universeLabel(id) || id),
+    ...(product.mallFilters || []).map((id) => mallFilterLabel(id) || id),
+    ...(product.kidsCategories || []).map((id) => kidsCategoryLabel(id) || id),
+  ];
+  if (placement.length) return placement.join(", ");
+  return (product.sections || [])
     .map((id) => PRODUCT_SECTIONS.find((s) => s.id === id)?.label || id)
     .join(", ");
 }
 
 function renderProductCard(product) {
   const cover = product.cardCover || product.coverImage || product.cardImages?.[0] || "";
-  const note = product.stockNote ? stockNoteLabel(product.stockNote) : "";
-  const priceLabel = formatDzdPrice(product.priceAmountDzd || 0);
+  const notes = product.stockNotes?.length
+    ? product.stockNotes
+    : product.stockNote
+      ? [product.stockNote]
+      : [];
+  const noteHtml = notes
+    .map((note) => {
+      const label = stockNoteLabel(note);
+      return label
+        ? `<span class="dashboard-product-card__note dashboard-product-card__note--${escapeHtml(note)}">${escapeHtml(label)}</span>`
+        : "";
+    })
+    .join("");
+  const priceLabel = product.isPromo && product.promoPriceAmountDzd
+    ? `${formatDzdPrice(product.promoPriceAmountDzd)} · ${formatDzdPrice(product.priceAmountDzd || 0)}`
+    : formatDzdPrice(product.priceAmountDzd || 0);
   return `<article class="product-card dashboard-product-card" data-product-id="${escapeHtml(product.id)}">
     <div class="product-thumb-lg dashboard-product-thumb" style="background-image:url('${escapeHtml(cover)}')">
-      ${note ? `<span class="dashboard-product-card__note dashboard-product-card__note--${escapeHtml(product.stockNote)}">${escapeHtml(note)}</span>` : ""}
+      ${noteHtml}
+      ${product.isPromo ? `<span class="dashboard-product-card__note dashboard-product-card__note--sales">PROMO</span>` : ""}
       ${product.isNewArrival ? `<span class="dashboard-product-card__note dashboard-product-card__note--new">NEW ARRIVAL</span>` : ""}
       ${isInSalesReport(product) ? `<span class="dashboard-product-card__note dashboard-product-card__note--sales">SALES REPORT</span>` : ""}
     </div>
     <div class="product-card-body">
       <div class="product-card-name">${escapeHtml(product.name)}</div>
       <div class="product-card-meta">${escapeHtml(priceLabel)}${product.tag ? ` · ${escapeHtml(product.tag)}` : ""}</div>
-      <div class="dashboard-product-card__sections">${escapeHtml(sectionLabels(product.sections))}</div>
+      <div class="dashboard-product-card__sections">${escapeHtml(sectionLabels(product))}</div>
     </div>
     <div class="dashboard-product-card__actions">
       <button type="button" class="edit-btn js-dashboard-product-edit" data-product-id="${escapeHtml(product.id)}">Edit</button>
@@ -366,10 +394,70 @@ function updateCardCoverPreview(page) {
 function syncKidsGroupVisibility(page) {
   const wrap = page.querySelector("#dashboard-product-kids-group-wrap");
   if (!wrap) return;
-  const hasKids = [...page.querySelectorAll(".dashboard-product-audience-check")].some(
+  const hasKids = [...page.querySelectorAll(".dashboard-product-universe-check")].some(
     (input) => input.checked && input.value === "enfants"
   );
   wrap.hidden = !hasKids;
+  if (!hasKids) {
+    page.querySelectorAll(".dashboard-product-kids-check").forEach((input) => {
+      input.checked = false;
+    });
+  }
+}
+
+function syncPromoPriceVisibility(page) {
+  const on = page.querySelector("#dashboard-product-promo")?.value === "yes";
+  const wrap = page.querySelector("#dashboard-product-promo-price-wrap");
+  if (wrap) wrap.hidden = !on;
+}
+
+function syncStockNoteChecks(page, changed) {
+  const checks = [...page.querySelectorAll(".dashboard-product-stock-check")];
+  const none = checks.find((input) => input.value === "none");
+  if (changed?.value === "none" && changed.checked) {
+    checks.forEach((input) => {
+      if (input !== none) input.checked = false;
+    });
+    return;
+  }
+  if (changed && changed.value !== "none" && changed.checked && none) none.checked = false;
+  const any = checks.some((input) => input.value !== "none" && input.checked);
+  if (none && !any) none.checked = true;
+}
+
+function renderSectionOptions(page, selected = []) {
+  const host = page.querySelector("#dashboard-product-sections");
+  if (!host) return;
+  const selectedSet = new Set(selected);
+  const groups = [...page.querySelectorAll(".dashboard-product-universe-check:checked")]
+    .map((input) => ({
+      universe: PRODUCT_UNIVERSES.find((item) => item.id === input.value),
+      options: UNIVERSE_SECTIONS[input.value] || [],
+    }))
+    .filter((group) => group.universe && group.options.length);
+
+  if (!groups.length) {
+    host.innerHTML = `<p class="dashboard-product-hint">Choose Sacs, Accessories, Chaussures, Homme, Hammam, or Parfums Féminins to see section filters.</p>`;
+    return;
+  }
+
+  host.innerHTML = groups
+    .map(
+      (group) => `<div class="dashboard-product-section-group">
+        <p class="dashboard-product-section-group__title">${escapeHtml(group.universe.label)}</p>
+        <div class="dashboard-product-section-grid">
+          ${group.options
+            .map(
+              (option) => `<label class="dashboard-product-section-opt">
+                <input type="checkbox" class="dashboard-product-section-check" value="${escapeHtml(option.id)}"${selectedSet.has(option.id) ? " checked" : ""} />
+                <span>${escapeHtml(option.label)}</span>
+              </label>`
+            )
+            .join("")}
+        </div>
+      </div>`
+    )
+    .join("");
 }
 
 function fillProductEditor(page, product) {
@@ -385,9 +473,16 @@ function fillProductEditor(page, product) {
   page.querySelector("#dashboard-product-price").value = product.priceAmountDzd
     ? String(product.priceAmountDzd)
     : product.price || "";
-  page.querySelector("#dashboard-product-stock-note").value = product.stockNote || "";
+  const stockNotes = new Set(product.stockNotes || []);
+  page.querySelectorAll(".dashboard-product-stock-check").forEach((input) => {
+    input.checked = input.value === "none" ? stockNotes.size === 0 : stockNotes.has(input.value);
+  });
+  const promoSelect = page.querySelector("#dashboard-product-promo");
+  if (promoSelect) promoSelect.value = product.isPromo ? "yes" : "no";
+  const promoPrice = page.querySelector("#dashboard-product-promo-price");
+  if (promoPrice) promoPrice.value = product.promoPriceAmountDzd ? String(product.promoPriceAmountDzd) : "";
+  syncPromoPriceVisibility(page);
   page.querySelector("#dashboard-product-is-pack").checked = Boolean(product.isPack);
-  page.querySelector("#dashboard-product-is-new-arrival").checked = Boolean(product.isNewArrival);
   const salesSelect = page.querySelector("#dashboard-product-sales-report");
   if (salesSelect) salesSelect.value = isInSalesReport(product) ? "yes" : "no";
   page.querySelector("#dashboard-product-has-color-images").checked = Boolean(product.hasColorImages);
@@ -401,20 +496,14 @@ function fillProductEditor(page, product) {
     product.closerLookMain?.title || "A Closer Look";
   page.querySelector("#dashboard-product-closer-text").value = product.closerLookMain?.text || "";
 
-  page.querySelectorAll(".dashboard-product-section-check").forEach((input) => {
-    input.checked = (product.sections || []).includes(input.value);
+  const univers = product.univers?.length ? product.univers : product.audiences || ["femme"];
+  page.querySelectorAll(".dashboard-product-universe-check").forEach((input) => {
+    input.checked = univers.includes(input.value);
   });
-  page.querySelectorAll(".dashboard-product-audience-check").forEach((input) => {
-    input.checked = (product.audiences || ["femme"]).includes(input.value);
+  renderSectionOptions(page, product.mallFilters || []);
+  page.querySelectorAll(".dashboard-product-kids-check").forEach((input) => {
+    input.checked = (product.kidsCategories || []).includes(input.value);
   });
-  const kidsSelect = page.querySelector("#dashboard-product-kids-group");
-  if (kidsSelect) kidsSelect.value = product.kidsGroup || "";
-  if (page.dataset.kidsGroupBound !== "true") {
-    page.dataset.kidsGroupBound = "true";
-    page.querySelectorAll(".dashboard-product-audience-check").forEach((input) => {
-      input.addEventListener("change", () => syncKidsGroupVisibility(page));
-    });
-  }
   syncKidsGroupVisibility(page);
 
   const rawVariants = product.colorVariants?.length
@@ -435,12 +524,31 @@ function collectProductFromEditor(page) {
   const priceAmountDzd = parseDzdInput(page.querySelector("#dashboard-product-price")?.value);
   const colorVariants = readColorVariants(page);
   const first = colorVariants[0] || emptyColorVariant();
-  const sections = [...page.querySelectorAll(".dashboard-product-section-check:checked")].map(
+  const univers = [...page.querySelectorAll(".dashboard-product-universe-check:checked")].map(
     (input) => input.value
   );
-  const audiences = [...page.querySelectorAll(".dashboard-product-audience-check:checked")].map(
+  const audienceIds = new Set(
+    PRODUCT_UNIVERSES.filter((item) => item.kind === "audience").map((item) => item.id)
+  );
+  const departmentIds = new Set(
+    PRODUCT_UNIVERSES.filter((item) => item.kind === "department").map((item) => item.id)
+  );
+  const mallFilters = [...page.querySelectorAll(".dashboard-product-section-check:checked")].map(
     (input) => input.value
   );
+  const kidsCategories = univers.includes("enfants")
+    ? [...page.querySelectorAll(".dashboard-product-kids-check:checked")].map((input) => input.value)
+    : [];
+  const legacyIds = new Set(PRODUCT_SECTIONS.map((section) => section.id));
+  const previous = existingId ? getCatalogProductById(existingId) : null;
+  const sections = (previous?.sections || ["all-selection"]).filter((id) => legacyIds.has(id));
+  const stockNotes = [...page.querySelectorAll(".dashboard-product-stock-check:checked")]
+    .map((input) => input.value)
+    .filter((value) => value && value !== "none");
+  const isPromo = page.querySelector("#dashboard-product-promo")?.value === "yes";
+  const promoPriceAmountDzd = isPromo
+    ? parseDzdInput(page.querySelector("#dashboard-product-promo-price")?.value)
+    : 0;
 
   return {
     id: existingId || id,
@@ -448,9 +556,12 @@ function collectProductFromEditor(page) {
     tag: page.querySelector("#dashboard-product-tag")?.value.trim(),
     priceAmountDzd,
     price: formatDzdPrice(priceAmountDzd),
-    stockNote: page.querySelector("#dashboard-product-stock-note")?.value || "",
+    stockNote: stockNotes.includes("sold-out") ? "sold-out" : stockNotes.includes("new") ? "new" : "",
+    stockNotes,
+    isPromo,
+    promoPriceAmountDzd,
     isPack: page.querySelector("#dashboard-product-is-pack")?.checked,
-    isNewArrival: page.querySelector("#dashboard-product-is-new-arrival")?.checked,
+    isNewArrival: Boolean(previous?.isNewArrival),
     inSalesReport: page.querySelector("#dashboard-product-sales-report")?.value === "yes",
     hasColorImages: page.querySelector("#dashboard-product-has-color-images")?.checked,
     packLabel: page.querySelector("#dashboard-product-pack-label")?.value.trim(),
@@ -466,8 +577,12 @@ function collectProductFromEditor(page) {
       .map((f) => f.trim())
       .filter(Boolean),
     sections: sections.length ? sections : ["all-selection"],
-    audiences: audiences.length ? audiences : ["femme"],
-    kidsGroup: page.querySelector("#dashboard-product-kids-group")?.value || "",
+    univers,
+    audiences: univers.filter((id) => audienceIds.has(id)),
+    departments: univers.filter((id) => departmentIds.has(id)),
+    mallFilters,
+    kidsCategories,
+    kidsGroup: previous?.kidsGroup || "",
     /* Defaults always come from the first color */
     cardCover: first.cardCover || "",
     cardScroll: first.cardScroll || [],
@@ -532,6 +647,21 @@ function bindProductEditor(page, root) {
   page.querySelector("#dashboard-product-is-pack")?.addEventListener("change", (event) => {
     const wrap = page.querySelector("#dashboard-product-pack-wrap");
     if (wrap) wrap.hidden = !event.target.checked;
+  });
+
+  page.addEventListener("change", (event) => {
+    const target = event.target;
+    if (target.classList?.contains("dashboard-product-stock-check")) {
+      syncStockNoteChecks(page, target);
+    }
+    if (target.id === "dashboard-product-promo") syncPromoPriceVisibility(page);
+    if (target.classList?.contains("dashboard-product-universe-check")) {
+      const selected = [...page.querySelectorAll(".dashboard-product-section-check:checked")].map(
+        (input) => input.value
+      );
+      syncKidsGroupVisibility(page);
+      renderSectionOptions(page, selected);
+    }
   });
 
   page.querySelector("#dashboard-product-has-color-images")?.addEventListener("change", () => {
@@ -630,6 +760,10 @@ function bindProductEditor(page, root) {
     }
     if (!data.name || !data.priceAmountDzd) {
       setFormStatus(editor, "Name and price (DZD) are required.");
+      return;
+    }
+    if (data.isPromo && !data.promoPriceAmountDzd) {
+      setFormStatus(editor, "Enter the promo price in Algerian dinars.");
       return;
     }
     if (!data.cardCover && !data.cardScroll.length && !data.pdpCover) {

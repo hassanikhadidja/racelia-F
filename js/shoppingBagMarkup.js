@@ -28,10 +28,10 @@ export function getShoppingBagMarkup() {
     <a href="#category/mini-bags" class="js-bag-category" data-category-key="mini-bags">Mini sacs <span aria-hidden="true">›</span></a>
     <a href="#category/racelia-handbag" class="js-bag-category" data-category-key="racelia-handbag">Le sac RACÈLIA <span aria-hidden="true">›</span></a>
   </div>
-  <div class="bag-detail">
+  <div class="bag-detail" hidden>
     <h2>L'art du détail</h2>
     <a href="#carte-cadeau" class="bag-detail__link js-bag-gift-card">
-      <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=800&q=80" alt="Carte cadeau RACÈLIA" />
+      <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=480&q=70" alt="Carte cadeau RACÈLIA" loading="lazy" decoding="async" />
     </a>
   </div>
 </div>

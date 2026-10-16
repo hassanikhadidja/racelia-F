@@ -6,6 +6,7 @@ const DOCKED_GAP = 8;
 const FLOATING_SELECTION_OFFSET = CTA_BOTTOM + SELECTION_HEIGHT + DOCKED_GAP;
 
 function getActionBarBottom(root) {
+  if (window.matchMedia("(max-width: 1023px)").matches) return CTA_BOTTOM;
   const widget = root.querySelector("#selectionWidget");
   if (widget?.classList.contains("modal-animated-container--docked")) {
     return CTA_BOTTOM + SELECTION_HEIGHT + DOCKED_GAP;

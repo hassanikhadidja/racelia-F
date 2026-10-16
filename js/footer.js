@@ -116,13 +116,6 @@ export function initFooter(root) {
     });
   });
 
-  root.querySelectorAll(".js-footer-gift-card").forEach((link) => {
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      root.dispatchEvent(new CustomEvent("racelia:open-gift-card"));
-    });
-  });
-
   root.querySelectorAll(".js-footer-style").forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();

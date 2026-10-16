@@ -41,6 +41,14 @@ export function initClientProfile(root) {
     leave();
   });
 
+  page.querySelector(".js-client-profile-home")?.addEventListener("click", () => {
+    while (closeTopProfileOverlay(page)) {
+      /* close stacked profile drawers */
+    }
+    page.classList.remove("profile-sheet-open");
+    root.dispatchEvent(new CustomEvent("racelia:open-home"));
+  });
+
   initProfileEdit(page, root);
   initFlipCards(page);
   initEgiftFields(page);

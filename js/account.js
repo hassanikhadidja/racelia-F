@@ -8,7 +8,7 @@ import {
 import { getAuthToken } from "./api.js";
 import { loginUser, registerUser, syncCollectedEmail } from "./syncBackend.js";
 import { updateAccountButtons } from "./accountUi.js";
-import { upsertCollectedEmail } from "./dashboardEmailsData.js";
+import { isValidCollectedEmail, upsertCollectedEmail } from "./dashboardEmailsData.js";
 import { setFormStatus } from "./formStatus.js";
 
 export function initAccount(root) {
@@ -35,8 +35,12 @@ export function initAccount(root) {
 
   const openAccount = () => {
     closeMenu();
-    if (isLoggedIn()) showClientProfile(root);
-    else showAccount(root);
+    if (isLoggedIn()) {
+      showClientProfile(root);
+      return;
+    }
+    showAccountTab("signin");
+    showAccount(root);
   };
 
   root.addEventListener("racelia:open-account", () => openAccount());
@@ -47,6 +51,11 @@ export function initAccount(root) {
   };
 
   const toggleAccount = () => {
+    const forgotOpen = !accountPage.hidden && accountPage.querySelector("#accountForgot.active");
+    if (!isLoggedIn() && forgotOpen) {
+      openAccount();
+      return;
+    }
     if (isOpen()) closeAccountOrProfile();
     else openAccount();
   };
@@ -64,19 +73,47 @@ export function initAccount(root) {
     }
   });
 
+  const scrollAccountToTop = () => {
+    window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+    accountMain?.scrollTo({ top: 0 });
+  };
+
+  const showAccountPanel = (panelId) => {
+    accountPage.querySelectorAll(".account-panel-section").forEach((panel) => {
+      panel.classList.toggle("active", panel.id === panelId);
+    });
+    scrollAccountToTop();
+  };
+
   const showAccountTab = (tabName) => {
+    accountPage.querySelector(".account-tabs")?.removeAttribute("hidden");
     accountPage.querySelectorAll(".account-tab").forEach((item) => {
       item.classList.toggle("active", item.dataset.tab === tabName);
     });
-    accountPage.querySelectorAll(".account-panel-section").forEach((panel) => {
-      panel.classList.remove("active");
-    });
-    const panel = accountPage.querySelector(
-      `#account${tabName === "signin" ? "Signin" : "Register"}`
-    );
-    panel?.classList.add("active");
-    accountMain?.scrollTo({ top: 0, behavior: "smooth" });
+    showAccountPanel(tabName === "signin" ? "accountSignin" : "accountRegister");
   };
+
+  const showForgotPassword = () => {
+    const form = accountPage.querySelector("#accountForgotForm");
+    const done = accountPage.querySelector("#accountForgotDone");
+    accountPage.querySelector(".account-tabs")?.setAttribute("hidden", "");
+    accountPage.querySelectorAll(".account-tab").forEach((item) => item.classList.remove("active"));
+    if (form) {
+      form.hidden = false;
+      form.reset();
+      setFormStatus(form, "");
+    }
+    if (done) done.hidden = true;
+    showAccountPanel("accountForgot");
+  };
+
+  accountPage.querySelector("#accountForgotOpen")?.addEventListener("click", () => {
+    showForgotPassword();
+  });
+
+  accountPage.querySelector("#accountForgotBack")?.addEventListener("click", () => {
+    showAccountTab("signin");
+  });
 
   accountPage.querySelectorAll(".account-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -84,13 +121,23 @@ export function initAccount(root) {
     });
   });
 
-  accountPage.querySelectorAll(".account-field--select select").forEach((select) => {
-    const sync = () => {
-      select.closest(".account-field")?.classList.toggle("account-field--has-value", !!select.value);
-    };
-    select.addEventListener("change", sync);
-    sync();
+  const syncAccountLabels = () => {
+    accountPage.querySelectorAll(".account-field input, .account-field select").forEach((control) => {
+      control.closest(".account-field")?.classList.toggle("account-field--has-value", Boolean(control.value));
+    });
+  };
+
+  accountPage.addEventListener("input", (event) => {
+    if (event.target.matches?.(".account-field input, .account-field select")) syncAccountLabels();
   });
+  accountPage.addEventListener("change", (event) => {
+    if (event.target.matches?.(".account-field input, .account-field select")) syncAccountLabels();
+  });
+  accountPage.addEventListener("animationstart", (event) => {
+    if (event.animationName === "accountFieldAutofill") syncAccountLabels();
+  });
+  syncAccountLabels();
+  [100, 400, 1000].forEach((delay) => window.setTimeout(syncAccountLabels, delay));
 
   accountPage.querySelectorAll(".account-field--password").forEach((field) => {
     const input = field.querySelector("input");
@@ -138,6 +185,39 @@ export function initAccount(root) {
       showClientProfile(root);
     } catch (error) {
       setFormStatus(form, error.message || "Connexion impossible.");
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  root.querySelector("#accountForgotForm")?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.target;
+    const name = root.querySelector("#accountForgotName")?.value.trim();
+    const email = root.querySelector("#accountForgotEmail")?.value.trim();
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const done = root.querySelector("#accountForgotDone");
+
+    if (!name || !isValidCollectedEmail(email)) {
+      setFormStatus(form, "Veuillez renseigner votre nom et une adresse e-mail valide.");
+      return;
+    }
+
+    setFormStatus(form, "");
+    submitBtn.disabled = true;
+    try {
+      const payload = {
+        email,
+        name,
+        newsletter: false,
+        source: "contact",
+      };
+      upsertCollectedEmail(payload);
+      await syncCollectedEmail(payload);
+      form.hidden = true;
+      if (done) done.hidden = false;
+    } catch (error) {
+      setFormStatus(form, error.message || "Envoi impossible.");
     } finally {
       submitBtn.disabled = false;
     }

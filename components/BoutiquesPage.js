@@ -22,10 +22,12 @@ export function createBoutiquesPage() {
         <picture>
           <source media="(min-width: 1024px)" srcset="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80" />
           <img
-            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80"
+            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=70"
             alt="Retrouvez RACÈLIA en boutique"
             width="900"
             height="500"
+            loading="lazy"
+            decoding="async"
           />
         </picture>
         <div class="boutiques-hero__caption">

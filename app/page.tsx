@@ -2,30 +2,18 @@
 
 import { useEffect, useRef } from "react";
 import { mountRaceliaApp } from "@/js/index";
+import { loadDeferredStyles } from "@/js/deferredStyles";
+import { heroImage } from "@/js/data";
+import { heroDelivery } from "@/js/imageDelivery";
 import "@/styles/racelia.css";
 import "@/styles/footer.css";
-import "@/styles/raceliaStyle.css";
-import "@/styles/account.css";
-import "@/styles/categoryPage.css";
-import "@/styles/blogsPage.css";
-import "@/styles/privacyPage.css";
-import "@/styles/termsPage.css";
-import "@/styles/shippingPage.css";
-import "@/styles/boutiquesPage.css";
-import "@/styles/faqPage.css";
-import "@/styles/returnsPage.css";
-import "@/styles/giftCardPage.css";
-import "@/styles/contactPage.css";
-import "@/styles/aboutPage.css";
-import "@/styles/productDetail.css";
-import "@/styles/dashboard.css";
-import "@/styles/dashboard-theme.css";
-import "@/styles/clientProfile.css";
-import "@/styles/clientProfile-theme.css";
-import "@/styles/shoppingBag.css";
-import "@/styles/shoppingBag-theme.css";
-import "@/styles/wishlist.css";
-import "@/styles/checkout.css";
+
+const hero = heroDelivery(heroImage);
+
+function isHomeEntry() {
+  const hash = window.location.hash.replace(/^#/, "").trim();
+  return !hash || hash === "home";
+}
 
 export default function Home() {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -35,7 +23,16 @@ export default function Home() {
     const el = rootRef.current;
     if (!el || mountedRef.current) return;
     mountedRef.current = true;
-    mountRaceliaApp(el);
+    if (isHomeEntry()) {
+      mountRaceliaApp(el);
+      const loadLater = () => loadDeferredStyles();
+      if ("requestIdleCallback" in window) window.requestIdleCallback(loadLater, { timeout: 1800 });
+      else window.setTimeout(loadLater, 700);
+      return;
+    }
+    loadDeferredStyles().then(() => {
+      if (rootRef.current) mountRaceliaApp(rootRef.current);
+    });
   }, []);
 
   return (
@@ -43,6 +40,30 @@ export default function Home() {
       ref={rootRef}
       id="racelia-app"
       style={{ minHeight: "100vh", width: "100%" }}
-    />
+    >
+      <section className="hero reveal in" id="ssrHero">
+        <div className="hero-frame">
+          <picture>
+            <source
+              media="(max-width: 1023px)"
+              srcSet="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAICTAEAOw=="
+            />
+            <img
+              src={hero.src}
+              srcSet={hero.srcSet}
+              sizes={hero.sizes}
+              alt="Collection RACÈLIA"
+              fetchPriority="high"
+              decoding="async"
+              width={767}
+              height={1024}
+            />
+          </picture>
+        </div>
+        <div className="hero-overlay">
+          <h2>RACÈLIA, simplement vous.</h2>
+        </div>
+      </section>
+    </div>
   );
 }

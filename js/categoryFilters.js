@@ -101,7 +101,17 @@ const SS26 = ["printemps-ete 2026", "spring summer 2026", "ss26"];
 
 const FILTER_ALIASES = {
   look: ["sur un look", "on a look"],
-  "metiers-2026": ["metiers d'art 2026", "2026 metiers d'art", "metiers d'art", "metiers-dart"],
+  "metiers-2026": [
+    "metiers d'art 2026",
+    "2026 metiers d'art",
+    "metiers d'art",
+    "metiers-dart",
+    "l'art du geste",
+    "l’art du geste",
+    "art du geste",
+    "l'art du geste collection 2026",
+    "l’art du geste collection 2026",
+  ],
   ss26: SS26,
   "pre-ss26": PRE_COLLECTION,
   emblematics: ["les emblematiques", "the emblematics", "emblematics"],
@@ -117,6 +127,21 @@ const FILTER_ALIASES = {
   dore: ["dore", "gold", "gold-tone", "gold tone"],
   argente: ["argente", "silver", "silver-tone", "silver tone"],
   racelia: ["racelia", "racèlia"],
+  cc: ["cc"],
+  hammam: ["hammam"],
+  homme: ["homme"],
+  "petite-princesse": ["petite princesse"],
+  mariee: ["mariee"],
+  "parfums-feminins": ["parfums feminins"],
+};
+
+export const PAGE_LOCKED_FILTERS = {
+  "icons-cc": [{ group: "marque", key: "cc" }],
+  hammam: [{ group: "collection", key: "hammam" }],
+  homme: [{ group: "collection", key: "homme" }],
+  "petite-princesse": [{ group: "collection", key: "petite-princesse" }],
+  mariee: [{ group: "collection", key: "mariee" }],
+  "parfums-feminins": [{ group: "collection", key: "parfums-feminins" }],
 };
 
 function styleLookProductIds() {
@@ -148,6 +173,14 @@ function matchesFilterKey(product, key, haystack, lookIds) {
       .replace(/simili[-\s]?cuir/g, " ")
       .replace(/faux leather|vegan leather/g, " ");
     return hasAny(withoutSimili, FILTER_ALIASES.cuir);
+  }
+
+  if (key === "cc") {
+    return /(?:^|[^a-z0-9])cc(?:[^a-z0-9]|$)/.test(haystack);
+  }
+
+  if (key === "parfums-feminins" && (product.departments || []).includes("parfums")) {
+    return true;
   }
 
   const aliases = FILTER_ALIASES[key];

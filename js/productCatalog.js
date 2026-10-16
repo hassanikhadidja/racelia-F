@@ -1,8 +1,8 @@
-import { CATALOG_SEED_VERSION, getBuiltInCatalogProducts } from "./productCatalogSeed.js";
+import { CATALOG_SEED_VERSION, RETIRED_DEMO_PRODUCT_IDS, getBuiltInCatalogProducts } from "./productCatalogSeed.js";
 import { getAuthToken } from "./api.js";
 import { syncProductUpsert, syncProductDelete, resolveProductImagesForSave } from "./syncBackend.js";
 import {
-  formatProductPrice,
+  formatPrice,
   parseCatalogPriceEur,
   formatDzdPrice,
   parseDzdInput,
@@ -18,7 +18,7 @@ import {
   buildImageList,
 } from "./productImages.js";
 import { getProductReviewsForDisplay } from "./dashboardReviewsData.js";
-import { productMatchesQuery, scoreProductMatch } from "./categoryFilters.js";
+import { productMatchesQuery, scoreProductMatch, productMatchesFilters, PAGE_LOCKED_FILTERS } from "./categoryFilters.js";
 import {
   getSelectedAudience,
   isKidsGroup,
@@ -26,6 +26,15 @@ import {
   normalizeKidsGroup,
   productMatchesAudience,
 } from "./audience.js";
+import {
+  audiencesFromUnivers,
+  departmentsFromUnivers,
+  normalizeKidsCategories,
+  normalizeMallFilters,
+  normalizeStockNotes,
+  normalizeUnivers,
+  primaryStockNote,
+} from "./productPlacement.js";
 
 export const CATALOG_STORAGE_KEY = "raceliaProductCatalog";
 const CATALOG_SEED_VERSION_KEY = "raceliaProductCatalogSeedVersion";
@@ -40,21 +49,30 @@ export const PRODUCT_SECTIONS = [
   { id: "racelia-handbag", label: "The RACÈLIA Handbag" },
   { id: "moms-bags", label: "Moms Bags" },
   { id: "all-selection", label: "All Selection" },
-  { id: "metiers-dart", label: "Métiers d'Art" },
+  { id: "metiers-dart", label: "L’ART DU GESTE" },
   { id: "catalogue-grossiste", label: "Catalogue Grossiste" },
 ];
 
 export const STOCK_NOTES = [
   { id: "", label: "No note" },
   { id: "new", label: "New" },
-  { id: "dispo", label: "Dispo" },
   { id: "sold-out", label: "Sold out" },
+  { id: "best-sellers", label: "Best-sellers" },
+  { id: "dispo", label: "Dispo" },
   { id: "not", label: "Not available" },
 ];
 
 const UNAVAILABLE_STOCK_IDS = new Set(["sold-out", "not"]);
 
 export function isProductUnavailableToBuy(productOrNote) {
+  if (
+    productOrNote &&
+    typeof productOrNote === "object" &&
+    Array.isArray(productOrNote.stockNotes) &&
+    productOrNote.stockNotes.includes("sold-out")
+  ) {
+    return true;
+  }
   const note = String(
     typeof productOrNote === "object" && productOrNote
       ? productOrNote.stockNote
@@ -176,13 +194,25 @@ export function normalizeCatalogProduct(product) {
       ? product.colors.filter(Boolean)
       : [];
 
+  const stockNotes = normalizeStockNotes(product);
+  let stockNote = primaryStockNote(stockNotes);
+  if (!Array.isArray(product.stockNotes) && !stockNote) {
+    const legacyNote = String(product.stockNote || "").trim();
+    if (legacyNote && !/best[\s-]*sellers?/i.test(legacyNote)) stockNote = legacyNote;
+  }
+  const univers = normalizeUnivers(product);
+  const explicitUnivers = Array.isArray(product.univers);
+
   const normalized = {
     id: String(product.id || product.slug || "").trim(),
     name: String(product.name || "").trim(),
     tag: String(product.tag || "").trim(),
     priceAmountDzd,
     price: priceAmountDzd ? formatDzdPrice(priceAmountDzd) : String(product.price || "").trim(),
-    stockNote: String(product.stockNote || "").trim(),
+    stockNotes,
+    stockNote,
+    isPromo: Boolean(product.isPromo) && Number(product.promoPriceAmountDzd) > 0,
+    promoPriceAmountDzd: Boolean(product.isPromo) ? Math.max(0, Number(product.promoPriceAmountDzd) || 0) : 0,
     description: String(product.description || "").trim(),
     isPack: Boolean(product.isPack),
     packLabel: String(product.packLabel || "").trim(),
@@ -217,10 +247,16 @@ export function normalizeCatalogProduct(product) {
     colorVariants,
     details: normalizeProductDetails(product),
     filters: Array.isArray(product.filters) ? product.filters.filter(Boolean) : [],
-    audiences: (() => {
-      const audiences = normalizeAudiences(product.audiences);
-      return audiences.length ? audiences : ["femme"];
-    })(),
+    univers,
+    audiences: explicitUnivers
+      ? audiencesFromUnivers(univers)
+      : (() => {
+          const audiences = normalizeAudiences(product.audiences);
+          return audiences.length ? audiences : ["femme"];
+        })(),
+    departments: departmentsFromUnivers(univers),
+    mallFilters: normalizeMallFilters(product.mallFilters),
+    kidsCategories: normalizeKidsCategories(product.kidsCategories),
     kidsGroup: normalizeKidsGroup(product.kidsGroup, product.sections),
     createdAt: product.createdAt || Date.now(),
     updatedAt: product.updatedAt || Date.now(),
@@ -241,12 +277,56 @@ function rememberSeedVersion() {
   }
 }
 
+function dropRetiredDemoProducts(existing) {
+  const retired = new Set(RETIRED_DEMO_PRODUCT_IDS);
+  const next = existing.filter((product) => !retired.has(String(product.id)));
+  if (next.length === existing.length) return existing;
+  saveCatalogProducts(next);
+  return next;
+}
+
 function mergeMissingSeedProducts(existing) {
   const savedIds = new Set(existing.map((p) => String(p.id)));
   const extras = getNormalizedSeedProducts().filter((p) => !savedIds.has(String(p.id)));
   if (!extras.length) return existing;
   const next = [...existing, ...extras];
   saveCatalogProducts(next);
+  return next;
+}
+
+function overlaySeedImages(existing) {
+  const seedById = new Map(getNormalizedSeedProducts().map((p) => [String(p.id), p]));
+  const seededIds = new Set(["wholesale-mini-lot", "east-west-flap", "chain-pochette"]);
+  let changed = false;
+  const next = existing.map((product) => {
+    const id = String(product.id);
+    if (!seededIds.has(id)) return product;
+    const seed = seedById.get(id);
+    if (!seed) return product;
+    changed = true;
+    const colorVariants = Array.isArray(product.colorVariants)
+      ? product.colorVariants.map((variant, index) =>
+          index === 0
+            ? { ...variant, cardCover: seed.cardCover, pdpCover: seed.pdpCover }
+            : variant
+        )
+      : product.colorVariants;
+    return {
+      ...product,
+      cardCover: seed.cardCover,
+      cardScroll: seed.cardScroll,
+      pdpCover: seed.pdpCover,
+      pdpScroll: seed.pdpScroll,
+      coverImage: seed.coverImage,
+      cardImages: seed.cardImages,
+      closerLookExtra: seed.closerLookExtra,
+      closerLookImages: seed.closerLookImages,
+      closerLookMain: seed.closerLookMain,
+      colorVariants,
+      updatedAt: Date.now(),
+    };
+  });
+  if (changed) saveCatalogProducts(next);
   return next;
 }
 
@@ -266,6 +346,26 @@ function overlaySeedAudienceFields(existing) {
   return next;
 }
 
+function overlaySeedKidsPlacement(existing) {
+  const seed = getNormalizedSeedProducts().find((product) => product.id === "demo-sac-mom-racelia");
+  if (!seed) return existing;
+  let changed = false;
+  const next = existing.map((product) => {
+    if (product.id !== "demo-sac-mom-racelia") return product;
+    const sameUnivers = JSON.stringify(product.univers || []) === JSON.stringify(seed.univers || []);
+    const sameKids = JSON.stringify(product.kidsCategories || []) === JSON.stringify(seed.kidsCategories || []);
+    if (sameUnivers && sameKids) return product;
+    changed = true;
+    return normalizeCatalogProduct({
+      ...product,
+      univers: seed.univers,
+      kidsCategories: seed.kidsCategories,
+    });
+  });
+  if (changed) saveCatalogProducts(next);
+  return next;
+}
+
 export function loadCatalogProducts() {
   try {
     const saved = localStorage.getItem(CATALOG_STORAGE_KEY);
@@ -275,7 +375,11 @@ export function loadCatalogProducts() {
         const normalized = parsed.map(normalizeCatalogProduct).filter((p) => p?.id);
         const applied = Number(localStorage.getItem(CATALOG_SEED_VERSION_KEY) || 0);
         if (applied < CATALOG_SEED_VERSION) {
-          const merged = overlaySeedAudienceFields(mergeMissingSeedProducts(normalized));
+          const merged = overlaySeedKidsPlacement(
+            overlaySeedImages(
+              overlaySeedAudienceFields(mergeMissingSeedProducts(dropRetiredDemoProducts(normalized)))
+            )
+          );
           rememberSeedVersion();
           return merged;
         }
@@ -341,7 +445,16 @@ export function getProductsForSection(sectionKey) {
     );
   }
   if (sectionKey === "racelia-handbag") {
-    return products.filter((p) => hasRaceliaTag(p));
+    return products.filter(
+      (p) => hasRaceliaTag(p) && !(p.departments || []).includes("parfums")
+    );
+  }
+  if (PAGE_LOCKED_FILTERS[sectionKey]) {
+    return products.filter(
+      (p) =>
+        productMatchesFilters(p, PAGE_LOCKED_FILTERS[sectionKey]) ||
+        (sectionKey === "parfums-feminins" && (p.departments || []).includes("parfums"))
+    );
   }
   if (sectionKey === "metiers-dart") {
     return products.filter(
@@ -358,10 +471,26 @@ function applyAudienceFilter(products) {
   return products.filter((product) => productMatchesAudience(product, audience));
 }
 
+function sellingPriceFields(product) {
+  const regularDzd = Number(product.priceAmountDzd) || 0;
+  const promoDzd = product.isPromo ? Number(product.promoPriceAmountDzd) || 0 : 0;
+  const onPromo = promoDzd > 0;
+  const sellingDzd = onPromo ? promoDzd : regularDzd;
+  const priceEur = sellingDzd > 0 ? sellingDzd / EUR_TO_DZD : parseCatalogPriceEur(product);
+  const compareAtEur = onPromo && regularDzd > 0 ? regularDzd / EUR_TO_DZD : 0;
+  return {
+    isPromo: onPromo,
+    price: formatPrice(priceEur),
+    priceEur,
+    compareAtPrice: compareAtEur ? formatPrice(compareAtEur) : "",
+    compareAtEur,
+  };
+}
+
 export function toCategoryProduct(catalogProduct) {
   const p = normalizeCatalogProduct(catalogProduct);
   if (!p) return null;
-  const priceEur = parseCatalogPriceEur(p);
+  const priceFields = sellingPriceFields(p);
   const cardImages = getCardImages(p, 0);
   const images = cardImages.length ? cardImages : getPdpImages(p, 0);
   const swatches = (p.colorVariants.length ? p.colorVariants : p.colors.map((hex) => ({ hex }))).map(
@@ -375,9 +504,13 @@ export function toCategoryProduct(catalogProduct) {
     id: p.id,
     name: p.name,
     tag: p.tag,
-    price: formatProductPrice(p),
-    priceEur,
+    price: priceFields.price,
+    priceEur: priceFields.priceEur,
+    compareAtPrice: priceFields.compareAtPrice,
+    compareAtEur: priceFields.compareAtEur,
+    isPromo: priceFields.isPromo,
     stockNote: p.stockNote,
+    stockNotes: p.stockNotes,
     isPack: p.isPack,
     packLabel: p.packLabel,
     images: images.length ? images : [p.cardCover, p.pdpCover].filter(Boolean),
@@ -386,7 +519,13 @@ export function toCategoryProduct(catalogProduct) {
     description: p.description,
     details: p.details,
     sections: p.sections,
+    isNewArrival: p.isNewArrival,
+    inSalesReport: p.inSalesReport,
     audiences: p.audiences,
+    univers: p.univers,
+    departments: p.departments,
+    mallFilters: p.mallFilters,
+    kidsCategories: p.kidsCategories,
     kidsGroup: p.kidsGroup,
     hasColorImages: p.hasColorImages,
   };
@@ -460,7 +599,7 @@ function buildProductDetail(catalogProduct) {
   const others = loadCatalogProducts().map((item) => item.id).filter((id) => id !== p.id);
   const similar = others.slice(0, 3);
   const forYou = others.slice(0, 4);
-  const priceEur = parseCatalogPriceEur(p);
+  const priceFields = sellingPriceFields(p);
   const closer = getCloserLookForColor(p, 0);
   const reviews = getProductReviewsForDisplay(p.id, p.name);
 
@@ -468,9 +607,13 @@ function buildProductDetail(catalogProduct) {
     id: p.id,
     name: p.name,
     tag: p.tag,
-    price: formatProductPrice(p),
-    priceEur,
+    price: priceFields.price,
+    priceEur: priceFields.priceEur,
+    compareAtPrice: priceFields.compareAtPrice,
+    compareAtEur: priceFields.compareAtEur,
+    isPromo: priceFields.isPromo,
     stockNote: p.stockNote,
+    stockNotes: p.stockNotes,
     isPack: p.isPack,
     packLabel: p.packLabel,
     description: p.description || "",
@@ -586,7 +729,19 @@ export async function upsertCatalogProduct(product) {
     try {
       const result = await syncProductUpsert(normalized);
       if (result?.product) {
-        const synced = normalizeCatalogProduct(result.product);
+        const synced = normalizeCatalogProduct({
+          ...result.product,
+          stockNotes: normalized.stockNotes,
+          stockNote: normalized.stockNote,
+          isPromo: normalized.isPromo,
+          promoPriceAmountDzd: normalized.promoPriceAmountDzd,
+          univers: normalized.univers,
+          audiences: normalized.audiences,
+          departments: normalized.departments,
+          mallFilters: normalized.mallFilters,
+          kidsCategories: normalized.kidsCategories,
+          sections: normalized.sections,
+        });
         if (synced) {
           const refreshed = loadCatalogProducts();
           const syncedIndex = refreshed.findIndex((p) => p.id === synced.id);
@@ -621,6 +776,14 @@ export function createEmptyCatalogProduct() {
     priceAmountDzd: 0,
     price: "",
     stockNote: "new",
+    stockNotes: ["new"],
+    isPromo: false,
+    promoPriceAmountDzd: 0,
+    univers: ["femme"],
+    audiences: ["femme"],
+    departments: [],
+    mallFilters: [],
+    kidsCategories: [],
     description: "",
     isPack: false,
     packLabel: "",

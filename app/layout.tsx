@@ -6,10 +6,10 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://racelia.com";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "RACÈLIA",
-  description: "Découvrez une sélection de la collection Métiers d'Art 2026.",
+  description: "Découvrez une sélection de L’ART DU GESTE Collection 2026.",
   openGraph: {
     title: "RACÈLIA",
-    description: "Découvrez une sélection de la collection Métiers d'Art 2026.",
+    description: "Découvrez une sélection de L’ART DU GESTE Collection 2026.",
     siteName: "RACÈLIA",
     locale: "fr_FR",
     type: "website",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary",
     title: "RACÈLIA",
-    description: "Découvrez une sélection de la collection Métiers d'Art 2026.",
+    description: "Découvrez une sélection de L’ART DU GESTE Collection 2026.",
     images: ["/og.png"],
   },
 };
@@ -44,9 +44,11 @@ export default function RootLayout({
   return (
     <html lang="fr" className="h-full antialiased" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://res.cloudinary.com" />
+        <link rel="preconnect" href="https://images.unsplash.com" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem("raceliaHighContrast")==="1")document.documentElement.classList.add("high-contrast")}catch(e){}`,
+            __html: `try{if(localStorage.getItem("raceliaHighContrast")==="1")document.documentElement.classList.add("high-contrast")}catch(e){}try{var h=location.hash.replace(/^#/,"");if(h&&h!=="home")document.documentElement.classList.add("lcp-off")}catch(e){}`,
           }}
         />
       </head>

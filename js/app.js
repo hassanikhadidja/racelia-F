@@ -1,23 +1,31 @@
 import { initFooter } from "./footer.js";
-import { initCtaDock, updateCtaDock } from "./ctaDock.js";
+import { updateCtaDock } from "./ctaDock.js";
 import { initRaceliaStyle, ensureStyleGrid, closeStyleSheet } from "./raceliaStyle.js";
 import { initAccount } from "./account.js";
 import { initCart } from "./cart.js";
-import { showHome, showCategory, showBoutiques, showDashboard, showClientProfile, showWishlist, showAbout, initPages } from "./pages.js";
+import { showHome, showCategory, showBoutiques, showDashboard, showClientProfile, showWishlist, showAbout, showStyleBoard, initPages } from "./pages.js";
 import { defaultSelection } from "./data.js";
-import { initProductSliders } from "./productSliders.js";
-import { initTopbarSearch, updateTopbar } from "./topbar.js";
+import { initTopbarSearch } from "./topbar.js";
+import { initScrollChrome } from "./scrollChrome.js";
 import { initMegaMenu } from "./megaMenu.js";
 import { refreshStyleGrid } from "./raceliaStyle.js";
 import { notifyCatalogUpdated } from "./productCatalog.js";
 import { renderHomeNewArrivals } from "./homeNewArrivals.js";
 import { initHomeStories, renderHomeStories } from "./homeStories.js";
+import { applyHomeTab, initMobileHome, renderMobileHome } from "./mobileHome.js";
 import { initClientCartWishlist, syncWishlistHeartStates } from "./clientCartWishlist.js";
-import { getSelectedAudience, setSelectedAudience, toggleSelectedAudience } from "./audience.js";
-import { initI18n } from "./i18n.js";
+import { getSelectedAudience, setSelectedAudience } from "./audience.js";
+import { applyLocale, initI18n } from "./i18n.js";
 
 function goHome(root) {
+  const home = root.querySelector("#mobileHome");
+  if (home) {
+    home.dataset.tab = "tout";
+    home.dataset.chip = "foryou";
+    delete home.dataset.kidsFilter;
+  }
   showHome(root, { selectionLabel: defaultSelection });
+  applyHomeTab(root, "tout");
 }
 
 function initTopbar(root) {
@@ -34,9 +42,6 @@ function initTopbar(root) {
 
   initTopbarSearch(root);
   initMegaMenu(root);
-  updateTopbar(root);
-  window.addEventListener("scroll", () => updateTopbar(root), { passive: true });
-  window.addEventListener("resize", () => updateTopbar(root));
 }
 
 function revealHomeContent(root) {
@@ -253,12 +258,7 @@ function initMenu(root) {
 
   const applyAudienceMenu = () => {
     const selected = getSelectedAudience();
-    const kids = selected === "enfants";
-    const defaultList = root.querySelector("#menuDefaultList");
-    const kidsList = root.querySelector("#menuKidsList");
-    if (defaultList) defaultList.hidden = kids;
-    if (kidsList) kidsList.hidden = !kids;
-    root.querySelectorAll(".js-menu-audience, .js-desktop-audience").forEach((btn) => {
+    root.querySelectorAll(".js-desktop-audience").forEach((btn) => {
       const on = btn.dataset.audience === selected;
       btn.classList.toggle("is-selected", on);
       btn.setAttribute("aria-pressed", String(on));
@@ -303,15 +303,6 @@ function initMenu(root) {
     closeStyleSheet(root);
     showMenu();
   };
-
-  root.querySelectorAll(".js-menu-audience").forEach((btn) => {
-    btn.addEventListener("click", (event) => {
-      event.stopPropagation();
-      toggleSelectedAudience(btn.dataset.audience);
-      applyAudienceMenu();
-      root.dispatchEvent(new CustomEvent("racelia:audience-changed"));
-    });
-  });
 
   root.querySelectorAll(".js-desktop-audience").forEach((btn) => {
     btn.addEventListener("click", (event) => {
@@ -365,9 +356,18 @@ function initMenu(root) {
     showStyle();
   });
 
-  root.addEventListener("racelia:open-style", () => {
+  const openStyleDestination = () => {
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      closeMenu();
+      showStyleBoard(root);
+      return;
+    }
     openMenu();
     showStyle();
+  };
+
+  root.addEventListener("racelia:open-style", () => {
+    openStyleDestination();
   });
 
   root.querySelectorAll(".js-dashboard-open").forEach((item) => {
@@ -384,9 +384,28 @@ function initMenu(root) {
     });
   });
 
-  root.querySelector("#menuWishlistBtn")?.addEventListener("click", () => {
-    closeMenu();
-    showWishlist(root);
+  root.querySelectorAll(".js-menu-wishlist-open").forEach((button) => {
+    button.addEventListener("click", () => {
+      closeMenu();
+      showWishlist(root);
+    });
+  });
+
+  root.querySelectorAll(".js-menu-home-tab").forEach((button) => {
+    button.addEventListener("click", () => {
+      const tab = button.dataset.homeTab;
+      if (!tab) return;
+      closeMenu();
+      root.dispatchEvent(new CustomEvent("racelia:open-home-tab", { detail: { tab } }));
+    });
+  });
+
+  root.querySelector("#menuLang")?.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-lang]");
+    if (!option) return;
+    event.preventDefault();
+    event.stopPropagation();
+    applyLocale(root, option.dataset.lang);
   });
 
   root.querySelector("#topbarWishlistBtn")?.addEventListener("click", () => {
@@ -397,8 +416,8 @@ function initMenu(root) {
   root.querySelectorAll(".js-desktop-style-open").forEach((item) => {
     item.addEventListener("click", () => {
       if (isDesktopMegaTrigger(item)) return;
-      openMenu();
-      showStyle();
+      closeMenu();
+      showStyleBoard(root);
     });
   });
 
@@ -440,6 +459,10 @@ function initMenu(root) {
       event.stopPropagation();
       const page = item.dataset.page;
       if (!page) return;
+      if (item.dataset.clearAudience === "true") {
+        setSelectedAudience("");
+        root.dispatchEvent(new CustomEvent("racelia:audience-changed"));
+      }
       closeMenu();
       showCategory(root, page);
     });
@@ -453,15 +476,15 @@ export function initApp(root) {
   initStars(root);
   initModal(root);
   initMenu(root);
-  initProductSliders(root);
   initFooter(root);
-  initCtaDock(root);
+  initScrollChrome(root);
   initCart(root);
   initClientCartWishlist(root);
   initRaceliaStyle(root);
   initAccount(root);
   initPages(root);
   initHomeStories(root);
+  initMobileHome(root);
   renderHomeNewArrivals(root);
   root.dispatchEvent(new CustomEvent("racelia:reveal"));
 
@@ -469,6 +492,7 @@ export function initApp(root) {
     refreshStyleGrid(root);
     notifyCatalogUpdated(root);
     renderHomeStories(root);
+    renderMobileHome(root);
     renderHomeNewArrivals(root);
     syncWishlistHeartStates(root);
   });

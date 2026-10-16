@@ -9,6 +9,7 @@ import {
   computeLoyaltyDiscount,
   loyaltyDiscountLabel,
 } from "./loyaltyCard.js";
+import { responsiveImgTag } from "./imageDelivery.js";
 
 export { formatPrice, parsePrice, parsePriceFromCatalog };
 
@@ -78,7 +79,7 @@ export function upsertBagLineItem(root, { productId, name, price, priceEur, colo
   }
 
   const imgHtml = imageUrl
-    ? `<img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(name)}" loading="lazy" />`
+    ? responsiveImgTag(imageUrl, { alt: name, widths: [160, 320], sizes: "120px" })
     : "";
 
   el = document.createElement("div");

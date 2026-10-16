@@ -1,4 +1,5 @@
 import { createCtaDock } from "./CtaDock.js";
+import { responsiveImgTag } from "../js/imageDelivery.js";
 
 export const GIFT_CARD_HERO =
   "https://res.cloudinary.com/dbtkfjrvd/image/upload/v1786811909/Design_sans_titre_-_2026-08-15T173821.490_vg0cpu.png";
@@ -11,7 +12,11 @@ export function createGiftCardPage() {
 
   page.innerHTML = `
     <div class="gift-card-hero">
-      <img src="${GIFT_CARD_HERO}" alt="Carte cadeau électronique RACÈLIA" />
+      ${responsiveImgTag(GIFT_CARD_HERO, {
+        alt: "Carte cadeau électronique RACÈLIA",
+        widths: [480, 900],
+        sizes: "(max-width: 720px) 100vw, 720px",
+      })}
     </div>
     <main class="gift-card-main" aria-label="Carte cadeau électronique RACÈLIA">
       <h1 class="gift-card-title">CARTE CADEAU ÉLECTRONIQUE</h1>

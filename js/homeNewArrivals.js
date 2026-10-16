@@ -1,19 +1,18 @@
 import { createProduct } from "../components/Product.js";
 import {
+  getClosingGridProducts,
   getEditorialGridProducts,
-  getEditorialSpotlightProducts,
   getNewArrivalProducts,
   getSecondaryEditorialGridProducts,
-  getClosingGridProducts,
 } from "./productCatalog.js";
 import { initProductSliders } from "./productSliders.js";
 import { syncWishlistHeartStates } from "./clientCartWishlist.js";
 
 const HOME_ROW_CAPTION =
-  "Once reserved for the lining<br>of the House’s iconic bags,<br>burgundy takes centre stage.";
+  "Pour le plus beau jour de votre vie, RACÈLIA sublime chaque instant avec des créations empreintes de raffinement.";
 
 const HOME_END_CAPTION =
-  "In shearling, suede<br>or soft leather, the bags<br>are imagined in an array<br>of materials and forms,<br>made for life on the move.";
+  "Longtemps discret, le bordeaux s’impose aujourd’hui comme une signature d’élégance au cœur de l’univers RACÈLIA.";
 
 function revealProductCards(cards) {
   cards.forEach((card) => card.classList.add("in"));
@@ -44,7 +43,7 @@ function renderHomeProductSection(
 
   grid.replaceChildren();
 
-  if (!products.length) {
+  if (!products.length && !withRowCaption && !withLeadingCaption) {
     section.hidden = true;
     return;
   }
@@ -60,24 +59,28 @@ function renderHomeProductSection(
       grid.appendChild(createHomeCaption(HOME_ROW_CAPTION));
     }
   });
+  if (withRowCaption && products.length < 4) {
+    grid.appendChild(createHomeCaption(HOME_ROW_CAPTION));
+  }
 
   revealProductCards(cards);
   initProductSliders(root, grid);
 }
 
 function bindHomeEditorials(root) {
-  const spotlights = getEditorialSpotlightProducts();
-  root.querySelectorAll("#pageMain .editorial").forEach((el) => {
-    const offset = Number(el.dataset.productOffset || 0);
-    const product = spotlights[offset] || spotlights[0];
-    if (!product) return;
+  const bridal = root.querySelector("#homeEditorial");
+  if (bridal) {
+    delete bridal.dataset.productId;
+    bridal.dataset.homeTab = "mariee";
+    bridal.setAttribute("aria-label", "Bridal essentials");
+  }
 
-    el.dataset.productId = product.id;
-    el.setAttribute("aria-label", product.name);
-
-    const nameEl = el.querySelector(".editorial__name");
-    if (nameEl) nameEl.textContent = product.name;
-  });
+  const masculine = root.querySelector("#homeEditorialSecondary");
+  if (masculine) {
+    delete masculine.dataset.productId;
+    masculine.dataset.editorialDestination = "tendance-foryou";
+    masculine.setAttribute("aria-label", "Masculine-feminine essentials");
+  }
 }
 
 export function renderHomeNewArrivals(root) {

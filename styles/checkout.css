@@ -379,6 +379,10 @@ body.checkout-active #racelia-app .cta-dock {
   margin-bottom: 16px;
 }
 
+#checkoutPage .checkout-payment-mode[hidden] {
+  display: none;
+}
+
 #checkoutPage .checkout-payment-mode {
   display: block;
   width: 100%;
@@ -491,6 +495,10 @@ body.checkout-active #racelia-app .cta-dock {
 
 #checkoutPage .checkout-summary {
   padding-top: 20px;
+}
+
+#checkoutPage .checkout-summary__row[hidden] {
+  display: none;
 }
 
 #checkoutPage .checkout-summary__row {

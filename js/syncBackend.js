@@ -23,7 +23,7 @@ import { saveStores, normalizeStore, loadStores } from "./boutiquesData.js";
 
 const ORDER_CONFIG_KEY = "raceliaOrderConfig";
 
-let orderConfig = { deliveryFee: 20, onlineDiscountRate: 0.05, currency: "EUR" };
+let orderConfig = { deliveryFee: 20, onlineDiscountRate: 0.05, currency: "EUR", freeShippingFromDzd: 6500 };
 
 function writeStorage(key, value) {
   try {
@@ -101,6 +101,14 @@ function mergeCatalogProductFromApi(incoming, local) {
     merged.colorVariants = local.colorVariants?.length ? local.colorVariants : incoming.colorVariants;
     merged.sections = local.sections?.length ? local.sections : incoming.sections;
     merged.stockNote = local.stockNote || incoming.stockNote;
+    merged.stockNotes = local.stockNotes?.length ? local.stockNotes : incoming.stockNotes;
+    merged.isPromo = local.isPromo ?? incoming.isPromo;
+    merged.promoPriceAmountDzd = local.promoPriceAmountDzd || incoming.promoPriceAmountDzd;
+    merged.univers = local.univers?.length ? local.univers : incoming.univers;
+    merged.audiences = local.audiences?.length ? local.audiences : incoming.audiences;
+    merged.departments = local.departments?.length ? local.departments : incoming.departments;
+    merged.mallFilters = local.mallFilters?.length ? local.mallFilters : incoming.mallFilters;
+    merged.kidsCategories = local.kidsCategories?.length ? local.kidsCategories : incoming.kidsCategories;
     merged.tag = local.tag || incoming.tag;
     merged.name = local.name || incoming.name;
     merged.description = local.description || incoming.description;
@@ -428,7 +436,15 @@ function productPayload(product) {
     tag: product.tag,
     price: product.price,
     priceAmountDzd: product.priceAmountDzd,
+    promoPriceAmountDzd: product.promoPriceAmountDzd,
+    isPromo: product.isPromo,
     stockNote: product.stockNote,
+    stockNotes: product.stockNotes,
+    univers: product.univers,
+    audiences: product.audiences,
+    departments: product.departments,
+    mallFilters: product.mallFilters,
+    kidsCategories: product.kidsCategories,
     description: product.description,
     isPack: product.isPack,
     isNewArrival: product.isNewArrival,

@@ -1,11 +1,12 @@
 import { WILAYAS } from "./checkoutWilayas.js";
 import { ONLINE_PAYMENT_METHODS } from "./checkoutPaymentMethods.js";
+import { deliverySrc } from "./imageDelivery.js";
 
 function onlinePaymentMethodsMarkup() {
   return ONLINE_PAYMENT_METHODS.map((method, index) => {
     const active = index === 0;
     return `<button type="button" class="checkout-method checkout-method--icon${active ? " is-active" : ""}" data-payment-method="${method.id}" aria-checked="${active}" aria-label="${method.label}">
-              <img src="${method.icon}" alt="" width="72" height="44" loading="lazy" decoding="async" />
+              <img src="${deliverySrc(method.icon, 144)}" alt="" width="72" height="44" loading="lazy" decoding="async" />
             </button>`;
   }).join("");
 }
@@ -90,7 +91,7 @@ export function getCheckoutMarkup() {
               <span class="checkout-payment-mode__hint">Payez à la réception</span>
             </span>
           </button>
-          <button type="button" class="checkout-payment-mode" data-payment-mode="online" aria-checked="false">
+          <button type="button" class="checkout-payment-mode" data-payment-mode="online" aria-checked="false" hidden>
             <span class="checkout-payment-mode__box">
               <span class="checkout-payment-mode__label">Paiement en ligne</span>
               <span class="checkout-payment-mode__hint checkout-payment-mode__hint--sale">−5 % sur votre commande</span>

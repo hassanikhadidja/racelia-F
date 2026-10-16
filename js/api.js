@@ -3,7 +3,7 @@ function normalizeApiBase(url) {
 }
 
 export const API_BASE_URL = normalizeApiBase(
-  process.env.NEXT_PUBLIC_API_URL || "https://rac-lia-backend-6ibo.vercel.app"
+  process.env.NEXT_PUBLIC_API_URL || "https://rac-lia-backend-n485.vercel.app"
 );
 
 const TOKEN_KEY = "raceliaAuthToken";

@@ -2,6 +2,7 @@ import {
   createTopbar,
   createMenuPanel,
   createHero,
+  createMobileHome,
   createHomeStories,
   createCategoryBlock,
   createIntro,
@@ -26,6 +27,7 @@ import {
   createGiftCardPage,
   createContactPage,
   createAboutPage,
+  createRaceliaStylePage,
   createProductDetailPage,
   createPdpAddedOverlay,
   createDashboardPage,
@@ -39,6 +41,7 @@ import { initApp } from "./app.js";
 import { initBackendSync } from "./syncBackend.js";
 
 export function mountRaceliaApp(container) {
+  const hero = createHero();
   container.replaceChildren();
 
   const pageMain = document.createElement("div");
@@ -50,14 +53,25 @@ export function mountRaceliaApp(container) {
 
   const editorialBand = document.createElement("div");
   editorialBand.className = "home-editorial-band";
-  editorialBand.append(createEditorial(), createEditorialProductGrid());
+  editorialBand.append(
+    createEditorial({
+      ariaLabel: "Bridal essentials",
+      overlay: {
+        title: "Bridal essentials",
+        subtitle: "Your dream wedding starts here",
+        cta: "Explore the selection",
+      },
+    }),
+    createEditorialProductGrid()
+  );
 
   const secondaryEditorialBand = document.createElement("div");
   secondaryEditorialBand.className = "home-editorial-band home-editorial-band--reverse";
   secondaryEditorialBand.append(createSecondaryEditorial(), createSecondaryEditorialProductGrid());
 
   pageMain.append(
-    createHero(),
+    createMobileHome(),
+    hero,
     createHomeStories(),
     createCategoryBlock(),
     createIntro(),
@@ -83,6 +97,7 @@ export function mountRaceliaApp(container) {
     createGiftCardPage(),
     createContactPage(),
     createAboutPage(),
+    createRaceliaStylePage(),
     createProductDetailPage(),
     createPdpAddedOverlay(),
     createAccountPanel(),
@@ -106,6 +121,7 @@ export function mountRaceliaApp(container) {
   container.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
 
   initApp(container);
+  document.documentElement.classList.remove("lcp-off");
 
   initBackendSync(container).catch((error) => {
     console.warn("RACÈLIA backend sync failed:", error?.message || error);

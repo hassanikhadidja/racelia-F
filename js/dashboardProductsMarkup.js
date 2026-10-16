@@ -1,5 +1,4 @@
-import { PRODUCT_SECTIONS, STOCK_NOTES } from "./productCatalog.js";
-import { AUDIENCES, KIDS_GROUPS } from "./audience.js";
+import { KIDS_CATEGORY_OPTIONS, PRODUCT_UNIVERSES } from "./productPlacement.js";
 
 function escapeHtml(text) {
   return String(text)
@@ -9,28 +8,21 @@ function escapeHtml(text) {
     .replace(/"/g, "&quot;");
 }
 
-function audienceCheckboxesHtml() {
-  return AUDIENCES.map(
-    (audience) => `<label class="dashboard-product-section-opt">
-      <input type="checkbox" class="dashboard-product-audience-check" value="${escapeHtml(audience.id)}" />
-      <span>${escapeHtml(audience.label)}</span>
+function universeCheckboxesHtml() {
+  return PRODUCT_UNIVERSES.map(
+    (item) => `<label class="dashboard-product-section-opt">
+      <input type="checkbox" class="dashboard-product-universe-check" value="${escapeHtml(item.id)}" />
+      <span>${escapeHtml(item.label)}</span>
     </label>`
   ).join("");
 }
 
-function sectionCheckboxesHtml() {
-  return PRODUCT_SECTIONS.map(
-    (section) => `<label class="dashboard-product-section-opt">
-      <input type="checkbox" class="dashboard-product-section-check" value="${escapeHtml(section.id)}" />
-      <span>${escapeHtml(section.label)}</span>
+function kidsCategoryCheckboxesHtml() {
+  return KIDS_CATEGORY_OPTIONS.map(
+    (item) => `<label class="dashboard-product-section-opt">
+      <input type="checkbox" class="dashboard-product-kids-check" value="${escapeHtml(item.id)}" />
+      <span>${escapeHtml(item.label)}</span>
     </label>`
-  ).join("");
-}
-
-function stockNoteOptionsHtml(selected = "") {
-  return STOCK_NOTES.map(
-    (note) =>
-      `<option value="${escapeHtml(note.id)}"${note.id === selected ? " selected" : ""}>${escapeHtml(note.label)}</option>`
   ).join("");
 }
 
@@ -83,7 +75,7 @@ export function getDashboardProductsOverlaysMarkup() {
           </div>
           <div class="dashboard-product-field">
             <label for="dashboard-product-tag">Tag</label>
-            <input type="text" id="dashboard-product-tag" placeholder="e.g. Métiers d'Art, SS26" />
+            <input type="text" id="dashboard-product-tag" placeholder="e.g. L’ART DU GESTE, SS26" />
           </div>
           <div class="dashboard-product-field">
             <label for="dashboard-product-price">Price (DZD)</label>
@@ -91,14 +83,24 @@ export function getDashboardProductsOverlaysMarkup() {
             <p class="dashboard-product-hint">Enter the price in Algerian dinars.</p>
           </div>
           <div class="dashboard-product-field">
-            <label for="dashboard-product-stock-note">Stock note</label>
-            <select id="dashboard-product-stock-note">${stockNoteOptionsHtml()}</select>
+            <label>Stock note</label>
+            <div class="dashboard-product-checks" id="dashboard-product-stock-notes">
+              <label><input type="checkbox" class="dashboard-product-stock-check" value="none" /> <span>No note</span></label>
+              <label><input type="checkbox" class="dashboard-product-stock-check" value="new" checked /> <span>New</span></label>
+              <label><input type="checkbox" class="dashboard-product-stock-check" value="sold-out" /> <span>Sold out</span></label>
+              <label><input type="checkbox" class="dashboard-product-stock-check" value="best-sellers" /> <span>Best-sellers</span></label>
+            </div>
           </div>
-          <div class="dashboard-product-field dashboard-product-field--check">
-            <label class="dashboard-product-pack-toggle">
-              <input type="checkbox" id="dashboard-product-is-new-arrival" />
-              <span>Show on home New Arrivals (name + scroll only)</span>
-            </label>
+          <div class="dashboard-product-field">
+            <label for="dashboard-product-promo">Promo</label>
+            <select id="dashboard-product-promo">
+              <option value="no">No</option>
+              <option value="yes">Yes</option>
+            </select>
+            <div id="dashboard-product-promo-price-wrap" hidden>
+              <label for="dashboard-product-promo-price">Promo price (DZD)</label>
+              <input type="text" id="dashboard-product-promo-price" placeholder="890 000 DZD" />
+            </div>
           </div>
           <div class="dashboard-product-field">
             <label for="dashboard-product-sales-report">Sales report</label>
@@ -149,29 +151,23 @@ export function getDashboardProductsOverlaysMarkup() {
 
         <div class="dashboard-product-field">
           <label for="dashboard-product-filters">Filter tags (comma-separated)</label>
-          <input type="text" id="dashboard-product-filters" placeholder="Métiers d'art 2026, Cuir, Noir, Doré, RACÈLIA" />
+          <input type="text" id="dashboard-product-filters" placeholder="L’ART DU GESTE Collection 2026, Cuir, Noir, Doré, RACÈLIA" />
+        </div>
+
+        <fieldset class="dashboard-product-fieldset">
+          <legend>Univers</legend>
+          <div class="dashboard-product-section-grid">${universeCheckboxesHtml()}</div>
+        </fieldset>
+
+        <div class="dashboard-product-field" id="dashboard-product-kids-group-wrap" hidden>
+          <label>Kids category</label>
+          <div class="dashboard-product-section-grid">${kidsCategoryCheckboxesHtml()}</div>
         </div>
 
         <fieldset class="dashboard-product-fieldset">
           <legend>Sections</legend>
-          <div class="dashboard-product-section-grid">${sectionCheckboxesHtml()}</div>
+          <div id="dashboard-product-sections"></div>
         </fieldset>
-
-        <fieldset class="dashboard-product-fieldset">
-          <legend>Univers</legend>
-          <div class="dashboard-product-section-grid">${audienceCheckboxesHtml()}</div>
-        </fieldset>
-
-        <div class="dashboard-product-field" id="dashboard-product-kids-group-wrap" hidden>
-          <label for="dashboard-product-kids-group">Kids category</label>
-          <select id="dashboard-product-kids-group">
-            <option value="">None</option>
-            ${KIDS_GROUPS.map(
-              (group) =>
-                `<option value="${escapeHtml(group.id)}">${escapeHtml(`${group.label} ${group.age}`)}</option>`
-            ).join("")}
-          </select>
-        </div>
 
         <div class="dashboard-product-closer-copy">
           <h4 class="dashboard-product-images__title">Closer look — text</h4>

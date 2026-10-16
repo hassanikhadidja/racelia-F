@@ -75,7 +75,7 @@ export function createTopbar() {
   searchSuggestions.id = "topbarSearchSuggestions";
   searchSuggestions.innerHTML = `
     <p class="topbar-search__suggest-label" data-i18n="search.suggestions">Suggestions</p>
-    <button type="button" class="topbar-search__suggest" data-suggest-page="nouveautes" data-i18n="search.suggest.metiers">Découvrir les Métiers d'Art 2026</button>
+    <button type="button" class="topbar-search__suggest" data-suggest-page="nouveautes" data-i18n="search.suggest.metiers">Découvrir L’ART DU GESTE Collection 2026</button>
     <button type="button" class="topbar-search__suggest" data-suggest-page="racelia-handbag" data-i18n="search.suggest.bags">Explorer les sacs RACÈLIA</button>
     <button type="button" class="topbar-search__suggest" data-suggest-page="catalogue-grossiste" data-i18n="search.suggest.catalogue">Voir le catalogue grossiste</button>
     <button type="button" class="topbar-search__suggest" data-suggest-action="boutiques" data-i18n="search.suggest.boutiques">Trouver une boutique</button>
@@ -100,7 +100,7 @@ export function createTopbar() {
   brand.setAttribute("data-i18n-aria", "ui.home");
   brand.innerHTML = `
     <span class="brand__name">RACÈLIA</span>
-    <span class="brand__section" data-i18n-html="home.metiersTitle">MÉTIERS D'ART 2026<br>COLLECTION</span>
+    <span class="brand__section" data-i18n-html="home.metiersTitle">L’ART DU GESTE<br>Collection 2026</span>
   `;
 
   const actions = document.createElement("div");

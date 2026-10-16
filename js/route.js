@@ -165,6 +165,10 @@ export function parseRoute(hash = window.location.hash) {
     return { view: "about" };
   }
 
+  if (parts[0] === "style") {
+    return { view: "style" };
+  }
+
   if (parts[0] === "recherche" || parts[0] === "search") {
     const queryParts = parts.slice(1).map(decodeRoutePart);
     return { view: "search", searchQuery: queryParts.join("/") };
@@ -223,6 +227,8 @@ export function buildHash(route) {
       return "#contact";
     case "about":
       return "#about";
+    case "style":
+      return "#style";
     case "search": {
       const query = String(route.searchQuery || "").trim();
       return query ? `#recherche/${encodeURIComponent(query)}` : "#recherche";

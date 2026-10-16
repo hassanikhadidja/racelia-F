@@ -1,6 +1,22 @@
 import { wishlistIcon } from "./icons.js";
+import { createCategoryProduct } from "./CategoryProduct.js";
+import { getCategoryProductById } from "../js/productCatalog.js";
 
 export function createProduct(product, index) {
+  const full = product?.id ? getCategoryProductById(product.id) : null;
+  if (full) {
+    const card = createCategoryProduct({
+      ...full,
+      name: product.name || full.name,
+      images: Array.isArray(product.images) && product.images.length ? product.images : full.images,
+    });
+    card.classList.add("reveal");
+    card.setAttribute("role", "link");
+    card.setAttribute("tabindex", "0");
+    card.setAttribute("aria-label", `View ${product.name || full.name}`);
+    return card;
+  }
+
   const card = document.createElement("div");
   card.className = "product reveal js-product-open";
   card.dataset.images = product.images.join("|");

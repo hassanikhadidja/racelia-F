@@ -7,6 +7,7 @@ import {
   BLOGS_STORAGE_KEY,
 } from "./dashboardBlogsData.js";
 import { renderBlogPreviewHtml } from "./dashboardBlogsPreview.js";
+import { responsiveImgTag } from "./imageDelivery.js";
 
 function escapeHtml(text) {
   return String(text)
@@ -31,7 +32,7 @@ function renderBlogCard(blog) {
 
   return `<article class="blogs-page__card" data-blog-id="${escapeHtml(blog.id)}">
     <div class="blogs-page__card-cover">
-      <img src="${escapeHtml(blog.coverImage || "")}" alt="" loading="lazy" />
+      ${responsiveImgTag(blog.coverImage || "", { widths: [480, 900], sizes: "(max-width: 720px) 100vw, 720px" })}
     </div>
     <div class="blogs-page__card-body">
       <p class="blogs-page__card-meta">${escapeHtml(dateLabel)} · ${readMin} min read</p>

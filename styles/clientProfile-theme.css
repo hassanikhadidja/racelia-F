@@ -29,12 +29,17 @@
   padding: 16px 20px 12px;
 }
 
-#clientProfilePage .top-bar h1 {
+#clientProfilePage .top-bar .profile-home-link {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #000;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 #clientProfilePage .top-bar .btn-icon {
@@ -190,6 +195,9 @@
 }
 
 /* Loyalty & e-gift blocks */
+#clientProfilePage .profile-egift-section[hidden] {
+  display: none;
+}
 #clientProfilePage .loyalty-card-wrap,
 #clientProfilePage .egift-card-wrap {
   padding: 0 16px 20px;
@@ -950,7 +958,7 @@
     display: none;
   }
 
-  #clientProfilePage .top-bar h1 {
+  #clientProfilePage .top-bar .profile-home-link {
     font-size: 28px;
     font-weight: 400;
     letter-spacing: 0.22em;

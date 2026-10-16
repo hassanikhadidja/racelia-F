@@ -1,13 +1,15 @@
 import { categoryPages, getCategoryProductsForSection } from "./categoryData.js";
 import { getAudienceLabel, getSelectedAudience, setSelectedAudience } from "./audience.js";
-import { getSelectedFilterEntries, productMatchesFilters } from "./categoryFilters.js";
+import { getSelectedFilterEntries, productMatchesFilters, PAGE_LOCKED_FILTERS } from "./categoryFilters.js";
 import { getCatalogProductById, searchProducts } from "./productCatalog.js";
 import { getCardImages } from "./productImages.js";
 import { defaultSelection } from "./data.js";
 import { createCategoryProduct } from "../components/CategoryProduct.js";
 import { updateCtaDock, getActiveDockSlot, isOnProductDetailPage } from "./ctaDock.js";
 import { closeStyleSheet } from "./raceliaStyle.js";
+import { initStyleBoard, renderStyleBoard } from "./raceliaStyleBoard.js";
 import { initProductSliders } from "./productSliders.js";
+import { deliverySrc, responsiveImgTag } from "./imageDelivery.js";
 import { updateTopbar } from "./topbar.js";
 import { getAuthToken, isAdminUser } from "./api.js";
 import { updateAccountButtons } from "./accountUi.js";
@@ -25,6 +27,7 @@ import { parseRoute, writeRoute, isValidProductRoute, shouldIgnoreHashChange, go
 import { refreshDisplayedPrices } from "./currency.js";
 import { renderHomeNewArrivals } from "./homeNewArrivals.js";
 import { renderHomeStories } from "./homeStories.js";
+import { applyHomeTab, listStorefrontProducts, prioritizeFemmeHomme, prioritizeHammamOrigin, prioritizeHomeOrigin, prioritizeMarieeOrigin, prioritizeRaceliaOrigin, productMatchesCircleFilter, productsForChip, renderCategoryMall, renderMobileHome, setHomeFeedFilters } from "./mobileHome.js";
 import {
   initBlogsPage,
   renderBlogsList,
@@ -37,7 +40,6 @@ import { scrollToHeading } from "./scrollToHeading.js";
 import { initBoutiquesPage } from "./boutiquesPage.js";
 import { initFaqPage, faqStateToRoute } from "./faqPage.js";
 import { initReturnsPage } from "./returnsPage.js";
-import { initGiftCardPage } from "./giftCardPage.js";
 import { initContactPage } from "./contactPage.js";
 
 let currentPage = "home";
@@ -150,6 +152,11 @@ function syncRoute() {
 
   if (currentPage === "about") {
     writeRoute({ view: "about" });
+    return;
+  }
+
+  if (currentPage === "style") {
+    writeRoute({ view: "style" });
     return;
   }
 
@@ -280,6 +287,11 @@ export function restoreRouteFromUrl(root) {
       return;
     }
 
+    if (route.view === "style") {
+      showStyleBoard(root);
+      return;
+    }
+
     if (route.view === "product" && isValidProductRoute(route.productId)) {
       showProductDetail(root, route.productId);
       return;
@@ -397,6 +409,24 @@ function setSelectionLabel(root, label) {
   });
 }
 
+function lockedFiltersFor(pageKey) {
+  return PAGE_LOCKED_FILTERS[pageKey] || [];
+}
+
+function syncLockedFilterChecks(filter, pageKey) {
+  const locked = lockedFiltersFor(pageKey);
+  if (!filter || !locked.length) return locked;
+  locked.forEach((entry) => {
+    const input = filter.querySelector(
+      `input[type="checkbox"][data-filter-group="${entry.group}"][data-filter-key="${entry.key}"]`
+    );
+    if (!input) return;
+    input.checked = true;
+    input.closest(".category-page__accordion")?.classList.add("open");
+  });
+  return locked;
+}
+
 function getSelectedFilterLabels(filter) {
   return getSelectedFilterEntries(filter);
 }
@@ -420,9 +450,39 @@ function renderCategoryProducts(root, pageKey, selectedFilters = activeCategoryF
     pageKey === "search"
       ? searchProducts(currentSearchQuery)
       : getCategoryProductsForSection(pageKey);
-  const products = selectedFilters.length
-    ? pageProducts.filter((product) => productMatchesFilters(product, selectedFilters))
-    : pageProducts;
+  const chip = pageKey === "nouveautes" ? root.querySelector("#categoryMall")?.dataset.chip || "foryou" : "";
+  const circled =
+    pageKey === "icons-cc" || pageKey === "parfums-feminins" || pageKey === "racelia-handbag"
+      ? root.querySelector("#categoryMall")?.dataset.circle || ""
+      : "";
+  let universe = chip ? listStorefrontProducts() : pageProducts;
+  if (pageKey === "racelia-handbag" && circled === "racelia-page-parfums") {
+    universe = listStorefrontProducts().filter((product) => productMatchesCircleFilter(product, circled));
+  }
+  const filtered = selectedFilters.length
+    ? universe.filter((product) => productMatchesFilters(product, selectedFilters))
+    : universe;
+  let products = (chip ? productsForChip(filtered, chip) : filtered).filter((product) =>
+    circled ? productMatchesCircleFilter(product, circled) : true
+  );
+  const mallState = pageKey === "nouveautes" || pageKey === "racelia-handbag" ? root.querySelector("#categoryMall") : null;
+  const origin = mallState?.dataset.origin || "";
+  const pin = mallState?.dataset.pin || "";
+  if (pageKey === "nouveautes" && chip === "new" && pin === "new") {
+    products = prioritizeHomeOrigin(products, origin);
+  }
+  if (pageKey === "nouveautes" && chip === "foryou" && pin === "mariee") {
+    products = prioritizeMarieeOrigin(products, origin);
+  }
+  if (pageKey === "nouveautes" && chip === "foryou" && pin === "femme-homme") {
+    products = prioritizeFemmeHomme(products);
+  }
+  if (pageKey === "nouveautes" && chip === "foryou" && pin === "hammam") {
+    products = prioritizeHammamOrigin(products, origin);
+  }
+  if (pageKey === "racelia-handbag" && pin === "tendance" && (!circled || circled === "racelia-page-tendance")) {
+    products = prioritizeRaceliaOrigin(products, origin);
+  }
 
   productsRoot.replaceChildren();
   products.forEach((product) => {
@@ -449,6 +509,18 @@ function renderCategoryProducts(root, pageKey, selectedFilters = activeCategoryF
   syncWishlistHeartStates(root);
 }
 
+function fillHeading(el, text, markSrc, markClass) {
+  if (!el) return;
+  el.replaceChildren(document.createTextNode(text || ""));
+  if (!markSrc) return;
+  const mark = document.createElement("img");
+  mark.className = markClass;
+  mark.src = deliverySrc(markSrc, 220);
+  mark.alt = "CC";
+  mark.decoding = "async";
+  el.append(mark);
+}
+
 function renderCategory(root, pageKey) {
   const config = categoryPages[pageKey];
   const categoryPage = root.querySelector("#categoryPage");
@@ -457,13 +529,25 @@ function renderCategory(root, pageKey) {
   categoryPage.dataset.page = pageKey;
 
   const audienceLabel = config.kids ? "" : getAudienceLabel(getSelectedAudience());
-  root.querySelector("#categoryPageTitle").textContent = config.title;
+  const title = root.querySelector("#categoryPageTitle");
+  fillHeading(title, config.title, config.titleMark, "category-page__title-mark");
   root.querySelector("#categoryPageSub").textContent = config.subtitle;
-  root.querySelector("#categoryPageBar").textContent = audienceLabel
+  const barText = audienceLabel
     ? `${config.collectionBar} · ${audienceLabel.toUpperCase()}`
     : config.collectionBar;
+  fillHeading(
+    root.querySelector("#categoryPageBar"),
+    barText,
+    config.titleMark,
+    "category-page__bar-mark"
+  );
 
+  const mall = root.querySelector("#categoryMall");
+  if (mall && mall.dataset.circlePage && mall.dataset.circlePage !== pageKey) {
+    delete mall.dataset.circle;
+  }
   renderCategoryProducts(root, pageKey);
+  renderCategoryMall(root, pageKey);
 }
 
 function isDesktopOverlay() {
@@ -490,6 +574,7 @@ function revealStorefrontBehindBag(root) {
     search: "#categoryPage",
     product: "#productDetailPage",
     about: "#aboutPage",
+    style: "#styleBoardPage",
     boutiques: "#boutiquesPage",
     faq: "#faqPage",
     contact: "#contactPage",
@@ -540,6 +625,8 @@ function hideAllPages(root) {
   if (contactPage) contactPage.hidden = true;
   const aboutPage = root.querySelector("#aboutPage");
   if (aboutPage) aboutPage.hidden = true;
+  const styleBoardPage = root.querySelector("#styleBoardPage");
+  if (styleBoardPage) styleBoardPage.hidden = true;
   document.body.classList.remove("product-detail-active");
 }
 
@@ -602,36 +689,44 @@ function setCheckoutShellActive(active) {
 }
 
 function initCategoryInteractions(root) {
-  root.querySelectorAll(".category-product__swatch").forEach((swatch) => {
-    swatch.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const group = swatch.closest(".category-product__swatches");
-      group?.querySelectorAll(".category-product__swatch").forEach((item) => {
-        item.classList.remove("is-selected");
-      });
-      swatch.classList.add("is-selected");
+  if (root.dataset.categorySwatchBound === "true") return;
+  root.dataset.categorySwatchBound = "true";
 
-      const card = swatch.closest(".category-product");
-      const productId = card?.dataset.productId;
-      const colorIndex = Number(swatch.dataset.colorIndex || 0);
-      if (!productId || !card) return;
+  root.addEventListener("click", (event) => {
+    const swatch = event.target.closest(".category-product__swatch");
+    if (!swatch || !root.contains(swatch)) return;
 
-      const catalogProduct = getCatalogProductById(productId);
-      if (!catalogProduct) return;
-
-      const images = getCardImages(catalogProduct, colorIndex);
-      if (!images.length) return;
-
-      card.dataset.images = images.join("|");
-      const slides = card.querySelector(".slides");
-      if (slides) {
-        slides.innerHTML = images
-          .map((src) => `<img src="${src}" alt="" onerror="this.style.visibility='hidden'">`)
-          .join("");
-        slides.scrollTo({ left: 0 });
-      }
-      initProductSliders(root, card);
+    event.stopPropagation();
+    const group = swatch.closest(".category-product__swatches");
+    group?.querySelectorAll(".category-product__swatch").forEach((item) => {
+      item.classList.remove("is-selected");
     });
+    swatch.classList.add("is-selected");
+
+    const card = swatch.closest(".category-product");
+    const productId = card?.dataset.productId;
+    const colorIndex = Number(swatch.dataset.colorIndex || 0);
+    if (!productId || !card) return;
+
+    const catalogProduct = getCatalogProductById(productId);
+    if (!catalogProduct) return;
+
+    const images = getCardImages(catalogProduct, colorIndex);
+    if (!images.length) return;
+
+    card.dataset.images = images.join("|");
+    const slides = card.querySelector(".slides");
+    if (slides) {
+      slides.innerHTML = images
+        .map((src) =>
+          responsiveImgTag(src, {
+            extra: `onerror="this.style.visibility='hidden'"`,
+          })
+        )
+        .join("");
+      slides.scrollTo({ left: 0 });
+    }
+    initProductSliders(root, card);
   });
 }
 
@@ -640,6 +735,15 @@ function initProductCardNavigation(root) {
   root.dataset.productNavBound = "true";
 
   const openFromCard = (card) => {
+    const homeTab = card?.dataset.homeTab;
+    if (homeTab) {
+      root.dispatchEvent(new CustomEvent("racelia:open-home-tab", { detail: { tab: homeTab } }));
+      return;
+    }
+    if (card?.dataset.editorialDestination === "tendance-foryou") {
+      showCategory(root, "nouveautes", { chip: "foryou", pin: "femme-homme" });
+      return;
+    }
     const productId = card?.dataset.productId;
     if (productId) showProductDetail(root, productId);
   };
@@ -661,8 +765,9 @@ function initProductCardNavigation(root) {
 }
 
 function updateClearButtonState(filter, clearBtn) {
-  const hasChecked = filter.querySelector('input[type="checkbox"]:checked');
-  clearBtn?.classList.toggle("is-active", !!hasChecked);
+  const hasChecked = !!filter.querySelector('input[type="checkbox"]:checked');
+  clearBtn?.classList.toggle("is-active", hasChecked);
+  filter.querySelector("#categoryFilterResults")?.classList.toggle("is-ready", hasChecked);
 }
 
 function clearCategoryFilters(root, filter, clearBtn) {
@@ -674,10 +779,11 @@ function clearCategoryFilters(root, filter, clearBtn) {
     accordion.classList.remove("open");
   });
 
-  activeCategoryFilters = [];
+  const locked = syncLockedFilterChecks(filter, currentPage);
+  activeCategoryFilters = locked;
 
   if (isProductGridPage()) {
-    renderCategoryProducts(root, currentPage, []);
+    renderCategoryProducts(root, currentPage, activeCategoryFilters);
   }
 
   updateClearButtonState(filter, clearBtn);
@@ -685,12 +791,13 @@ function clearCategoryFilters(root, filter, clearBtn) {
 
 function initCategoryFilter(root) {
   const filter = root.querySelector("#categoryFilter");
-  const openBtn = root.querySelector("#categoryFilterOpen");
   const clearBtn = root.querySelector("#categoryFilterClear");
   const resultsBtn = root.querySelector("#categoryFilterResults");
   const widget = root.querySelector("#selectionWidget");
 
-  if (!filter || filter.dataset.bound === "true") return;
+  if (!filter) return;
+  if (filter.parentElement !== root) root.appendChild(filter);
+  if (filter.dataset.bound === "true") return;
   filter.dataset.bound = "true";
 
   const setFilterOpen = (open) => {
@@ -702,15 +809,21 @@ function initCategoryFilter(root) {
 
   const closeFilter = () => setFilterOpen(false);
 
-  openBtn?.addEventListener("click", () => setFilterOpen(true));
+  root.querySelectorAll(".category-page__filter-toggle").forEach((btn) => {
+    btn.addEventListener("click", () => setFilterOpen(true));
+  });
   filter.querySelectorAll(".js-category-filter-close").forEach((btn) => {
     btn.addEventListener("click", closeFilter);
   });
 
   resultsBtn?.addEventListener("click", () => {
+    syncLockedFilterChecks(filter, currentPage);
     activeCategoryFilters = getSelectedFilterLabels(filter);
     if (isProductGridPage()) {
       renderCategoryProducts(root, currentPage, activeCategoryFilters);
+    } else if (currentPage === "home") {
+      setHomeFeedFilters(activeCategoryFilters);
+      renderMobileHome(root);
     }
     closeFilter();
   });
@@ -984,6 +1097,7 @@ export function showHome(root, { selectionLabel = defaultSelection, scrollToGrid
   currentProductId = null;
   currentSearchQuery = "";
   activeCategoryFilters = [];
+  setHomeFeedFilters([]);
   setSelectedAudience("");
 
   hideAllPages(root);
@@ -1205,22 +1319,7 @@ export function showReturns(root) {
 }
 
 export function showGiftCard(root) {
-  setOverlayShellActive(false);
-  currentPage = "gift-card";
-  currentProductId = null;
-  currentBlogId = null;
-
-  hideAllPages(root);
-  const giftCardPage = root.querySelector("#giftCardPage");
-  if (giftCardPage) giftCardPage.hidden = false;
-
-  closeOverlays(root);
-  attachSelectionWidget(root);
-  updateCtaDock(root);
-  updateTopbar(root);
-  initGiftCardPage(root);
-  syncRoute();
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  showHome(root);
 }
 
 export function showContact(root) {
@@ -1238,6 +1337,29 @@ export function showContact(root) {
   updateCtaDock(root);
   updateTopbar(root);
   initContactPage(root);
+  syncRoute();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+export function showStyleBoard(root) {
+  setOverlayShellActive(false);
+  currentPage = "style";
+  currentProductId = null;
+  currentBlogId = null;
+  currentSearchQuery = "";
+
+  hideAllPages(root);
+  const styleBoardPage = root.querySelector("#styleBoardPage");
+  if (styleBoardPage) {
+    delete styleBoardPage.dataset.chip;
+    styleBoardPage.hidden = false;
+  }
+
+  closeOverlays(root);
+  initStyleBoard(root);
+  renderStyleBoard(root);
+  updateCtaDock(root);
+  updateTopbar(root);
   syncRoute();
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1274,9 +1396,9 @@ export function showBlogArticle(root, blogId) {
   requestAnimationFrame(() => updateTopbar(root));
 }
 
-export function showCategory(root, pageKey) {
+export function showCategory(root, pageKey, options = {}) {
   if (pageKey === "metiers-dart") {
-    showCategory(root, "nouveautes");
+    showCategory(root, "nouveautes", options);
     return;
   }
 
@@ -1288,7 +1410,7 @@ export function showCategory(root, pageKey) {
   currentProductId = null;
   currentSearchQuery = "";
   lastCategoryPage = pageKey;
-  activeCategoryFilters = [];
+  activeCategoryFilters = lockedFiltersFor(pageKey);
 
   hideAllPages(root);
   root.querySelector("#categoryPage").hidden = false;
@@ -1301,10 +1423,26 @@ export function showCategory(root, pageKey) {
     filter.querySelectorAll(".category-page__accordion.open").forEach((accordion) => {
       accordion.classList.remove("open");
     });
+    syncLockedFilterChecks(filter, pageKey);
     filter.classList.remove("open");
     filter.setAttribute("aria-hidden", "true");
     root.querySelector("#selectionWidget")?.classList.remove("is-hidden-for-filter");
     updateClearButtonState(filter, root.querySelector("#categoryFilterClear"));
+  }
+
+  if (pageKey === "nouveautes" || pageKey === "racelia-handbag") {
+    const mall = root.querySelector("#categoryMall");
+    if (mall) {
+      if (pageKey === "nouveautes") mall.dataset.chip = options.chip || "foryou";
+      if (pageKey === "racelia-handbag") {
+        delete mall.dataset.circle;
+        mall.dataset.circlePage = "racelia-handbag";
+      }
+      if (options.origin) mall.dataset.origin = options.origin;
+      else delete mall.dataset.origin;
+      if (options.pin) mall.dataset.pin = options.pin;
+      else delete mall.dataset.pin;
+    }
   }
 
   renderCategory(root, pageKey);
@@ -1356,6 +1494,7 @@ export function showSearch(root, query) {
   const bar = root.querySelector("#categoryPageBar");
   if (title) title.textContent = "RECHERCHE";
   if (bar) bar.textContent = q.toUpperCase();
+  renderCategoryMall(root, "search");
 
   renderCategoryProducts(root, "search");
   closeOverlays(root);
@@ -1439,6 +1578,11 @@ export function restoreView(root) {
     return;
   }
 
+  if (currentPage === "style") {
+    showStyleBoard(root);
+    return;
+  }
+
   if (currentPage === "faq") {
     showFaq(root, faqStateToRoute(root.querySelector("#faqPage")?.__faqState));
     return;
@@ -1490,9 +1634,11 @@ export function restoreView(root) {
 
 export function initPages(root) {
   initProductCardNavigation(root);
+  initCategoryInteractions(root);
 
   root.addEventListener("racelia:leave-dashboard", () => leaveDashboard(root));
   root.addEventListener("racelia:leave-client-profile", () => leaveClientProfile(root));
+  root.addEventListener("racelia:open-home", () => showHome(root));
   root.addEventListener("racelia:leave-shopping-bag", () => leaveShoppingBag(root));
   root.addEventListener("racelia:leave-wishlist", () => leaveWishlist(root));
   root.addEventListener("racelia:open-wishlist", () => showWishlist(root));
@@ -1509,11 +1655,23 @@ export function initPages(root) {
   });
   root.addEventListener("racelia:open-category", (event) => {
     const categoryKey = event.detail?.categoryKey;
-    if (categoryKey) showCategory(root, categoryKey);
+    if (!categoryKey) return;
+    showCategory(root, categoryKey, {
+      chip: event.detail?.chip || "",
+      origin: event.detail?.origin || "",
+      pin: event.detail?.pin || "",
+    });
+  });
+  root.addEventListener("racelia:open-home-tab", (event) => {
+    showHome(root);
+    applyHomeTab(root, event.detail?.tab || "tout");
   });
   root.addEventListener("racelia:open-search", (event) => {
     const query = event.detail?.query;
     if (query) showSearch(root, query);
+  });
+  root.addEventListener("racelia:category-chip", () => {
+    if (currentPage === "nouveautes" || currentPage === "icons-cc" || currentPage === "parfums-feminins" || currentPage === "racelia-handbag") renderCategoryProducts(root, currentPage);
   });
   root.addEventListener("racelia:audience-changed", () => {
     updateTopbar(root);
@@ -1536,6 +1694,9 @@ export function initPages(root) {
   root.addEventListener("racelia:open-gift-card", () => showGiftCard(root));
   root.addEventListener("racelia:open-contact", () => showContact(root));
   root.addEventListener("racelia:open-about", () => showAbout(root));
+  root.addEventListener("racelia:style-looks-updated", () => {
+    if (currentPage === "style") renderStyleBoard(root);
+  });
   root.addEventListener("racelia:open-blog", (event) => {
     const blogId = event.detail?.blogId;
     if (blogId) showBlogArticle(root, blogId);
@@ -1545,22 +1706,20 @@ export function initPages(root) {
   });
   root.addEventListener("racelia:catalog-updated", () => {
     renderHomeStories(root);
+    renderMobileHome(root);
     renderHomeNewArrivals(root);
-    if (currentPage === "home") {
-      import("./productSliders.js").then(({ initProductSliders }) => initProductSliders(root));
-    }
     if (currentPage === "product" && currentProductId) {
       mountProductDetail(root, currentProductId);
     }
     if (isProductGridPage()) {
       renderCategoryProducts(root, currentPage);
+      if (categoryPages[currentPage]) renderCategoryMall(root, currentPage);
     }
+    if (currentPage === "style") renderStyleBoard(root);
   });
 
   root.addEventListener("racelia:backend-synced", () => {
-    if (currentPage === "home") {
-      import("./productSliders.js").then(({ initProductSliders }) => initProductSliders(root));
-    }
+    if (currentPage === "style") renderStyleBoard(root);
   });
 
   root.addEventListener("racelia:currency-changed", () => {

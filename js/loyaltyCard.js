@@ -1,5 +1,6 @@
 import { loadClientOrders, loadClientProfile, saveClientProfileLocal } from "./clientProfileData.js";
 import { getStoredUser, setStoredUser } from "./api.js";
+import { deliverySrc } from "./imageDelivery.js";
 
 const STAMP_ICON =
   "https://res.cloudinary.com/dbtkfjrvd/image/upload/v1780497556/1_1_v6ic5b.png";
@@ -281,7 +282,7 @@ export function stampSlotMarkup(stampCount, { birthdayLocked = false } = {}) {
     if (index === 3 && birthdayLocked) classes.push("has-white-bg");
     if (index === 4 && stamped) classes.push("has-white-bg");
     const icon = stamped
-      ? `<img class="loyalty-stamp-icon" src="${STAMP_ICON}" alt="" />`
+      ? `<img class="loyalty-stamp-icon" src="${deliverySrc(STAMP_ICON, 64)}" alt="" decoding="async" />`
       : "";
     return `<span class="${classes.join(" ")}">${icon}</span>`;
   }).join("");

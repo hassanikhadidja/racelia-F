@@ -1,4 +1,5 @@
 import { formatPrice } from "./bagHelpers.js";
+import { EUR_TO_DZD } from "./currency.js";
 import { closeCheckoutGeoPanels, initCheckoutGeoSelects } from "./checkoutSelect.js";
 import {
   ONLINE_PAYMENT_METHOD_IDS,
@@ -15,8 +16,13 @@ import {
 } from "./loyaltyCard.js";
 import { setFormStatus } from "./formStatus.js";
 
-function getDeliveryFee() {
-  return getOrderConfig().deliveryFee ?? 20;
+function getDeliveryFee(subtotalEur = 0) {
+  if (!checkoutItems.length) return 0;
+  const config = getOrderConfig();
+  const fee = Number(config.deliveryFee ?? 20);
+  const thresholdDzd = Number(config.freeShippingFromDzd ?? 6500);
+  if (thresholdDzd > 0 && subtotalEur * EUR_TO_DZD >= thresholdDzd) return 0;
+  return fee;
 }
 
 function getOnlineDiscountRate() {
@@ -208,7 +214,7 @@ function initPaymentSelection(page) {
 
 function updateTotals(page) {
   const subtotal = getSubtotal();
-  const delivery = checkoutItems.length > 0 ? getDeliveryFee() : 0;
+  const delivery = getDeliveryFee(subtotal);
   const isOnline = getPaymentMode(page) === "online";
   const promo = getAppliedLoyaltyPromo();
   const loyaltyDiscount = computeLoyaltyDiscount(checkoutItems, promo);

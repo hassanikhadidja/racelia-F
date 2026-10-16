@@ -75,11 +75,16 @@ body.client-profile-active .modal-backdrop {
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-    }#clientProfilePage .top-bar h1{
+    }#clientProfilePage .top-bar .profile-home-link{
       font-size: 17px;
       font-weight: 600;
       color: #111;
       letter-spacing: -0.2px;
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      font-family: inherit;
     }#clientProfilePage .avatar-section{
       display: flex;
       flex-direction: column;

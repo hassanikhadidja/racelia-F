@@ -1,6 +1,7 @@
 import { searchProducts } from "./productCatalog.js";
 import { getSelectedAudience } from "./audience.js";
 import { t } from "./i18n.js";
+import { deliverySrc } from "./imageDelivery.js";
 
 function isPageVisible(el) {
   return Boolean(el && !el.hidden);
@@ -9,6 +10,7 @@ function isPageVisible(el) {
 function getDesktopNavView(root) {
   if (isPageVisible(root.querySelector("#boutiquesPage"))) return { view: "boutiques" };
   if (isPageVisible(root.querySelector("#aboutPage"))) return { view: "about" };
+  if (isPageVisible(root.querySelector("#styleBoardPage"))) return { view: "style" };
   const categoryPage = root.querySelector("#categoryPage");
   if (isPageVisible(categoryPage)) {
     return { view: "category", categoryKey: categoryPage.dataset.page || "" };
@@ -41,12 +43,14 @@ function updateDesktopNav(root) {
     const page = btn.dataset.page;
     const isBoutiques = btn.classList.contains("js-menu-boutiques-open");
     const isAbout = btn.classList.contains("js-desktop-about-open");
+    const isStyle = btn.classList.contains("js-desktop-style-open");
     const isDashboard = item.classList.contains("js-dashboard-open");
     const current =
       !audience &&
       ((page && page === categoryKey) ||
         (isBoutiques && view === "boutiques") ||
         (isAbout && view === "about") ||
+        (isStyle && view === "style") ||
         (isDashboard && view === "dashboard"));
 
     item.classList.toggle("is-current", current);
@@ -111,7 +115,7 @@ export function initTopbarSearch(root) {
         const image = product.images?.[0] || "";
         const tag = product.tag ? `<span class="topbar-search__hit-tag">${escapeHtml(product.tag)}</span>` : "";
         return `<button type="button" class="topbar-search__hit" role="option" data-product-id="${escapeHtml(product.id)}">
-          <img class="topbar-search__hit-img" src="${escapeHtml(image)}" alt="" onerror="this.style.visibility='hidden'" />
+          <img class="topbar-search__hit-img" src="${escapeHtml(deliverySrc(image, 96))}" alt="" width="48" height="48" decoding="async" onerror="this.style.visibility='hidden'" />
           <span class="topbar-search__hit-copy">
             <span class="topbar-search__hit-name">${escapeHtml(product.name)}</span>
             ${tag}
@@ -227,111 +231,79 @@ export function initTopbarSearch(root) {
 
 let lastBrandScrollY = 0;
 
-function updateBrandScroll(root, topbar) {
-  const y = window.scrollY || 0;
-  const desktop = window.matchMedia("(min-width: 1024px)").matches;
-  const onHome = isPageVisible(root.querySelector("#pageMain"));
-  const jumped = Math.abs(y - lastBrandScrollY) > 200;
-  const goingUp = !jumped && y < lastBrandScrollY - 4;
-  lastBrandScrollY = y;
-
-  if (!desktop || !onHome || topbar.classList.contains("topbar--search-open")) {
-    topbar.classList.remove("is-brand-hidden", "is-section-title");
-    return;
-  }
-
+function readTopbarLayout(root, topbar) {
+  const hero =
+    [...root.querySelectorAll("#pageMain .hero, #mobileHomeStage, #categoryMallStage")].find(
+      (el) => el.getClientRects().length
+    ) ||
+    null;
+  const pdpHero = root.querySelector("#pdpHero");
   const marker =
     root.querySelector("#metiersArtSection .eyebrow") || root.querySelector("#metiersArtSection");
-  const headerBottom = topbar.getBoundingClientRect().bottom;
-  const passed = Boolean(marker && marker.getBoundingClientRect().top <= headerBottom);
 
-  if (y <= 8) {
-    topbar.classList.remove("is-brand-hidden", "is-section-title");
-    return;
-  }
-
-  topbar.classList.add("is-brand-hidden");
-
-  if (passed && !goingUp) {
-    topbar.classList.add("is-section-title");
-    return;
-  }
-
-  topbar.classList.remove("is-section-title");
+  return {
+    topbarBottom: topbar.getBoundingClientRect().bottom,
+    heroBottom: hero ? hero.getBoundingClientRect().bottom : 0,
+    pdpHeroBottom: pdpHero ? pdpHero.getBoundingClientRect().bottom : 0,
+    markerTop: marker ? marker.getBoundingClientRect().top : null,
+    hasHero: Boolean(hero),
+    hasPdpHero: Boolean(pdpHero),
+  };
 }
 
 export function updateTopbar(root) {
   const topbar = root.querySelector(".topbar");
-  const hero = root.querySelector(".hero");
   if (!topbar) return;
 
-  updateBrandScroll(root, topbar);
-
-  if (window.matchMedia("(min-width: 1024px)").matches) {
-    updateDesktopNav(root);
-    if (topbar.classList.contains("topbar--search-open")) {
-      topbar.classList.add("scrolled");
-      topbar.classList.remove("over-hero");
-      return;
-    }
-
-    const onHome = isPageVisible(root.querySelector("#pageMain"));
-    const homeHero = root.querySelector(".hero");
-    const overHomeHero =
-      onHome &&
-      homeHero &&
-      homeHero.getBoundingClientRect().bottom > topbar.getBoundingClientRect().bottom;
-
-    topbar.classList.toggle("over-hero", Boolean(overHomeHero));
-    topbar.classList.toggle("scrolled", !overHomeHero);
-    return;
-  }
-
-  if (topbar.classList.contains("topbar--search-open")) {
-    topbar.classList.add("scrolled");
-    topbar.classList.remove("over-hero");
-    return;
-  }
-
+  const desktop = window.matchMedia("(min-width: 1024px)").matches;
   const pageMain = root.querySelector("#pageMain");
   const productDetailPage = root.querySelector("#productDetailPage");
-  const pdpHero = root.querySelector("#pdpHero");
   const onPdp = isPageVisible(productDetailPage);
   const onHome = isPageVisible(pageMain);
+  const searchOpen = topbar.classList.contains("topbar--search-open");
+  const y = window.scrollY || 0;
+  const layout = readTopbarLayout(root, topbar);
 
-  topbar.classList.toggle("topbar--pdp", onPdp);
+  const jumped = Math.abs(y - lastBrandScrollY) > 200;
+  const goingUp = !jumped && y < lastBrandScrollY - 4;
+  lastBrandScrollY = y;
+  const passedMarker = layout.markerTop != null && layout.markerTop <= layout.topbarBottom;
+  const brandHidden = desktop && onHome && !searchOpen && y > 8;
+  const sectionTitle = brandHidden && passedMarker && !goingUp;
 
-  // Non-home / non-PDP surfaces are always light — never keep white hero icons.
-  if (!onHome && !onPdp) {
-    topbar.classList.remove("over-hero");
-    topbar.classList.add("scrolled");
-    return;
-  }
+  let overHero = false;
+  let scrolled = false;
 
-  if (onPdp && pdpHero) {
-    const heroBottom = pdpHero.getBoundingClientRect().bottom;
-    if (heroBottom > 64) {
-      topbar.classList.add("over-hero");
-      topbar.classList.remove("scrolled");
+  if (desktop) {
+    if (searchOpen) {
+      scrolled = true;
     } else {
-      topbar.classList.remove("over-hero");
-      topbar.classList.add("scrolled");
+      overHero = Boolean(onHome && layout.hasHero && layout.heroBottom > layout.topbarBottom);
+      scrolled = !overHero;
     }
-    return;
-  }
-
-  if (!onHome || !hero) {
-    topbar.classList.remove("over-hero");
-    topbar.classList.add("scrolled");
-    return;
-  }
-
-  const heroBottom = hero.getBoundingClientRect().bottom;
-  if (heroBottom > 64) {
-    topbar.classList.add("over-hero");
-    topbar.classList.remove("scrolled");
+  } else if (searchOpen) {
+    scrolled = true;
+  } else if (onPdp) {
+    overHero = layout.hasPdpHero && layout.pdpHeroBottom > 64;
+    scrolled = !overHero;
+  } else if (layout.hasHero) {
+    overHero = layout.heroBottom > 64;
+    scrolled = !overHero;
   } else {
-    topbar.classList.remove("over-hero");
-    topbar.classList.add("scrolled");
+    scrolled = true;
   }
+
+  const kidsOpen =
+    !desktop &&
+    Boolean(
+      root.querySelector("#pageMain:not([hidden]) #mobileHome.mobile-home--kids") ||
+        root.querySelector("#categoryPage:not([hidden]) #categoryMall.category-mall--kids")
+    );
+  topbar.classList.toggle("topbar--kids", kidsOpen);
+  topbar.classList.toggle("is-brand-hidden", brandHidden);
+  topbar.classList.toggle("is-section-title", sectionTitle);
+  if (!desktop) topbar.classList.toggle("topbar--pdp", onPdp);
+  topbar.classList.toggle("over-hero", overHero);
+  topbar.classList.toggle("scrolled", scrolled);
+  if (desktop) updateDesktopNav(root);
 }

@@ -1,8 +1,7 @@
 import { editorialImage } from "../js/data.js";
-import { wishlistIcon } from "./icons.js";
+import { applyResponsiveImage, EDITORIAL_SIZES, EDITORIAL_WIDTHS } from "../js/imageDelivery.js";
 
-const SECONDARY_EDITORIAL_IMAGE =
-  "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1000&q=80";
+const SECONDARY_EDITORIAL_IMAGE = "/images/masculine-feminine.jpg";
 
 export function createEditorial({
   id = "homeEditorial",
@@ -23,8 +22,8 @@ export function createEditorial({
   media.className = "editorial__media";
 
   const img = document.createElement("img");
-  img.src = image;
   img.alt = "Editorial";
+  applyResponsiveImage(img, image, { sizes: EDITORIAL_SIZES, widths: EDITORIAL_WIDTHS });
   img.onerror = () => {
     img.style.display = "none";
   };
@@ -33,28 +32,18 @@ export function createEditorial({
   if (overlay) {
     const overlayEl = document.createElement("div");
     overlayEl.className = "editorial__overlay";
+    const subtitle = overlay.subtitle
+      ? `<p class="editorial__overlay-subtitle">${overlay.subtitle}</p>`
+      : "";
     overlayEl.innerHTML = `
       <p class="editorial__overlay-title">${overlay.title}</p>
+      ${subtitle}
       <span class="editorial__overlay-cta">${overlay.cta}</span>
     `;
     media.appendChild(overlayEl);
   }
 
-  const meta = document.createElement("div");
-  meta.className = "meta editorial__meta";
-
-  const name = document.createElement("span");
-  name.className = "editorial__name";
-  name.textContent = "";
-
-  const wishlist = document.createElement("button");
-  wishlist.className = "wishlist-btn";
-  wishlist.type = "button";
-  wishlist.setAttribute("aria-label", "Ajouter à la liste d'envies");
-  wishlist.innerHTML = wishlistIcon;
-
-  meta.append(name, wishlist);
-  section.append(media, meta);
+  section.append(media);
   return section;
 }
 

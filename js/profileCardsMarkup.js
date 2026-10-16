@@ -1,4 +1,5 @@
 import { getLoyaltyStampCount, stampSlotMarkup, LOYALTY_REWARDS, BIRTHDAY_STAMP, BIRTHDAY_MESSAGE } from "./loyaltyCard.js";
+import { deliverySrc } from "./imageDelivery.js";
 
 export const PROFILE_CARD_ASSETS = {
   loyaltyFront:
@@ -148,10 +149,10 @@ export function getProfileCardsMarkup({
         <div class="loyalty-scene">
           <div class="loyalty-flip-card" id="${prefix}-loyalty-card">
             <div class="loyalty-card-face">
-              <img src="${PROFILE_CARD_ASSETS.loyaltyFront}" alt="Loyalty card front" class="${prefix}-loyalty-front-img" />
+              <img src="${deliverySrc(PROFILE_CARD_ASSETS.loyaltyFront, 800)}" alt="Loyalty card front" class="${prefix}-loyalty-front-img" loading="lazy" decoding="async" />
             </div>
             <div class="loyalty-card-face loyalty-card-back">
-              <img src="${PROFILE_CARD_ASSETS.loyaltyBack}" alt="Loyalty card back" />
+              <img src="${deliverySrc(PROFILE_CARD_ASSETS.loyaltyBack, 800)}" alt="Loyalty card back" loading="lazy" decoding="async" />
               <div class="loyalty-stamp-overlay" aria-hidden="true">
                 ${loyaltyStampSlots(stampCount, birthdayLocked)}
               </div>
@@ -169,10 +170,10 @@ export function getProfileCardsMarkup({
         <div class="egift-scene">
           <div class="egift-flip-card" id="${prefix}-egift-card">
             <div class="egift-card-face">
-              <img src="${PROFILE_CARD_ASSETS.egiftFront}" alt="E-Gift card front" class="${prefix}-egift-front-img" />
+              <img src="${deliverySrc(PROFILE_CARD_ASSETS.egiftFront, 800)}" alt="E-Gift card front" class="${prefix}-egift-front-img" loading="lazy" decoding="async" />
             </div>
             <div class="egift-card-face egift-card-back">
-              <img src="${PROFILE_CARD_ASSETS.egiftBack}" alt="E-Gift card back" />
+              <img src="${deliverySrc(PROFILE_CARD_ASSETS.egiftBack, 800)}" alt="E-Gift card back" loading="lazy" decoding="async" />
               <div class="egift-fields-overlay">
                 <div class="egift-field-box egift-field-box--readonly">${escapeHtml(egift.to ?? "")}</div>
                 <div class="egift-field-box egift-field-box--readonly">${escapeHtml(egift.from ?? "")}</div>

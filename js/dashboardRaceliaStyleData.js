@@ -50,6 +50,7 @@ export function saveStyleLooks(looks) {
 /** Format consumed by storefront #RACÈLIASTYLE grid. */
 export function getStorefrontStyleLooks() {
   return loadStyleLooks().map((look) => ({
+    id: look.id,
     img: look.image,
     title: look.title || "",
     tag: look.tag || "Demo",

@@ -17,6 +17,13 @@ import { queueClientReviewForModeration } from "./dashboardReviewsData.js";
 import { openPdpAddedOverlay } from "./cartAddedOverlay.js";
 import { setFormStatus } from "./formStatus.js";
 import { setDrawerScrollLock, trapOverlayScroll } from "./overlayScroll.js";
+import {
+  applyResponsiveImage,
+  deliverySrc,
+  PDP_SIZES,
+  PDP_WIDTHS,
+  responsiveImgTag,
+} from "./imageDelivery.js";
 
 function escapeHtml(text) {
   return String(text)
@@ -98,9 +105,16 @@ function applyPdpColorImages(root, colorIndex = 0) {
   const slides = page.querySelector("#pdpSlides");
   if (slides && images.length) {
     slides.innerHTML = images
-      .map(
-        (src) =>
-          `<img src="${src}" alt="${catalogProduct.name}" loading="lazy" onerror="this.style.visibility='hidden'" />`
+      .map((src, index) =>
+        responsiveImgTag(src, {
+          alt: catalogProduct.name,
+          eager: index === 0,
+          priority: index === 0,
+          sizes: PDP_SIZES,
+          widths: PDP_WIDTHS,
+          keepOrigin: true,
+          extra: `onerror="this.style.visibility='hidden'"`,
+        })
       )
       .join("");
     slides.scrollTo({ left: 0 });
@@ -109,13 +123,15 @@ function applyPdpColorImages(root, colorIndex = 0) {
   const closerSection = page.querySelector(".pdp-closer-look:not(.pdp-closer-look--frame)");
   if (closerSection) {
     const img = closerSection.querySelector("img");
-    if (img && closer.image) img.src = closer.image;
+    if (img && closer.image) {
+      applyResponsiveImage(img, closer.image, { sizes: PDP_SIZES, widths: PDP_WIDTHS });
+    }
   }
 
   page.querySelectorAll(".pdp-closer-look--frame").forEach((section, index) => {
     const img = section.querySelector("img");
     const src = closer.extra?.[index];
-    if (img && src) img.src = src;
+    if (img && src) applyResponsiveImage(img, src, { sizes: PDP_SIZES, widths: PDP_WIDTHS });
   });
 
   initProductDetailSlider(root);
@@ -261,7 +277,11 @@ function renderCloserLookExtras(extras, productName) {
     .map(
       (src, index) => `
       <section class="pdp-closer-look pdp-closer-look--frame">
-        <img src="${src}" alt="${productName} détail ${index + 2}" loading="lazy" />
+        ${responsiveImgTag(src, {
+          alt: `${productName} détail ${index + 2}`,
+          sizes: PDP_SIZES,
+          widths: PDP_WIDTHS,
+        })}
       </section>`
     )
     .join("");
@@ -500,7 +520,17 @@ export function renderProductDetail(product) {
   );
 
   const images = product.images
-    .map((src) => `<img src="${src}" alt="${product.name}" loading="lazy" onerror="this.style.visibility='hidden'" />`)
+    .map((src, index) =>
+      responsiveImgTag(src, {
+        alt: product.name,
+        eager: index === 0,
+        priority: index === 0,
+        sizes: PDP_SIZES,
+        widths: PDP_WIDTHS,
+        keepOrigin: true,
+        extra: `onerror="this.style.visibility='hidden'"`,
+      })
+    )
     .join("");
 
   const dots = product.images
@@ -510,17 +540,22 @@ export function renderProductDetail(product) {
     )
     .join("");
 
-  const stockBadge = product.stockNote
-    ? `<span class="pdp-badge pdp-badge--${product.stockNote}">${
-        product.stockNote === "sold-out"
-          ? "ÉPUISÉ"
-          : product.stockNote === "dispo"
-            ? "DISPO"
-            : product.stockNote === "not"
-              ? "INDISPONIBLE"
-              : "NOUVEAU"
-      }</span>`
-    : "";
+  const stockNotes = product.stockNotes?.length
+    ? product.stockNotes
+    : product.stockNote
+      ? [product.stockNote]
+      : [];
+  const stockBadgeText = {
+    "sold-out": "ÉPUISÉ",
+    dispo: "DISPO",
+    not: "INDISPONIBLE",
+    new: "NOUVEAU",
+    "best-sellers": "BEST-SELLERS",
+  };
+  const stockBadge = stockNotes
+    .filter((note) => stockBadgeText[note])
+    .map((note) => `<span class="pdp-badge pdp-badge--${note}">${stockBadgeText[note]}</span>`)
+    .join("");
   const tagBadge = product.tag ? `<span class="pdp-badge pdp-badge--tag">${product.tag}</span>` : "";
   const packBadge = product.isPack
     ? `<span class="pdp-badge pdp-badge--pack">${product.packLabel || "PACK"}</span>`
@@ -568,7 +603,11 @@ export function renderProductDetail(product) {
       <div class="pdp-title-block">
         <h1 class="pdp-title">${product.name}</h1>
         <div class="pdp-badges">${stockBadge}${tagBadge}${packBadge}</div>
-        <div class="pdp-price" data-price-eur="${product.priceEur ?? ""}">${product.price}</div>
+        <div class="pdp-price" data-price-eur="${product.priceEur ?? ""}">${
+          product.isPromo && product.compareAtPrice
+            ? `<span class="pdp-price-was" data-price-eur="${product.compareAtEur ?? ""}">${product.compareAtPrice}</span><span class="pdp-price-now" data-price-eur="${product.priceEur ?? ""}">${product.price}</span>`
+            : product.price
+        }</div>
         <p class="pdp-color-label">Couleur <span class="pdp-color-name" id="pdpColorName"${initialColorName ? "" : " hidden"}>${escapeHtml(initialColorName)}</span></p>
         <div class="pdp-swatches">${swatches}</div>
         ${stockLine}
@@ -605,7 +644,11 @@ export function renderProductDetail(product) {
 
     <div class="pdp-lower">
       <section class="pdp-closer-look">
-        <img src="${product.closerLook.image}" alt="${product.closerLook.title}" loading="lazy" />
+        ${responsiveImgTag(product.closerLook.image, {
+          alt: product.closerLook.title,
+          sizes: PDP_SIZES,
+          widths: PDP_WIDTHS,
+        })}
         <h2 class="pdp-cl-title">${product.closerLook.title}</h2>
         <p class="pdp-cl-text">${product.closerLook.text}</p>
       </section>
@@ -781,7 +824,7 @@ export function initProductDetailSlider(root) {
     thumbs.innerHTML = images
       .map(
         (img, index) =>
-          `<button type="button" class="pdp-thumb${index === 0 ? " is-active" : ""}" data-thumb-index="${index}" aria-label="Image ${index + 1}"><img src="${img.getAttribute("src") || ""}" alt="" /></button>`
+          `<button type="button" class="pdp-thumb${index === 0 ? " is-active" : ""}" data-thumb-index="${index}" aria-label="Image ${index + 1}"><img src="${escapeHtml(deliverySrc(img.dataset.origin || img.getAttribute("src") || "", 160))}" alt="" /></button>`
       )
       .join("");
   }

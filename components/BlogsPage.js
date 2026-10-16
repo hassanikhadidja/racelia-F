@@ -8,7 +8,7 @@ export function createBlogsPage() {
 
   page.innerHTML = `
     <div class="blogs-page__list-view" id="blogsListView">
-      <h1 class="blogs-page__title">Métiers d'Art</h1>
+      <h1 class="blogs-page__title">L’ART DU GESTE</h1>
       <p class="blogs-page__sub">Récits, savoir-faire et collections de RACÈLIA.</p>
       <div class="blogs-page__grid" id="blogsGrid"></div>
       <p class="blogs-page__empty" id="blogsEmpty" hidden>Aucune histoire publiée pour le moment. Revenez bientôt.</p>

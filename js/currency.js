@@ -127,6 +127,7 @@ export function formatProductPrice(priceTextOrEurOrProduct) {
 
 export function refreshDisplayedPrices(root = document) {
   root.querySelectorAll("[data-price-eur]").forEach((el) => {
+    if (el.querySelector("[data-price-eur]")) return;
     const eur = parseFloat(el.dataset.priceEur) || 0;
     el.textContent = formatPrice(eur);
   });

@@ -7,6 +7,7 @@ import { formatPrice, parsePriceFromCatalog, upsertBagLineItem, refreshShoppingB
 import { syncBagCountFromDom } from "./cart.js";
 import { openPdpAddedOverlay } from "./cartAddedOverlay.js";
 import { initProductSliders } from "./productSliders.js";
+import { responsiveImgTag } from "./imageDelivery.js";
 
 const CART_PREFIX = "raceliaClientCart:";
 const WISHLIST_PREFIX = "raceliaClientWishlist:";
@@ -243,7 +244,7 @@ function renderWishlistItem(item) {
       )}</p>`
     : "";
   const imageHtml = item.imageUrl
-    ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name)}" loading="lazy" />`
+    ? responsiveImgTag(item.imageUrl, { alt: item.name, widths: [160, 320], sizes: "120px" })
     : `<svg class="bag-svg" viewBox="0 0 120 96" aria-hidden="true"><rect x="8" y="24" width="104" height="64" rx="4" fill="#e8e8e8"/></svg>`;
 
   const el = document.createElement("div");
@@ -354,6 +355,7 @@ export function toggleWishlistProduct(root, btn) {
   renderWishlistPage(root);
   syncWishlistHeartStates(root);
   persistClientWishlist();
+  root.dispatchEvent(new CustomEvent("racelia:wishlist-changed"));
   return true;
 }
 
