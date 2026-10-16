@@ -27,7 +27,7 @@ export default function Home() {
       mountRaceliaApp(el);
       const loadLater = () => loadDeferredStyles();
       if ("requestIdleCallback" in window) window.requestIdleCallback(loadLater, { timeout: 1800 });
-      else window.setTimeout(loadLater, 700);
+      else setTimeout(loadLater, 700);
       return;
     }
     loadDeferredStyles().then(() => {
