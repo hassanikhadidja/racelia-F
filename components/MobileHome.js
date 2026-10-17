@@ -51,7 +51,7 @@ export function createMobileHome() {
       </div>
       <div class="mobile-home__kids">
         <button type="button" class="mobile-home__kids-hero" data-mall-page="petite-princesse" data-i18n-aria="home.mall.shop" aria-label="Découvrir">
-          <img src="/images/kids-hero.png" alt="" loading="lazy" decoding="async" />
+          <img alt="" decoding="async" />
         </button>
       </div>
       <div class="mobile-home__wave" aria-hidden="true">

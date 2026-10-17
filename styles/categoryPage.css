@@ -179,6 +179,10 @@
   background: #b91c1c;
 }
 
+.category-product__note--promo {
+  background: #9a1b2f;
+}
+
 .category-product .meta {
   display: flex;
   align-items: flex-start;

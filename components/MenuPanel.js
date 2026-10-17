@@ -1,6 +1,5 @@
 import { wishlistIcon, accountIcon, closeIcon } from "./icons.js";
 import { STORY_ITEMS } from "../js/homeStories.js";
-import { deliverySrc } from "../js/imageDelivery.js";
 import { createRaceliaStyleView } from "./RaceliaStyleView.js";
 
 const storyImage = (id) => STORY_ITEMS.find((item) => item.id === id)?.image || "";
@@ -46,8 +45,11 @@ function pickButton(item) {
   image.width = 46;
   image.height = 46;
   image.decoding = "async";
-  image.loading = "lazy";
-  image.src = deliverySrc(item.image, 96);
+  image.dataset.deferSrc = item.image;
+  image.dataset.deferWidth = "96";
+  image.dataset.deferWidths = "96";
+  image.dataset.deferSizes = "46px";
+  image.dataset.deferEager = "1";
 
   const label = document.createElement("span");
   label.dataset.i18n = item.i18n;

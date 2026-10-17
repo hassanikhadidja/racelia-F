@@ -9,7 +9,7 @@ import { updateCtaDock, getActiveDockSlot, isOnProductDetailPage } from "./ctaDo
 import { closeStyleSheet } from "./raceliaStyle.js";
 import { initStyleBoard, renderStyleBoard } from "./raceliaStyleBoard.js";
 import { initProductSliders } from "./productSliders.js";
-import { deliverySrc, responsiveImgTag } from "./imageDelivery.js";
+import { deliverySrc, releaseDeferredImages, responsiveImgTag } from "./imageDelivery.js";
 import { updateTopbar } from "./topbar.js";
 import { getAuthToken, isAdminUser } from "./api.js";
 import { updateAccountButtons } from "./accountUi.js";
@@ -1260,7 +1260,10 @@ export function showBoutiques(root, { query = "" } = {}) {
 
   hideAllPages(root);
   const boutiquesPage = root.querySelector("#boutiquesPage");
-  if (boutiquesPage) boutiquesPage.hidden = false;
+  if (boutiquesPage) {
+    boutiquesPage.hidden = false;
+    releaseDeferredImages(boutiquesPage);
+  }
 
   closeOverlays(root);
   attachSelectionWidget(root);

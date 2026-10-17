@@ -45,7 +45,6 @@ export default function RootLayout({
     <html lang="fr" className="h-full antialiased" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://res.cloudinary.com" />
-        <link rel="preconnect" href="https://images.unsplash.com" />
         <script
           dangerouslySetInnerHTML={{
             __html: `try{if(localStorage.getItem("raceliaHighContrast")==="1")document.documentElement.classList.add("high-contrast")}catch(e){}try{var h=location.hash.replace(/^#/,"");if(h&&h!=="home")document.documentElement.classList.add("lcp-off")}catch(e){}`,

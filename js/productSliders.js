@@ -1,4 +1,4 @@
-import { responsiveImgTag } from "./imageDelivery.js";
+import { applyResponsiveImage, deferredImgTag, responsiveImgTag } from "./imageDelivery.js";
 
 const ARROW_SVG =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
@@ -30,13 +30,21 @@ export function initProductSliders(root, scope = root) {
     const imgwrap = product.querySelector(".imgwrap");
     if (!slides || !underline) return;
 
-    const inFeed = Boolean(product.closest("#mobileHomeFeed"));
+    const mobile = window.matchMedia("(max-width: 1023px)").matches;
+    if (!mobile && product.closest("#mobileHome")) return;
+    if (mobile && product.closest("#pageMain") && !product.closest("#mobileHome")) return;
+
+    const feed = product.closest("#mobileHomeFeed, #categoryProducts");
+    const cardIndex = feed ? [...feed.querySelectorAll(".product")].indexOf(product) : 0;
+    const eagerCover = cardIndex >= 0 && cardIndex < 4;
     slides.innerHTML = imgs
       .map((src, index) =>
-        responsiveImgTag(src, {
-          eager: inFeed && index === 0,
-          extra: `onerror="this.style.visibility='hidden'"`,
-        })
+        index === 0
+          ? responsiveImgTag(src, {
+              eager: eagerCover,
+              extra: `onerror="this.style.visibility='hidden'"`,
+            })
+          : deferredImgTag(src, { extra: `onerror="this.style.visibility='hidden'"` })
       )
       .join("");
 
@@ -68,6 +76,12 @@ export function initProductSliders(root, scope = root) {
         if (!sources.length) return;
         const index =
           (currentIndex(slides, sources.length) + delta + sources.length) % sources.length;
+        const upcoming = slides.children[index];
+        const upcomingSrc = upcoming?.dataset?.deferSrc;
+        if (upcoming && upcomingSrc) {
+          applyResponsiveImage(upcoming, upcomingSrc, { eager: true });
+          delete upcoming.dataset.deferSrc;
+        }
         slides.scrollTo({
           left: index * slides.clientWidth,
           behavior: "smooth",
@@ -146,6 +160,19 @@ export function initProductSliders(root, scope = root) {
         fill.style.left = `${(index / sources.length) * 100}%`;
       });
 
+      const loadNearby = () => {
+        const sources = (product.dataset.images || "").split("|").filter(Boolean);
+        const index = currentIndex(slides, sources.length);
+        [index - 1, index, index + 1].forEach((slot) => {
+          const img = slides.children[slot];
+          const url = img?.dataset?.deferSrc;
+          if (!img || !url) return;
+          applyResponsiveImage(img, url, { eager: true });
+          delete img.dataset.deferSrc;
+        });
+      };
+      slides.addEventListener("pointerdown", loadNearby, { passive: true });
+
       let raf;
       slides.addEventListener(
         "scroll",
@@ -156,6 +183,7 @@ export function initProductSliders(root, scope = root) {
             const index = currentIndex(slides, sources.length);
             fill.style.width = `${100 / sources.length}%`;
             fill.style.left = `${(index / sources.length) * 100}%`;
+            loadNearby();
           });
         },
         { passive: true }

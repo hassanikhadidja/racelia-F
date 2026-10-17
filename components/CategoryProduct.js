@@ -8,7 +8,8 @@ export function createCategoryProduct(product) {
   card.dataset.images = product.images.join("|");
   const unavailable = isProductUnavailableToBuy(product);
 
-  const swatchesHtml = product.swatches
+  const swatches = Array.isArray(product.swatches) ? product.swatches : [];
+  const swatchesHtml = swatches
     .map(
       (color, index) => {
         const hex = typeof color === "string" ? color : color.hex;
@@ -19,6 +20,12 @@ export function createCategoryProduct(product) {
       }
     )
     .join("");
+  const swatchesBlock =
+    swatches.length > 1
+      ? `<div class="category-product__swatches-wrap">
+      <div class="category-product__swatches">${swatchesHtml}</div>
+    </div>`
+      : "";
 
   const stockNotes = product.stockNotes?.length
     ? product.stockNotes
@@ -31,13 +38,17 @@ export function createCategoryProduct(product) {
     not: "NON",
     new: "NOUVEAU",
   };
-  const noteHtml = stockNotes
-    .filter((note) => noteText[note])
-    .map(
-      (note) =>
-        `<span class="category-product__note category-product__note--${note}">${noteText[note]}</span>`
-    )
-    .join("");
+  const noteHtml = [
+    product.isPromo
+      ? `<span class="category-product__note category-product__note--promo">PROMO</span>`
+      : "",
+    ...stockNotes
+      .filter((note) => noteText[note])
+      .map(
+        (note) =>
+          `<span class="category-product__note category-product__note--${note}">${noteText[note]}</span>`
+      ),
+  ].join("");
   const tagHtml = product.tag
     ? `<span class="category-product__tag">${product.tag}</span>`
     : "";
@@ -69,9 +80,7 @@ export function createCategoryProduct(product) {
         ${wishlistIcon}
       </button>
     </div>
-    <div class="category-product__swatches-wrap">
-      <div class="category-product__swatches">${swatchesHtml}</div>
-    </div>
+    ${swatchesBlock}
     <div class="category-product__price" data-price-eur="${product.priceEur ?? ""}">
       ${
         product.isPromo && product.compareAtPrice

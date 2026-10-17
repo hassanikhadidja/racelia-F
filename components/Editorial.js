@@ -23,10 +23,27 @@ export function createEditorial({
 
   const img = document.createElement("img");
   img.alt = "Editorial";
-  applyResponsiveImage(img, image, { sizes: EDITORIAL_SIZES, widths: EDITORIAL_WIDTHS });
+  img.decoding = "async";
   img.onerror = () => {
     img.style.display = "none";
   };
+  const load = () => {
+    applyResponsiveImage(img, image, { sizes: EDITORIAL_SIZES, widths: EDITORIAL_WIDTHS });
+    img.fetchPriority = "low";
+  };
+  if (typeof IntersectionObserver === "function") {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        load();
+        observer.disconnect();
+      },
+      { rootMargin: "240px" }
+    );
+    observer.observe(media);
+  } else {
+    load();
+  }
   media.appendChild(img);
 
   if (overlay) {

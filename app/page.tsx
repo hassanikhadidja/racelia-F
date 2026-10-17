@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { mountRaceliaApp } from "@/js/index";
 import { loadDeferredStyles } from "@/js/deferredStyles";
-import { heroImage } from "@/js/data";
+import { heroImage, toutHeroImage } from "@/js/data";
 import { heroDelivery } from "@/js/imageDelivery";
 import "@/styles/racelia.css";
 import "@/styles/footer.css";
@@ -36,6 +36,8 @@ export default function Home() {
   }, []);
 
   return (
+    <>
+    <link rel="preload" as="image" href={toutHeroImage} media="(max-width: 1023px)" fetchPriority="high" />
     <div
       ref={rootRef}
       id="racelia-app"
@@ -44,10 +46,7 @@ export default function Home() {
       <section className="hero reveal in" id="ssrHero">
         <div className="hero-frame">
           <picture>
-            <source
-              media="(max-width: 1023px)"
-              srcSet="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAICTAEAOw=="
-            />
+            <source media="(max-width: 1023px)" srcSet={toutHeroImage} />
             <img
               src={hero.src}
               srcSet={hero.srcSet}
@@ -65,5 +64,6 @@ export default function Home() {
         </div>
       </section>
     </div>
+    </>
   );
 }

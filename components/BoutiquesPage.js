@@ -20,13 +20,15 @@ export function createBoutiquesPage() {
     <div class="boutiques-page__inner">
       <section class="boutiques-hero" aria-label="Boutiques RACÈLIA">
         <picture>
-          <source media="(min-width: 1024px)" srcset="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80" />
+          <source media="(min-width: 1024px)" data-defer-srcset="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=1600&q=80" />
           <img
-            src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=70"
+            data-defer-src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=70"
+            data-defer-width="900"
+            data-defer-widths="640,900,1400"
+            data-defer-sizes="100vw"
             alt="Retrouvez RACÈLIA en boutique"
             width="900"
             height="500"
-            loading="lazy"
             decoding="async"
           />
         </picture>

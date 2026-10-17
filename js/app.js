@@ -16,6 +16,7 @@ import { applyHomeTab, initMobileHome, renderMobileHome } from "./mobileHome.js"
 import { initClientCartWishlist, syncWishlistHeartStates } from "./clientCartWishlist.js";
 import { getSelectedAudience, setSelectedAudience } from "./audience.js";
 import { applyLocale, initI18n } from "./i18n.js";
+import { releaseDeferredImages, watchHiddenImages } from "./imageDelivery.js";
 
 function goHome(root) {
   const home = root.querySelector("#mobileHome");
@@ -23,9 +24,12 @@ function goHome(root) {
     home.dataset.tab = "tout";
     home.dataset.chip = "foryou";
     delete home.dataset.kidsFilter;
+    delete home.dataset.circle;
   }
   showHome(root, { selectionLabel: defaultSelection });
   applyHomeTab(root, "tout");
+  const tabs = home?.querySelector(".mobile-home__tabs");
+  if (tabs) tabs.scrollLeft = 0;
 }
 
 function initTopbar(root) {
@@ -289,6 +293,7 @@ function initMenu(root) {
 
   const openMenu = () => {
     applyAudienceMenu();
+    releaseDeferredImages(menuPanel);
     menuPanel.classList.add("open");
     menuPanel.setAttribute("aria-hidden", "false");
     menuBackdrop.classList.add("open");
@@ -487,6 +492,8 @@ export function initApp(root) {
   initMobileHome(root);
   renderHomeNewArrivals(root);
   root.dispatchEvent(new CustomEvent("racelia:reveal"));
+
+  watchHiddenImages(root);
 
   root.addEventListener("racelia:backend-synced", () => {
     refreshStyleGrid(root);

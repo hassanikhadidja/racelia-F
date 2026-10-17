@@ -1,5 +1,5 @@
 export const heroImage = "/images/hero-back-in-stock.jpg";
-export const toutHeroImage = "/images/hero-tout.jpg?v=3";
+export const toutHeroImage = "/images/hero-tout.jpg?v=4";
 
 export const editorialImage = "/images/editorial-home.jpg";
 

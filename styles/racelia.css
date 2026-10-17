@@ -2605,6 +2605,12 @@ body.menu-open {
     cursor: pointer;
   }
 
+  .mobile-home__photo,
+  .mobile-home--poster .mobile-home__campaign-cta,
+  .mobile-home__kids-hero {
+    cursor: default;
+  }
+
   #mobileHome:not(.mobile-home--poster):not(.mobile-home--kids) .mobile-home__photo {
     top: 0;
     left: 0;
@@ -3574,7 +3580,7 @@ body.menu-open {
     padding: 0;
     border: 0;
     background: none;
-    cursor: pointer;
+    cursor: default;
   }
 
   .mobile-home__kids-hero img {

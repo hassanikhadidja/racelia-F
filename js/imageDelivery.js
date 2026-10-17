@@ -108,6 +108,48 @@ export function heroDelivery(url) {
   };
 }
 
+export function deferredImgTag(url, { extra = "" } = {}) {
+  const extraAttr = extra ? ` ${extra}` : "";
+  return `<img alt="" data-defer-src="${escapeAttr(url)}" decoding="async"${extraAttr}>`;
+}
+
+export function releaseDeferredImages(scope) {
+  if (!scope) return;
+  scope.querySelectorAll("source[data-defer-srcset]").forEach((source) => {
+    source.srcset = source.dataset.deferSrcset;
+    delete source.dataset.deferSrcset;
+  });
+  scope.querySelectorAll("img[data-defer-src]").forEach((img) => {
+    const url = img.dataset.deferSrc;
+    if (!url || img.getAttribute("src")) return;
+    if (img.closest("[hidden]")) return;
+    if (img.dataset.deferPlain === "1") {
+      const heldSet = img.dataset.deferSrcset;
+      if (heldSet) {
+        img.srcset = heldSet;
+        delete img.dataset.deferSrcset;
+      }
+      img.decoding = "async";
+      img.loading = "lazy";
+      img.src = url;
+      delete img.dataset.deferSrc;
+      delete img.dataset.deferPlain;
+      return;
+    }
+    const widths = img.dataset.deferWidths
+      ? img.dataset.deferWidths.split(",").map((value) => Number(value)).filter(Boolean)
+      : undefined;
+    applyResponsiveImage(img, url, {
+      eager: img.dataset.deferEager === "1",
+      priority: img.dataset.deferPriority === "1",
+      sizes: img.dataset.deferSizes || undefined,
+      widths,
+      width: img.dataset.deferWidth ? Number(img.dataset.deferWidth) : undefined,
+    });
+    delete img.dataset.deferSrc;
+  });
+}
+
 export function applyResponsiveImage(img, url, options = {}) {
   if (!img || !url) return;
   const widths = options.widths || CARD_WIDTHS;
@@ -132,4 +174,29 @@ export function applyResponsiveImage(img, url, options = {}) {
   }
   img.src = src;
   if (options.keepOrigin) img.dataset.origin = url;
+}
+
+export function watchHiddenImages(root) {
+  if (!root || root.dataset.hiddenImagesWatch === "1") return;
+  root.dataset.hiddenImagesWatch = "1";
+  root.querySelectorAll("[hidden] img[src]").forEach((img) => {
+    if (img.dataset.deferSrc) return;
+    img.dataset.deferSrc = img.getAttribute("src");
+    img.dataset.deferPlain = "1";
+    const srcset = img.getAttribute("srcset");
+    if (srcset) {
+      img.dataset.deferSrcset = srcset;
+      img.removeAttribute("srcset");
+    }
+    img.removeAttribute("src");
+  });
+  const observer = new MutationObserver((records) => {
+    records.forEach((record) => {
+      const el = record.target;
+      if (el instanceof Element && !el.hasAttribute("hidden")) releaseDeferredImages(el);
+    });
+  });
+  root.querySelectorAll("[hidden]").forEach((el) => {
+    observer.observe(el, { attributes: true, attributeFilter: ["hidden"] });
+  });
 }

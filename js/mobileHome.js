@@ -1151,14 +1151,11 @@ function renderCampaign(root, tabId) {
     dots.replaceChildren();
     applyResponsiveImage(photo, toutHeroImage, {
       eager: true,
+      priority: true,
       sizes: HERO_SIZES,
       widths: HERO_WIDTHS,
     });
-    const featured = toutFeaturedProduct();
-    if (photo && featured) {
-      photo.dataset.mallProduct = featured.id;
-      photo.alt = featured.name;
-    } else if (photo) {
+    if (photo) {
       delete photo.dataset.mallProduct;
       photo.alt = "";
     }
@@ -1416,6 +1413,8 @@ function onMobileHomeClick(root, event) {
     return;
   }
 
+  if (event.target.closest(".mobile-home__photo, .mobile-home__campaign-cta, .mobile-home__kids-hero")) return;
+
   const circle = event.target.closest("[data-mall-page]");
   if (circle) {
     const leaveHomeAudience =
@@ -1638,6 +1637,12 @@ function homeKidsItems() {
 function renderKidsBoard(host) {
   const grid = host.querySelector(".mobile-home__kids-grid");
   if (!grid) return;
+  const kidsOn =
+    host.classList.contains("mobile-home--kids") || host.classList.contains("category-mall--kids");
+  if (!kidsOn) {
+    grid.replaceChildren();
+    return;
+  }
   const age = host.dataset.kidsFilter || "";
   host.querySelectorAll(".mobile-home__kids-head [data-kids-age]").forEach((button) => {
     const on = (button.dataset.kidsAge || "") === age;
@@ -1723,6 +1728,7 @@ function onCategoryMallClick(root, event) {
   }
 
   if (event.target.closest("[data-mall-jump]")) {
+    if (event.target.closest(".mobile-home__campaign-cta, .mobile-home__photo, .mobile-home__kids-hero")) return;
     root.querySelector("#categoryProducts")?.scrollIntoView({ behavior: "smooth", block: "start" });
     return;
   }
@@ -1740,7 +1746,7 @@ function onCategoryMallClick(root, event) {
   }
 
   const page = event.target.closest("[data-mall-page]");
-  if (!page) return;
+  if (!page || page.closest(".mobile-home__photo, .mobile-home__campaign-cta, .mobile-home__kids-hero")) return;
   const detail = railCategoryDetail(page, root.querySelector("#mobileHome")?.dataset.tab || "");
   root.dispatchEvent(new CustomEvent("racelia:open-category", { detail }));
 }

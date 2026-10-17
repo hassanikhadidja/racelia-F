@@ -47,7 +47,8 @@ function createStoryButton(item) {
 
   const thumb = document.createElement("span");
   thumb.className = "home-stories__thumb";
-  if (item.image) {
+  const onMobile = window.matchMedia("(max-width: 1023px)").matches;
+  if (item.image && !onMobile) {
     const img = document.createElement("img");
     img.alt = "";
     applyResponsiveImage(img, item.image, { width: 96, widths: [48, 96], sizes: "34px" });
@@ -57,7 +58,7 @@ function createStoryButton(item) {
   const labelText = t(item.i18n);
   btn.setAttribute("aria-label", labelText);
 
-  if (item.labelImage) {
+  if (item.labelImage && !onMobile) {
     const mark = document.createElement("img");
     mark.className = "home-stories__mark";
     mark.alt = "";

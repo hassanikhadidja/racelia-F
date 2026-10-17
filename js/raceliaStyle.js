@@ -206,6 +206,8 @@ function renderStyleGrid(root) {
 export function refreshStyleGrid(root) {
   const grid = root.querySelector("#styleGrid");
   if (grid) delete grid.dataset.ready;
+  const styleOpen = root.querySelector("#menuPanel")?.classList.contains("menu-panel--style");
+  if (!styleOpen) return;
   bindStyleSheet(root);
   renderStyleGrid(root);
 }
@@ -239,7 +241,6 @@ function initStyleSearch(root) {
 
 export function initRaceliaStyle(root) {
   initStyleSearch(root);
-  ensureStyleGrid(root);
   if (!root.dataset.styleLooksListener) {
     root.addEventListener("racelia:style-looks-updated", () => refreshStyleGrid(root));
     root.dataset.styleLooksListener = "true";
