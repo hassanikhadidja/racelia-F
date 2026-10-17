@@ -2605,6 +2605,17 @@ body.menu-open {
     cursor: pointer;
   }
 
+  #mobileHome:not(.mobile-home--poster):not(.mobile-home--kids) .mobile-home__photo {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    transform: none;
+    object-fit: cover;
+    object-position: center center;
+  }
+
   .mobile-home__stage::before {
     content: "";
     position: absolute;
@@ -3042,6 +3053,13 @@ body.menu-open {
   }
 
   .mobile-home--poster .mobile-home__photo {
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    transform: none;
+    object-fit: cover;
     object-position: center center;
   }
 
@@ -3476,6 +3494,20 @@ body.menu-open {
     transform: translateX(-50%);
     object-fit: cover;
     object-position: center center;
+  }
+
+  #mobileHome.mobile-home--kids .mobile-home__stage {
+    width: 100%;
+    max-width: none;
+  }
+
+  #mobileHome.mobile-home--kids .mobile-home__photo,
+  #mobileHome.mobile-home--kids .mobile-home__kids {
+    left: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    transform: none;
   }
 
   .mobile-home--kids .mobile-home__kids-board,

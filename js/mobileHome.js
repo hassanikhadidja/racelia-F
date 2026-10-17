@@ -51,7 +51,7 @@ const STORY_BY_ID = new Map(STORY_ITEMS.map((item) => [item.id, item]));
 const VIEWS = {
   chaussures: {
     poster: true,
-    banner: "/images/hero-chaussures.jpg",
+    banner: "/images/hero-chaussures.jpg?v=2",
     kicker: "home.mall.chaussures",
     title: "home.mall.view.homme.title",
     page: "nouveautes",
@@ -60,7 +60,7 @@ const VIEWS = {
   },
   bijoux: {
     poster: true,
-    banner: "/images/hero-accessories.jpg",
+    banner: "/images/hero-accessories.jpg?v=2",
     kicker: "home.mall.bijoux",
     title: "home.mall.view.femme.title",
     page: "parfums-feminins",
@@ -89,7 +89,7 @@ const VIEWS = {
   homme: {
     audience: "homme",
     poster: true,
-    banner: "/images/hero-homme.jpg",
+    banner: "/images/hero-homme.jpg?v=2",
     kicker: "home.mall.view.homme.kicker",
     title: "home.mall.view.homme.title",
     page: "homme",
@@ -98,7 +98,7 @@ const VIEWS = {
   },
   sacs: {
     poster: true,
-    banner: "/images/hero-sacs.jpg",
+    banner: "/images/hero-sacs.jpg?v=2",
     kicker: "home.mall.view.sacs.kicker",
     title: "home.mall.view.sacs.title",
     page: "sacs",
@@ -108,7 +108,7 @@ const VIEWS = {
   mariee: {
     audience: "mariee",
     poster: true,
-    banner: "/images/hero-mariee.jpg",
+    banner: "/images/hero-mariee.jpg?v=2",
     kicker: "home.mall.view.mariee.kicker",
     title: "home.mall.view.mariee.title",
     page: "mariee",
@@ -118,7 +118,7 @@ const VIEWS = {
   hammam: {
     audience: "hammam",
     poster: true,
-    banner: "/images/hero-hammam.jpg",
+    banner: "/images/hero-hammam.jpg?v=2",
     kicker: "home.mall.view.hammam.kicker",
     title: "home.mall.view.hammam.title",
     page: "hammam",
@@ -196,7 +196,7 @@ const COLLECTION_MALL = {
     kicker: "home.mall.marque",
     titleText: "RACÈLIA",
     poster: true,
-    banner: "/images/hero-marque-racelia.jpg",
+    banner: "/images/hero-marque-racelia.jpg?v=2",
     story: "banane",
     rails: [],
     circles: ["tendance", "luxe", "year", "lacos"],
@@ -212,7 +212,7 @@ const COLLECTION_MALL = {
     kicker: "home.mall.marque",
     titleText: "CC",
     poster: true,
-    banner: "/images/hero-marque-cc.jpg",
+    banner: "/images/hero-marque-cc.jpg?v=2",
     story: "year",
     rails: [],
     circles: ["cc-sacs", "cc-accessories", "cc-chaussures"],
@@ -249,7 +249,7 @@ const COLLECTION_MALL = {
     kicker: "home.stories.lacos",
     title: "home.mall.view.femme.title",
     poster: true,
-    banner: "/images/hero-parfums-buy.jpg",
+    banner: "/images/hero-parfums-buy.jpg?v=2",
     story: "lacos",
     rails: [],
     circles: ["parfum-racelia", "parfum-brumes", "parfum-fragrances"],
@@ -481,7 +481,7 @@ function renderPicks(root, products) {
   const product = (section?.dataset.tab === "tout" ? toutFeaturedProduct() : null) || products[0];
   if (!product) return;
 
-  ["/images/pick-tout-1.png", "/images/pick-tout-2.png"].forEach((src) => {
+  ["/images/pick-tout-1.jpg?v=2", "/images/pick-tout-2.jpg?v=2"].forEach((src) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "mobile-home__pick";
@@ -1017,6 +1017,7 @@ function paintImage(img, urls) {
 }
 
 const KIDS_HERO = "/images/kids-hero.png";
+const HOME_KIDS_HERO = "/images/hero-enfants.jpg?v=1";
 
 const RAIL_IMAGES = {
   nouveautes: "/images/rail-nouveautes.jpg",
@@ -1083,12 +1084,12 @@ function slidesFor(tabId) {
   return slides;
 }
 
-function applyKidsHeroPhoto(section) {
+function applyKidsHeroPhoto(section, src = KIDS_HERO) {
   const photo = section?.querySelector(".mobile-home__photo");
   if (!photo) return;
-  applyResponsiveImage(photo, KIDS_HERO, {
+  applyResponsiveImage(photo, src, {
     eager: true,
-    sizes: "375px",
+    sizes: "100vw",
     widths: [375, 750],
   });
 }
@@ -1330,7 +1331,7 @@ export function renderMobileHome(root) {
   const listed = productsForTab(tab);
   syncPressed(section);
   renderCampaign(root, tab);
-  if (kids) applyKidsHeroPhoto(section);
+  if (kids) applyKidsHeroPhoto(section, HOME_KIDS_HERO);
   renderRails(root, tab);
   renderPicks(root, listed);
   renderCircles(root, tab);
