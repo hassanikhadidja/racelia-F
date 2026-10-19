@@ -47,7 +47,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://res.cloudinary.com" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem("raceliaHighContrast")==="1")document.documentElement.classList.add("high-contrast")}catch(e){}try{var h=location.hash.replace(/^#/,"");if(h&&h!=="home")document.documentElement.classList.add("lcp-off")}catch(e){}`,
+            __html: `document.documentElement.classList.add("high-contrast");try{var h=location.hash.replace(/^#/,"");if(h&&h!=="home")document.documentElement.classList.add("lcp-off")}catch(e){}`,
           }}
         />
       </head>

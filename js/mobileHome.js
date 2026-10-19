@@ -159,8 +159,6 @@ const PAGE_STORY = {
   "icons-cc": "year",
 };
 
-const BAG_RAILS = ["racelia-handbag", "icons-cc", "mini-bags", "moms-bags", "nouveautes"];
-const BAG_CIRCLES = ["banane", "year", "luxe", "tendance"];
 const KID_RAILS = ["fille-6-14", "garcon-6-14", "fille-0-6", "garcon-0-6", "petite-princesse"];
 
 const COLLECTION_MALL = {
@@ -171,27 +169,6 @@ const COLLECTION_MALL = {
     rails: [],
     circles: [],
   },
-  "all-selection": {
-    kicker: "home.mall.view.sacs.kicker",
-    title: "home.mall.view.sacs.title",
-    story: "year",
-    rails: BAG_RAILS,
-    circles: BAG_CIRCLES,
-  },
-  sacs: {
-    kicker: "home.mall.view.sacs.kicker",
-    title: "home.mall.view.sacs.title",
-    banner: "/images/story-cc-bag.jpg",
-    rails: ["mini-bags", "racelia-handbag", "moms-bags", "nouveautes", "sacs"],
-    circles: ["banane", "year", "luxe", "tendance"],
-  },
-  "mini-bags": {
-    kicker: "mega.miniBags",
-    title: "home.mall.view.sacs.title",
-    story: "banane",
-    rails: ["mini-bags", "racelia-handbag", "icons-cc", "moms-bags", "nouveautes"],
-    circles: BAG_CIRCLES,
-  },
   "racelia-handbag": {
     kicker: "home.mall.marque",
     titleText: "RACÈLIA",
@@ -200,13 +177,6 @@ const COLLECTION_MALL = {
     story: "banane",
     rails: [],
     circles: ["tendance", "luxe", "year", "lacos"],
-  },
-  "moms-bags": {
-    kicker: "mega.momsBags",
-    title: "home.mall.view.femme.title",
-    story: "luxe",
-    rails: ["moms-bags", "racelia-handbag", "icons-cc", "mini-bags", "nouveautes"],
-    circles: ["luxe", "banane", "year", "tendance"],
   },
   "icons-cc": {
     kicker: "home.mall.marque",
@@ -1751,13 +1721,21 @@ function onCategoryMallClick(root, event) {
   root.dispatchEvent(new CustomEvent("racelia:open-category", { detail }));
 }
 
-export function applyHomeTab(root, tabId) {
+export function applyHomeTab(root, tabId, circle = "") {
   const section = root.querySelector("#mobileHome");
   if (!section) return;
   const next = TABS[tabId] ? tabId : "tout";
   section.dataset.tab = next;
+  if (circle) section.dataset.circle = circle;
+  else delete section.dataset.circle;
   setSelectedAudience(VIEWS[next]?.audience || "");
   renderMobileHome(root);
+  const tabButton = section.querySelector(`.mobile-home__tab[data-mall-tab="${next}"]`);
+  const scroller = tabButton?.closest(".mobile-home__tabs");
+  if (scroller && tabButton) {
+    const left = tabButton.offsetLeft - (scroller.clientWidth - tabButton.offsetWidth) / 2;
+    scroller.scrollTo({ left: Math.max(0, left) });
+  }
 }
 
 export function initMobileHome(root) {

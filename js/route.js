@@ -85,8 +85,14 @@ export function parseRoute(hash = window.location.hash) {
   const parts = raw.split("/").filter(Boolean);
 
   if (parts[0] === "category" && parts[1]) {
-    if (parts[1] === "metiers-dart") {
+    if (parts[1] === "metiers-dart" || parts[1] === "all-selection") {
       return { view: "category", categoryKey: "nouveautes" };
+    }
+    if (parts[1] === "moms-bags") {
+      return { view: "home", homeTab: "sacs", homeCircle: "sacs-moms" };
+    }
+    if (parts[1] === "mini-bags" || parts[1] === "sacs") {
+      return { view: "home", homeTab: "sacs" };
     }
     if (categoryPages[parts[1]]) {
       return { view: "category", categoryKey: parts[1] };

@@ -180,6 +180,7 @@ export function restoreRouteFromUrl(root) {
   try {
     if (route.view === "home") {
       showHome(root);
+      if (route.homeTab) applyHomeTab(root, route.homeTab, route.homeCircle || "");
       return;
     }
 
@@ -1400,8 +1401,18 @@ export function showBlogArticle(root, blogId) {
 }
 
 export function showCategory(root, pageKey, options = {}) {
-  if (pageKey === "metiers-dart") {
+  if (pageKey === "metiers-dart" || pageKey === "all-selection") {
     showCategory(root, "nouveautes", options);
+    return;
+  }
+  if (pageKey === "moms-bags") {
+    showHome(root);
+    applyHomeTab(root, "sacs", "sacs-moms");
+    return;
+  }
+  if (pageKey === "mini-bags" || pageKey === "sacs") {
+    showHome(root);
+    applyHomeTab(root, "sacs");
     return;
   }
 
@@ -1667,7 +1678,7 @@ export function initPages(root) {
   });
   root.addEventListener("racelia:open-home-tab", (event) => {
     showHome(root);
-    applyHomeTab(root, event.detail?.tab || "tout");
+    applyHomeTab(root, event.detail?.tab || "tout", event.detail?.circle || "");
   });
   root.addEventListener("racelia:open-search", (event) => {
     const query = event.detail?.query;

@@ -58,6 +58,17 @@ export function initFooter(root) {
     });
   });
 
+  root.querySelectorAll(".js-footer-home").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      event.preventDefault();
+      root.dispatchEvent(
+        new CustomEvent("racelia:open-home-tab", {
+          detail: { tab: link.dataset.homeTab || "tout", circle: link.dataset.homeCircle || "" },
+        })
+      );
+    });
+  });
+
   root.querySelectorAll(".js-footer-privacy").forEach((link) => {
     link.addEventListener("click", (event) => {
       event.preventDefault();
@@ -155,29 +166,8 @@ export function initFooter(root) {
     });
   });
 
-  const contrastToggle = root.querySelector("#contrastToggle");
-  const applyHighContrast = (on) => {
-    document.documentElement.classList.toggle("high-contrast", on);
-    document.body.classList.toggle("footer-hc", on);
-    contrastToggle?.classList.toggle("on", on);
-    try {
-      localStorage.setItem("raceliaHighContrast", on ? "1" : "0");
-    } catch {
-      /* ignore */
-    }
-  };
-
-  let contrastOn = false;
-  try {
-    contrastOn = localStorage.getItem("raceliaHighContrast") === "1";
-  } catch {
-    contrastOn = document.documentElement.classList.contains("high-contrast");
-  }
-  applyHighContrast(contrastOn);
-
-  contrastToggle?.addEventListener("click", () => {
-    applyHighContrast(!document.documentElement.classList.contains("high-contrast"));
-  });
+  document.documentElement.classList.add("high-contrast");
+  document.body.classList.add("footer-hc");
 
   initCurrencyControls(root);
   refreshDisplayedPrices(root);

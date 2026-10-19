@@ -54,8 +54,7 @@ export function createFooter() {
           <div class="col">
             <h3>Explorer RACÈLIA</h3>
             <ul>
-              <li><a href="#category/nouveautes" class="js-footer-category" data-category-key="nouveautes">L’ART DU GESTE Collection 2026</a></li>
-              <li><a href="#category/all-selection" class="js-footer-category" data-category-key="all-selection">Toute la sélection</a></li>
+              <li><a href="#category/nouveautes" class="js-footer-category" data-category-key="nouveautes">Toute la sélection</a></li>
               <li><a href="#raceliastyle" class="js-footer-style">#RACÈLIASTYLE</a></li>
             </ul>
           </div>
@@ -63,16 +62,14 @@ export function createFooter() {
           <div class="col">
             <h3>Sacs</h3>
             <ul>
-              <li><a href="#category/mini-bags" class="js-footer-category" data-category-key="mini-bags">Mini sacs</a></li>
               <li><a href="#category/racelia-handbag" class="js-footer-category" data-category-key="racelia-handbag">Le sac RACÈLIA</a></li>
-              <li><a href="#category/moms-bags" class="js-footer-category" data-category-key="moms-bags">Sacs Mom</a></li>
+              <li><a href="#home" class="js-footer-home" data-home-tab="sacs" data-home-circle="sacs-moms">Sacs Mom</a></li>
             </ul>
           </div>
 
           <div class="col">
             <h3>Services en ligne</h3>
             <ul>
-              <li><a href="#">Modes de paiement</a></li>
               <li><a href="#livraison" class="js-footer-shipping">Options de livraison</a></li>
               <li><a href="#account" class="js-footer-account">Mon compte</a></li>
               <li><a href="#retours" class="js-footer-returns">Retours</a></li>
@@ -83,17 +80,10 @@ export function createFooter() {
           <div class="col">
             <h3>La Maison RACÈLIA</h3>
             <ul>
-              <li><a href="#">Carrières</a></li>
               <li><a href="#conditions" class="js-footer-terms">Conditions d'utilisation</a></li>
               <li><a href="#confidentialite" class="js-footer-privacy">Confidentialité</a></li>
-              <li><a href="#boutiques" class="js-footer-boutiques">Boutiques</a></li>
             </ul>
           </div>
-        </div>
-
-        <div class="contrast-row">
-          <span>Activer le contraste élevé</span>
-          <button class="toggle" id="contrastToggle" type="button" aria-label="Basculer le contraste élevé"></button>
         </div>
 
         <div class="footer-meta">

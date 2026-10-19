@@ -130,7 +130,7 @@ export function getBuiltInCatalogProducts() {
       id: "demo-sac-mom-racelia",
       name: "Sac Mom RACÈLIA",
       tag: "SACS MOM",
-      priceAmountDzd: 134000,
+      priceAmountDzd: 6400,
       stockNote: "sold-out",
       stockNotes: ["sold-out"],
       description: "Sac mom RACÈLIA en cuir gris, anses courtes et zips dorés.",

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="60 20 640 560" width="640" height="560">
+  <defs>
+    <linearGradient id="face" gradientUnits="userSpaceOnUse" x1="128" y1="378" x2="208" y2="478">
+      <stop offset="0" stop-color="#c21526"/>
+      <stop offset="0.4" stop-color="#ee1a2c"/>
+      <stop offset="1" stop-color="#9b1220"/>
+    </linearGradient>
+    <linearGradient id="topFold" x1="500" y1="80" x2="670" y2="170">
+      <stop offset="0" stop-color="#9a1520"/>
+      <stop offset="1" stop-color="#4c0912"/>
+    </linearGradient>
+    <linearGradient id="bottomFold" x1="0" y1="440" x2="0" y2="560">
+      <stop offset="0" stop-color="#8a1420"/>
+      <stop offset="1" stop-color="#3e070e"/>
+    </linearGradient>
+  </defs>
+  <polygon points="155,455 220,490 188,558 118,520" fill="url(#bottomFold)"/>
+  <polygon points="500,95 580,195 662,152 582,50" fill="url(#topFold)"/>
+  <path fill="url(#face)" d="M128,378 A64 64 0 0 0 208,478 L580,195 L500,95 Z"/>
+  <g transform="translate(354 286) rotate(-37)" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-weight="800">
+    <text x="-4" y="-24" text-anchor="middle" font-size="52" letter-spacing="0.6">SPECIAL</text>
+    <text x="10" y="36" text-anchor="middle" font-size="42" letter-spacing="1.4">OFFER</text>
+  </g>
+</svg>

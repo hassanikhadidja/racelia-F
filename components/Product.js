@@ -11,9 +11,8 @@ export function createProduct(product, index) {
       images: Array.isArray(product.images) && product.images.length ? product.images : full.images,
     });
     card.classList.add("reveal");
-    card.setAttribute("role", "link");
-    card.setAttribute("tabindex", "0");
-    card.setAttribute("aria-label", `View ${product.name || full.name}`);
+    card.tabIndex = 0;
+    card.setAttribute("aria-label", product.name || full.name);
     return card;
   }
 
