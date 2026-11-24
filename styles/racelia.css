@@ -2601,6 +2601,10 @@ body.menu-open {
     object-position: 28% 42%;
   }
 
+  .mobile-home__photo.is-swapping {
+    opacity: 0;
+  }
+
   .mobile-home__photo[data-mall-product] {
     cursor: pointer;
   }

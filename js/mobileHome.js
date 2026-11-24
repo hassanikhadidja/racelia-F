@@ -1054,14 +1054,66 @@ function slidesFor(tabId) {
   return slides;
 }
 
+function homeHeroUrls() {
+  const urls = [toutHeroImage, HOME_KIDS_HERO];
+  Object.entries(VIEWS).forEach(([id, view]) => {
+    if (id === "enfants") return;
+    if (view?.banner) urls.push(view.banner);
+  });
+  return [...new Set(urls)];
+}
+
+function warmupHomeHeroes() {
+  if (warmupHomeHeroes.done) return;
+  warmupHomeHeroes.done = true;
+  homeHeroUrls().forEach((url) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.src = url;
+  });
+}
+
+function setHomeHeroPhoto(photo, url, { priority = false } = {}) {
+  if (!photo || !url) return;
+  const currentSrc = photo.getAttribute("src") || photo.currentSrc || "";
+  const alreadyShown =
+    photo.complete &&
+    photo.naturalWidth &&
+    (photo.dataset.heroUrl === url || currentSrc === url || currentSrc.endsWith(url) || url.endsWith(currentSrc));
+  if (alreadyShown && !photo.classList.contains("is-swapping")) {
+    photo.dataset.heroUrl = url;
+    return;
+  }
+  const token = String((Number(photo.dataset.heroToken) || 0) + 1);
+  photo.dataset.heroToken = token;
+  photo.dataset.heroUrl = url;
+  const probe = new Image();
+  probe.src = url;
+  const cached = Boolean(probe.complete && probe.naturalWidth);
+  if (!cached) photo.classList.add("is-swapping");
+  applyResponsiveImage(photo, url, {
+    eager: true,
+    priority,
+    sizes: HERO_SIZES,
+    widths: HERO_WIDTHS,
+  });
+  photo.decoding = cached ? "async" : "sync";
+  const reveal = () => {
+    if (photo.dataset.heroToken !== token) return;
+    photo.classList.remove("is-swapping");
+  };
+  if (cached || photo.complete) {
+    reveal();
+    return;
+  }
+  photo.addEventListener("load", reveal, { once: true });
+  photo.addEventListener("error", reveal, { once: true });
+}
+
 function applyKidsHeroPhoto(section, src = KIDS_HERO) {
   const photo = section?.querySelector(".mobile-home__photo");
   if (!photo) return;
-  applyResponsiveImage(photo, src, {
-    eager: true,
-    sizes: "100vw",
-    widths: [375, 750],
-  });
+  setHomeHeroPhoto(photo, src, { priority: true });
 }
 
 function applySlide(root, index, host) {
@@ -1072,11 +1124,7 @@ function applySlide(root, index, host) {
 
   section.dataset.slide = String(index);
   const photo = section.querySelector(".mobile-home__photo");
-  applyResponsiveImage(photo, slide.image, {
-    eager: true,
-    sizes: HERO_SIZES,
-    widths: HERO_WIDTHS,
-  });
+  setHomeHeroPhoto(photo, slide.image, { priority: true });
 
   const kicker = section.querySelector(".mobile-home__campaign-kicker");
   const title = section.querySelector(".mobile-home__campaign-title");
@@ -1119,12 +1167,17 @@ function renderCampaign(root, tabId) {
   if (!view) {
     section._slides = [];
     dots.replaceChildren();
-    applyResponsiveImage(photo, toutHeroImage, {
-      eager: true,
-      priority: true,
-      sizes: HERO_SIZES,
-      widths: HERO_WIDTHS,
-    });
+    setHomeHeroPhoto(photo, toutHeroImage, { priority: true });
+    if (photo) {
+      delete photo.dataset.mallProduct;
+      photo.alt = "";
+    }
+    return;
+  }
+  if (tabId === "enfants") {
+    section._slides = [];
+    dots.replaceChildren();
+    setHomeHeroPhoto(photo, HOME_KIDS_HERO, { priority: true });
     if (photo) {
       delete photo.dataset.mallProduct;
       photo.alt = "";
@@ -1351,6 +1404,8 @@ function onMobileHomeClick(root, event) {
     const next = tab.dataset.mallTab;
     section.dataset.tab = next;
     if (tab.dataset.homeCircle) section.dataset.circle = tab.dataset.homeCircle;
+    const nextHero = next === "enfants" ? HOME_KIDS_HERO : VIEWS[next]?.banner || toutHeroImage;
+    setHomeHeroPhoto(section.querySelector(".mobile-home__photo"), nextHero, { priority: true });
     const view = VIEWS[next];
     setSelectedAudience(view?.audience || "");
     root.dispatchEvent(new CustomEvent("racelia:audience-changed"));
@@ -1728,6 +1783,8 @@ export function applyHomeTab(root, tabId, circle = "") {
   section.dataset.tab = next;
   if (circle) section.dataset.circle = circle;
   else delete section.dataset.circle;
+  const nextHero = next === "enfants" ? HOME_KIDS_HERO : VIEWS[next]?.banner || toutHeroImage;
+  setHomeHeroPhoto(section.querySelector(".mobile-home__photo"), nextHero, { priority: true });
   setSelectedAudience(VIEWS[next]?.audience || "");
   renderMobileHome(root);
   const tabButton = section.querySelector(`.mobile-home__tab[data-mall-tab="${next}"]`);
@@ -1746,6 +1803,9 @@ export function initMobileHome(root) {
       section.addEventListener("click", (event) => onMobileHomeClick(root, event));
     }
     renderMobileHome(root);
+    const warm = () => warmupHomeHeroes();
+    if (typeof requestIdleCallback === "function") requestIdleCallback(warm, { timeout: 800 });
+    else setTimeout(warm, 200);
   }
 
   const mall = root.querySelector("#categoryMall");

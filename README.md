@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RACÈLIA
 
-## Getting Started
+![RACÈLIA storefront and menu. A luxury fashion store for Algeria, built as a Next.js shop in front of a separate API.](docs/racelia-banner.jpg)
 
-First, run the development server:
+L'ART DU GESTE, collection 2026. Bags, shoes, accessories, fragrance, kids, bridal, and hammam, sold from Algiers to the rest of the country.
+
+The shop you see above is the Next.js storefront. Orders, accounts, and the catalog live on a separate Express API, with MongoDB behind it. Photos sit on Cloudinary. The public site is [racelia.com](https://racelia.com).
+
+## On the floor
+
+- Browse by world: femme, homme, enfants, mariée, hammam, sacs, shoes, parfums, and a wholesale catalogue. Search, product pages, and a wishlist sit next to the grid.
+- Fill a bag and check out by wilaya and commune. Pay on delivery, or choose Visa, Mastercard, PayPal, CIB, or Edahabia.
+- Prices are stored in dinars and can be shown in DZD, euro, or dollar. The shop speaks French and English.
+- An account keeps the profile, past orders, reviews, returns, gift cards, and a loyalty discount at checkout.
+- Boutiques, corners, and ateliers are listed on the site and edited from the dashboard.
+
+## Behind the counter
+
+The same API feeds an admin dashboard: products, orders, users, blogs, boutiques, collected emails, reviews, and RACÈLIASTYLE looks.
+
+## How it is built
+
+| | |
+| --- | --- |
+| Front end | Next.js 16, React 19 |
+| Backend | Node.js, Express 5, MongoDB Atlas, Mongoose, JWT |
+| Images | Cloudinary |
+| Hosting | Vercel. The storefront is racelia.com. The API runs as its own Vercel service. |
+
+## Run the shop
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Point the storefront at the API with `.env.local`:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+NEXT_PUBLIC_API_URL=https://rac-lia-backend-n485.vercel.app
+```
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The API itself lives in the sibling `Racélia backend` project (Express, MongoDB Atlas, Cloudinary).
